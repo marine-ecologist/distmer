@@ -1,0 +1,15 @@
+^\.claude$
+^\.DS_Store$
+^.*\.Rcheck$
+^.*\.tar\.gz$
+^CODEX_TASK_distance_mixed_PERMANOVA\.md$
+^\.github$
+^tools$
+^cran-comments\.md$
+code/
+^.*\.Rproj$
+^\.Rproj\.user$
+^distmer\.Rproj$
+^docs$
+^pkgdown$
+^_pkgdown\.yml$

@@ -1,0 +1,12 @@
+pandoc: 3.7.0.2
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  contrasts: contrasts.html
+  dispersion: dispersion.html
+  fixed-effects: fixed-effects.html
+  getting-started: getting-started.html
+  random-effects: random-effects.html
+  unbalanced-mixed: unbalanced-mixed.html
+  validation: validation.html
+last_built: 2026-07-23T02:31Z

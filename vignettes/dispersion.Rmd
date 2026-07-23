@@ -1,0 +1,178 @@
+---
+title: "Dispersion and distance diagnostics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{3. Dispersion and distance diagnostics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 4.5,
+  fig.align = "center"
+)
+library(distmer)
+library(vegan)
+library(ggplot2)
+theme_set(theme_minimal(base_size = 12))
+data(dune, dune.env, package = "vegan")
+```
+
+
+The vignette separates three checks that are often conflated:
+
+1. Does the chosen distance behave as expected?
+2. Do group centres differ in the full distance space?
+3. Do groups differ in their spread around those centres?
+
+## Compare plausible ecological distances
+
+```{r distances}
+bray <- vegdist(dune, method = "bray")
+jaccard <- vegdist(dune, method = "jaccard", binary = TRUE)
+
+bray_diag <- distance_diagnostics(bray)
+jaccard_diag <- distance_diagnostics(jaccard)
+
+data.frame(
+  distance = c("Bray-Curtis", "binary Jaccard"),
+  negative_axes = c(bray_diag$negative_count, jaccard_diag$negative_count),
+  negative_to_positive_inertia = c(
+    bray_diag$negative_ratio, jaccard_diag$negative_ratio
+  ),
+  euclidean = c(bray_diag$euclidean, jaccard_diag$euclidean)
+)
+```
+
+`distance_diagnostics()` applies the same Gower-centring operation to every
+valid symmetric dissimilarity matrix,
+
+\[
+G = -\tfrac{1}{2} J D^2 J, \qquad J = I - \mathbf{1}\mathbf{1}^{\mathsf T}/n.
+\]
+
+What is **not** fixed across distances is the geometry produced by that
+operation. A Euclidean distance gives a positive semi-definite `G`; many useful
+ecological dissimilarities give some negative eigenvalues. `distmer` retains
+those signed contributions instead of silently discarding them. The negative
+inertia ratio is a diagnostic, not an automatic reason to abandon Bray--Curtis.
+
+```{r spectrum, fig.alt="Signed Gower eigenvalues for Bray-Curtis and binary Jaccard distances"}
+spectrum_data <- rbind(
+  data.frame(distance = "Bray-Curtis", axis = seq_along(bray_diag$eigenvalues),
+             eigenvalue = bray_diag$eigenvalues),
+  data.frame(distance = "binary Jaccard",
+             axis = seq_along(jaccard_diag$eigenvalues),
+             eigenvalue = jaccard_diag$eigenvalues)
+)
+
+ggplot(spectrum_data, aes(axis, eigenvalue, fill = eigenvalue < 0)) +
+  geom_col(width = 0.8, show.legend = FALSE) +
+  geom_hline(yintercept = 0, colour = "grey35") +
+  facet_wrap(~ distance, scales = "free_y") +
+  scale_fill_manual(values = c("#0072B2", "#D55E00")) +
+  labs(title = "Distance geometry is visible, not corrected silently",
+       x = "Gower eigenvalue rank", y = "Eigenvalue")
+```
+
+Large negative contributions deserve investigation: check transformations,
+zero-heavy samples, data errors, and whether another ecological distance better
+matches the question. Any correction or alternative distance should be
+reported as a sensitivity analysis because it changes the geometry being
+tested.
+
+## Location and dispersion answer different questions
+
+Example using the balanced NM and SF management subsets of `dune` dataset (n=6 per group).
+The location model asks whether the group centres differ. The dispersion model
+asks whether observations differ in their average distance to their own group
+centre.
+
+```{r data}
+selected <- dune.env$Management %in% c("NM", "SF")
+community <- dune[selected, ]
+env <- droplevels(dune.env[selected, , drop = FALSE])
+subset_bray <- vegdist(community, method = "bray")
+table(env$Management)
+```
+
+```{r tests}
+location <- permanova(
+  subset_bray ~ Management, env, permutations = 999, seed = 82
+)
+dispersion <- permanova_dispersion(
+  subset_bray ~ Management,
+  env,
+  term = "Management", type = "median",
+  permutations = 999, seed = 82
+)
+
+location$table[1, c("Pseudo-F", "P(perm)")]
+dispersion$table[1, c("pseudo_f", "p_perm")]
+```
+
+```{r distance-plot, fig.alt="Distances of NM and SF dune sites to their group spatial medians"}
+disp_plot <- data.frame(
+  Management = dispersion$group,
+  distance_to_median = dispersion$distances
+)
+
+ggplot(disp_plot, aes(Management, distance_to_median, colour = Management)) +
+  geom_boxplot(width = 0.55, outlier.shape = NA, alpha = 0.15) +
+  geom_jitter(width = 0.08, height = 0, size = 2.5) +
+  guides(colour = "none") +
+  labs(title = "Within-group multivariate spread",
+       x = "Management", y = "Distance to group spatial median")
+```
+
+A location result is easier to interpret when dispersion is similar. If both
+tests are significant, show the distances and ordination and describe the
+result as a difference in multivariate distributions rather than attributing
+it solely to a shift in composition. A non-significant dispersion result is not
+proof that the complete distributions are identical.
+
+## Agreement with vegan
+
+For an ordinary one-factor design, the spatial-median response and pseudo-F
+agree with `vegan::betadisper()`.
+
+```{r vegan-reference}
+vegan_dispersion <- betadisper(subset_bray, env$Management, type = "median")
+c(
+  maximum_distance_difference = max(
+    abs(dispersion$distances - vegan_dispersion$distances)
+  ),
+  distmer_F = dispersion$test$statistic,
+  vegan_F = unname(anova(vegan_dispersion)["Groups", "F value"])
+)
+```
+
+`type = "median"` is the default because it generally has better small-sample
+behaviour; `type = "centroid"` is available when comparison with a centroid-
+based analysis is required. For non-Euclidean distances, both positive and
+negative PCoA axes contribute to the pseudo-Euclidean distance-to-centre
+calculation.
+
+## Repeated and blocked sampling
+
+Repeated samples from the same site are not independent evidence about site-
+level dispersion. With a formula such as `~ treatment + (1 | site)`, compile
+the design and pass it to `permanova_dispersion()`; intact sites then form the
+exchangeable units. Balanced nested and randomized-block structures are
+handled in the same design-aware way.
+
+```{r repeated-template, eval=FALSE}
+repeated_design <- compile_permanova_design(
+  ~ treatment + (1 | site), field_data, field_distance
+)
+permanova_dispersion(
+  repeated_design, term = "treatment", type = "median",
+  permutations = 9999, seed = 82
+)
+```
+
+At present, dispersion inference requires one categorical target with equal
+group sizes and a supported balanced sampling structure. Unequal target-group
+sizes and multifactor dispersion models are not silently approximated.
+

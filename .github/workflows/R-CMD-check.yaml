@@ -1,0 +1,53 @@
+name: R-CMD-check
+
+on:
+  push:
+    branches: [main, master, develop, dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (R release)
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: ubuntu-latest}
+          - {os: macos-latest}
+          - {os: windows-latest}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Structural release audit
+        run: Rscript tools/release-audit.R
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual", "--as-cran")'
+          upload-snapshots: true
+
+      - name: Upload source package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-${{ matrix.config.os }}
+          path: '*.tar.gz'
+          if-no-files-found: ignore

@@ -1,0 +1,597 @@
+# distmer 0.9.0.9000
+
+## Versioning reset before the first stable release
+
+- The active package version is now `0.9.0.9000`: a pre-release development
+  line leading to the first stable `1.0.0` release.
+- Earlier version-like numbers were internal implementation checkpoints, not
+  published package releases. Their detailed notes remain below for audit
+  traceability but are explicitly labelled as unreleased checkpoints.
+- Four-component `.9000` versions are development snapshots. The public release
+  will use `1.0.0`, with later releases following semantic versioning.
+
+_The source previously carrying the internal `2.9.1.9000` label was renumbered
+to `0.9.0.9000`; this is a version-policy correction, not a rollback of code or
+validated capability._
+
+## Mixed-covariate and asymptotic-inference hardening
+
+- Rebuilt the documentation as a seven-guide ecological workflow: an explicit
+  distance-based mixed-model introduction, fixed effects, pairwise contrasts,
+  distance and dispersion diagnostics, unbalanced designs, random effects, and
+  reproducible validation. Worked examples now use `vegan::dune`,
+  `vegan::mite`, and `vegan::pyrifos`, with `ggplot2` figures. Implementation
+  routing is kept as a secondary reference in the random-effects guide.
+
+- Mixed and nested covariate projectors now use scale-aware stratum projection,
+  so structurally zero between/within components cannot acquire numerical rank.
+  Single-random-intercept models assign a numeric term that is constant within
+  groups to the between-group stratum. Nested covariate inference rejects a
+  numeric term with no deepest-stratum variation because that higher-level term
+  requires a denominator outside the supported envelope.
+- Nested covariate Type I/II/III hypotheses now apply to covariate main effects
+  and slope interactions as well as factors. Their Freedman--Lane reduced model
+  retains every term used to adjust the observed numerator.
+- Balanced random-intercept inference now honours Type I/II/III fixed-effect
+  hypotheses instead of coupling the numerator partition to the random-effect
+  denominator choice.
+- `P(MC)` now derives its eigenvalue spectrum from each test's orthogonal
+  numerator-plus-denominator stratum. Variation outside that stratum can no
+  longer change an upper-level mixed-model p-value.
+- `permanova_mixed_covariate(permutations = "all")` now enumerates the actual
+  whole-group or within-group action, respects `max_exact`, and reports its
+  finite attainable space.
+- Continuous random-slope sign-flip inference remains available with unequal
+  covariate information. The parametric `F(1, ng - 1)` reference is now limited
+  to rank-one Euclidean slopes with equal within-group `SSx`; the slope variance
+  component subtracts `MS[Residual] * mean(1 / SSx)`.
+- The source release audit scans all Rd files and the current seven-vignette
+  series. Development handoff and readiness documents now follow the active
+  version rather than the retired Phase 28 tree.
+
+_Internal checkpoint label: `2.9.0.9000` (unreleased)._
+
+## Type I / II / III sums of squares for the fixed part of mixed designs
+
+- The `type` argument of `permanova()` now applies to the covariate-adjusted
+  mixed engines, not only pure fixed-effect models. `permanova_mixed_covariate()`
+  and `permanova_nested_covariate()` gained a `hypothesis` argument (`"I"`
+  sequential, `"II"` marginal/containment-respecting, `"III"` partial), threaded
+  from the front-door `type`. The sum-of-squares type changes only how each
+  fixed term's numerator reduced model is formed; the random-structure
+  denominator is unchanged. Types coincide for an orthogonal balanced fixed
+  structure and differ only when the fixed terms are non-orthogonal (crossed
+  factors with unequal cell counts). Validated against `car::Anova`: for a
+  block design with an unbalanced within-block `A*B` structure, distmer
+  reproduces the Type I, Type II, and (through the front door's automatic
+  sum-to-zero contrasts) Type III F ratios exactly. The front door no longer
+  warns that `type` is ignored for these engines.
+
+_Internal checkpoint label: `2.8.0.9000` (unreleased)._
+
+## Covariate adjustment for single random-intercept designs (split-plot / RCB ANCOVA)
+
+- `permanova(distance ~ factor + covariate + (1 | group))` now routes to a new
+  engine, `permanova_mixed_covariate()`, extending covariate adjustment beyond
+  the balanced nested engine to the single-random-intercept case. Each fixed
+  term is classified by whether it varies within the grouping unit: between-unit
+  (whole-plot) factors are tested over the between-group random-intercept
+  stratum, while within-unit terms -- sub-plot or randomized-block factors,
+  observation-level covariates, and covariate-by-factor slope interactions --
+  are tested over the within-group residual. This is the distance-based
+  split-plot and randomized-block analysis of covariance. Unlike
+  `permanova_nested_covariate()`, it removes the covariate's between-unit
+  component from the factor denominator and adjusts each whole-plot factor for
+  the covariate's *between-unit* slope (which differs from the pooled slope), so
+  a covariate with between-unit structure is handled correctly without a manual
+  `decompose_covariate()` step. Validated to reproduce the whole-plot factor
+  test against `aov(y ~ covariate + factor + Error(group))` and the within-unit
+  (sub-plot factor, covariate, slopes) tests against the corresponding
+  blocked linear model, exactly, including degrees of freedom.
+
+_Internal checkpoint label: `2.7.0.9000` (unreleased)._
+
+## Continuous-covariate random slopes
+
+- `permanova(distance ~ x + (1 + x | group))` with a numeric `x` now routes to
+  a new engine, `permanova_random_slope_continuous()`, for the covariate-by-
+  random model of Anderson, Gorley & Clarke (2008, Fig. 1.48b). The fixed slope
+  has no exact single-source denominator in the full observation space (its
+  expected mean square mixes the random-slope and residual components with
+  different coefficients), so the test aggregates -- exactly as the two-level
+  categorical engine reduces to per-subject difference vectors -- to one
+  within-group slope vector per group, then tests the equally weighted mean
+  slope against the between-group slope variation by whole-group sign flips,
+  with a parametric `F(1, ng - 1)` p-value for Euclidean dissimilarities. For a
+  balanced design this is the exact two-stage slope test, validated to reproduce
+  it to machine precision and to agree closely with `lmerTest`. The earlier
+  attempt to build this denominator with `structured_denominator()` was
+  abandoned: the differing expected-mean-square coefficients inflated the
+  synthesised denominator and pushed the pseudo-F ~1.6x below both gold
+  standards, whereas the aggregated slope-vector test matches them exactly.
+- `permanova_random_slope()` (the balanced two-level categorical sign-flip
+  engine) now rejects a continuous slope variable with a message pointing to
+  the continuous engine, instead of failing obscurely.
+
+_Internal checkpoint label: `2.6.0.9000` (unreleased)._
+
+## Monte-Carlo asymptotic p-value: P(MC)
+
+- `permanova()` now reports `P(MC)` alongside `P(perm)` for designs tested in
+  the full observation space (fixed, balanced mixed, nested, crossed, hybrid).
+  Following McArdle & Anderson (2001) and Anderson & Robinson (2003), the
+  numerator and denominator sums of squares are drawn from the eigenvalue-
+  weighted chi-square distribution implied by the Gower matrix, so the p-value
+  stays smooth when the true permutation space is tiny -- the usual situation
+  for the upper strata of a mixed design, where restricted permutation yields
+  very few unique arrangements. It reduces exactly to the classical F
+  distribution in the univariate Euclidean limit; validated against `aov()`
+  for a one-way design and against the exact balanced-mixed F-test over its
+  stratum. Controlled by `mc_permutations` (default 9999; set 0 to disable) and
+  reproducible from `seed`. Aggregated-unit engines (random slope, unequal
+  random intercept, unbalanced nested/hybrid) test in a reduced centroid space
+  where the full-matrix asymptotics do not hold, so their `P(MC)` is left `NA`.
+
+## PRIMER-style nested containment labels
+
+- Covariate-adjusted nested summaries now label strata with PRIMER containment
+  notation (`Site(Location)`, `Area(Site(Location))`, `Residual`) in the table,
+  the denominators, and the `V()` variance components, derived from the design's
+  nesting rather than hard-coded. The estimates of components of variation are
+  reported in a single PRIMER-style block with `S()` fixed-effect sizes and
+  `V()` random variance components.
+
+_Internal checkpoint label: `2.5.0.9000` (unreleased)._
+
+## Structured mixed-model denominators
+
+- Added `structured_denominator()`, a Cornfield--Tukey / Satterthwaite
+  denominator constructor that synthesises mean squares in containment-lattice
+  order rather than by the minimum-norm match used in `quasi_denominator()`. On
+  a clean balanced design it returns the exact single-source denominator; on a
+  perturbed (e.g. random-slope) design it returns the structured combination
+  with Satterthwaite degrees of freedom. Validated against the clean balanced
+  limit and against `lmerTest` denominator df (the latter requires the covariate
+  to be within-centred, e.g. via `decompose_covariate()`, so the fixed slope's
+  expected mean square is not contaminated by the random intercept).
+
+## Covariate-adjusted nested inference
+
+- Added `permanova_nested_covariate()` (and auto-routing from `permanova()`):
+  categorical factors in a balanced `/`-generated hierarchy can now be tested
+  while adjusting for one or more continuous covariates, matching PRIMER's
+  covariate handling (test the factors "above" the covariate relationship).
+  Each factor's numerator is adjusted for the covariate; its denominator stays
+  the exact nested expected-mean-square stratum. The covariate is an
+  observation-level nuisance charged to the deepest within-unit residual and
+  tested there, so degrees of freedom partition every observation. A covariate
+  with strong between-unit structure should be split into explicit between- and
+  within-unit predictors. The `permanova_nested()` error message now names a
+  within-unit continuous covariate as the cause instead of advising `contr.sum`.
+- Covariate-by-factor interactions are now tested. Writing `factor * covariate`
+  in a nested design adds the homogeneity-of-slopes term (e.g.
+  `Location:Volume`), tested over the residual as an observation-level term,
+  with degrees of freedom taken from the residual. Previously such a term was
+  silently dropped and the model collapsed to the additive one. Covariate-by-
+  *random* interactions (random slopes) remain unsupported: their expected mean
+  squares admit no exact or cleanly constructed denominator.
+- Added `decompose_covariate()`, a Mundlak-style helper that splits a covariate
+  into between-unit (grouping-unit mean) and within-unit (deviation) parts, so
+  a covariate with strong between-unit structure can be entered as two explicit
+  predictors. The within part is a genuine observation-level covariate for
+  `permanova_nested_covariate()`; the between part is a unit-level summary.
+
+## Unified front door
+
+- `permanova()` accepts the dissimilarity on the formula's left-hand side,
+  `permanova(bray ~ treatment + (1 | site), data)`, matching the
+  `vegan::adonis2()` idiom; the one-sided `~ terms` form with a separate
+  `distance` argument still works. The assembled PERMANOVA table is exposed as
+  `$table` on the result.
+- Added `permanova()`, a single entry point that accepts a formula (with data
+  and distance) or a compiled `permanova_design`, routes it to the engine
+  matching its random-effect provenance and balance, and returns a result that
+  prints as a PERMANOVA table with a Factors block, denominators, and
+  components of variation. Designs outside every supported envelope stop with a
+  message rather than being approximated.
+- Added `type = "I"|"II"|"III"` to select the fixed-effect sum-of-squares
+  partition; it is reported as not applicable for designs whose denominator is
+  fixed by the random structure. When called with a formula, `permanova()`
+  applies sum-to-zero contrasts to the fixed factors on a copy of the data, so
+  Type III (and cross-level factor interactions) give the correct marginal
+  hypotheses without the caller setting `contrasts()`. A pre-compiled design
+  keeps whatever contrasts it was built with.
+- The PERMANOVA table shows a grand `Total` row only when the reported sources
+  partition every observation degree of freedom; aggregated-unit engines
+  (random slope, unequal random intercept, unbalanced nested/hybrid) omit it.
+- `summary()` of a fixed crossed/factorial model now prints the PRIMER-style
+  expected-mean-squares, pseudo-F construction, and components-of-variation
+  blocks. Each term's EMS coefficient is the trace-derived `tr(H Z Z') / df`
+  and its component estimate is `(MS_term - MS_res) / coefficient`; negative
+  estimates are retained.
+- Type II sums of squares now respect marginality instead of rejecting a main
+  effect contained in an interaction. A term is adjusted for every term that
+  does not contain it (the containing interactions are excluded), giving the
+  standard SAS/`car`/PRIMER "Type II (conditional)" hypothesis; factor SS match
+  `car::Anova(type = 2)` to numerical tolerance. No additive refit is required.
+- Consolidated the vignette set from 24 example-indexed articles to 8 organised
+  by design family.
+
+_Internal checkpoint label: `2.4.0.9000` (unreleased)._
+
+## Development
+
+- Preserved the sealed v2.0.0 technical candidate while preparing the
+  publication handoff and the next validated inference phase.
+- Closed Phase 23 external adversarial validation across Phases 19--25. The
+  sealed v2.0.0 and Phase 25 artifacts matched their pinned checksums, all
+  independent scalar/permutation references agreed to machine precision, and
+  the confounded-strata safeguards held.
+- Added an SVD condition-ratio guard for covariate-adjusted contrasts. A
+  numerically near-aliased fixed model now rejects with an actionable package
+  diagnostic before the contrast projector can leak a low-level `solve()`
+  error; the ratio is retained in adjusted-mean metadata.
+- Phase 25 targets child- and observation-level treatment inference in one
+  unbalanced parent/child hierarchy with explicit unit-scale denominators and
+  within-parent exchangeability contracts.
+- Added `permanova_unbalanced_nested_lower()` with automatic assignment-level
+  detection, connected-incidence and absolute-scale span guards, exhaustive or
+  Monte Carlo restricted residual permutations, and complete Test
+  Specifications.
+- Extended mixed planned/pairwise contrasts and mixed global-null max-F to the
+  same child- and observation-level unit models.
+- Added scalar GLH and direct permutation reconstruction, a pinned two-level
+  simulation audit, adversarial failure cases, and a Pyrifos occasion vignette.
+- Phase 26 adds unbalanced treatment-by-region/site hybrid inference on
+  equal-site-weight complete profile centroids, with additive region
+  adjustment and region-by-exact-topology profile permutations.
+- Routed mixed planned/pairwise and weak complete-null max-F inference through
+  the same unbalanced profile model and common region reference grid.
+- Added connected-incidence, complete-site-profile, topology-span, residual-df,
+  zero-denominator, and non-Euclidean safeguards plus scalar and exhaustive
+  profile reconstruction tests.
+- Phase 27 adds the narrow correlated `(1 + condition | subject)` model for
+  balanced complete two-condition repeated measures.
+- Added residual-corrected random intercept--slope trace covariance estimates,
+  optional positive-semidefinite truncation, and exhaustive whole-subject
+  sign-flip inference under an explicit central-symmetry assumption.
+- Added paired-t-squared, scalar covariance, direct sign-flip, asymmetric-null
+  sensitivity, semimetric, and Pyrifos early-versus-late validation.
+- Phase 28 adds `permanova_pairwise_strong()` for fixed one-factor all-pair
+  complete-distribution equality hypotheses.
+- Every intersection uses a separate sample-size-preserving raw-label action
+  within connected equality components; closed testing then provides strong
+  FWER without assuming subset pivotality.
+- The proof excludes centroid-only nulls with unequal distributions, planned
+  non-pairwise contrasts, dependent observations, and mixed or repeated
+  designs. Exact reconstruction, partial-null preservation, calibration, and
+  a Dune management vignette enforce that boundary.
+
+_Internal checkpoint label: `2.0.0` (unreleased)._
+
+## Validated support-contract consolidation
+
+- Added `permanova_capabilities()` and `SUPPORT-MATRIX.md` as machine- and
+  human-readable maps of every primary inferential engine.
+- Each registry row states its validated design envelope, estimand,
+  denominator, permutation contract, error-control claim, and explicit
+  exclusions; runtime design validators remain authoritative.
+- Extended deterministic and structural release gates to cover the registry,
+  support matrix, public API, all 20 vignettes, and the complete Phase 1--22
+  documentation sequence.
+
+_Internal checkpoint label: `1.8.0` (unreleased)._
+
+## Mixed-design global-null max-F inference
+
+- Added `permanova_mixed_maxT()` and
+  `permanova_mixed_maxT_pairwise()` for all balanced and unbalanced mixed
+  treatment structures already supported by the mixed-contrast engine.
+- One shared raw experimental-unit permutation stream respects whole-unit,
+  exact-size, hierarchy-topology, block-by-size, or region strata and forms a
+  maximum pseudo-F distribution.
+- Results explicitly claim only weak familywise error control under the
+  complete treatment-null randomization hypothesis.
+- Added exact block enumeration, scalar unit-centroid reconstruction,
+  non-Euclidean coverage, a 5,000-dataset weak-FWER audit, and a Pyrifos dose
+  vignette.
+
+_Internal checkpoint label: `1.7.0` (unreleased)._
+
+## Explicit continuous-covariate adjusted contrasts
+
+- Added `derive_adjusted_means()`, `permanova_adjusted_contrasts()`, and
+  `permanova_adjusted_pairwise()` for full-rank fixed models containing
+  categorical factors and ordinary numeric covariates.
+- Every continuous nuisance covariate requires an explicit finite reference
+  value; categorical nuisance factors use declared equal-grid or observed-
+  frequency weighting.
+- Added coefficient-space GLH checks, exhaustive direct Freedman--Lane
+  reconstruction, non-Euclidean coverage, a pinned 500-replicate validation,
+  and a Dune Management-by-A1 vignette.
+
+_Internal checkpoint label: `1.6.0` (unreleased)._
+
+## Unbalanced mixed-design contrasts
+
+- Extended `permanova_mixed_contrasts()` and
+  `permanova_mixed_pairwise()` to unequal random-intercept units, unbalanced
+  top-level parent/child hierarchies, and incomplete or unequally replicated
+  randomized blocks.
+- Cluster-size, complete-topology, and block-by-cell-size strata reuse the
+  amended absolute-scale span guard before any contrast permutation.
+- Incomplete blocks use equally weighted observed cell centroids, an additive
+  block model, and treatment means averaged over one common block reference
+  grid.
+- Added scalar GLH checks for all three structures, exhaustive direct
+  permutation reconstruction, a pinned 500-replicate audit, and an unequal-
+  replication Pyrifos vignette.
+
+_Internal checkpoint label: `1.5.1` (unreleased)._
+
+## Stratified-exchangeability safeguard amendment
+
+- Replaced relative QR rank checks in the Phase 11 and Phase 12
+  exchangeability-span guards with an SVD rank threshold measured absolutely
+  relative to the original treatment-design scale.
+- Fully size-confounded, hierarchy-topology-confounded, and within-block
+  cell-size-confounded treatments now reject before permutation instead of
+  admitting a degenerate p-value of one.
+- Added adversarial floating-dust regression tests for all three validators;
+  supported cluster-centroid, top-centroid, and cell-centroid references remain
+  unchanged to machine precision.
+
+_Internal checkpoint label: `1.5.0` (unreleased)._
+
+## Release-candidate hardening
+
+- Added multi-platform R CMD check CI for release R on Linux, macOS, and
+  Windows, including dependency caching and source-package artifact upload.
+- Added a structural release audit for version/news parity, public-API/Rd
+  parity, vignette count, S3 registration, build hygiene, and placeholder
+  publication metadata.
+- Added release-readiness documentation separating a green technical package
+  gate from the unresolved maintainer identity, repository URL, and bug-tracker
+  metadata required before public submission.
+- Added deterministic release-audit tests and a bounded benchmark smoke gate.
+
+_Internal checkpoint label: `1.4.0` (unreleased)._
+
+## Global-null max-F inference
+
+- Added `permanova_maxT()` and `permanova_maxT_pairwise()` for fixed
+  one-factor planned or pairwise contrast families.
+- Every contrast uses one shared raw-observation permutation stream; adjusted
+  p-values compare the observed pseudo-F with the permutation maximum.
+- Results explicitly label the guarantee as weak FWER under the complete
+  equal-centroid null and do not claim strong subset-null control.
+- Added exact brute-force joint-distribution checks, non-Euclidean coverage, a
+  5,000-dataset family-error audit, and a Dune Management vignette.
+
+_Internal checkpoint label: `1.3.0` (unreleased)._
+
+## Mixed-design planned contrasts
+
+- Added `permanova_mixed_contrasts()` and `permanova_mixed_pairwise()` for one
+  categorical treatment in four validated balanced structures: a random
+  intercept, a top-level nested hierarchy, a declared randomized block, and a
+  crossed-nested region/site hybrid.
+- Contrasts operate on equally weighted cluster, top-unit, treatment-cell, or
+  treatment-profile centroids and use the corresponding experimental-unit,
+  treatment-by-block, or treatment-by-region residual denominator.
+- Contrast-specific Freedman--Lane residual permutations move whole units or
+  remain within blocks/regions. Unsupported imbalance and wrong-level
+  treatments reject explicitly.
+- Added scalar GLH references for every structure, exhaustive response-level
+  permutation agreement, a pinned null/power validation, and a Pyrifos
+  planned-contrast vignette.
+
+_Internal checkpoint label: `1.2.0` (unreleased)._
+
+## Multifactor marginal contrasts
+
+- Added `derive_marginal_means()` with explicit equal-reference-grid or
+  observed-frequency nuisance weighting for full-rank categorical fixed models.
+- Added `permanova_marginal_contrasts()` and
+  `permanova_marginal_pairwise()` with general-linear-hypothesis projectors,
+  contrast-specific Freedman--Lane permutations, and explicit multiplicity
+  adjustment.
+- Continuous nuisance variables, random effects, aliased reference grids, and
+  implicit weighting reject before inference.
+- Added scalar GLH and response-reconstruction references, a 500-replicate
+  null/power validation, and a Dune Management-by-Use vignette.
+
+_Internal checkpoint label: `1.1.0` (unreleased)._
+
+## Unequal-random-intercept calibration audit
+
+- Added `audit_unequal_random_intercept_calibration()` to compare exhaustive
+  unique treatment-label assignments, Monte Carlo inference, and the complete
+  distance engine across non-overlapping seed batches.
+- Proved and regression-tested that the intercept-only cluster-centroid
+  Freedman--Lane transformation is algebraically identical to raw centroid
+  permutation.
+- Added Gaussian, heavy-tail, unequal-allocation, and deliberate dispersion-
+  violation scenarios. Only exchangeable nulls contribute to the calibration
+  gate.
+- Distinguished all profile rearrangements from unique treatment-label
+  assignments in Phase 11 result metadata.
+- Fixed a zero-permutation matrix-construction warning in stratified plans.
+- The 40,000-dataset audit explains the earlier elevated 500-dataset batch:
+  valid exact rejection rates are 4.53--4.76%, with full-engine agreement to
+  machine precision.
+
+_Internal checkpoint label: `1.0.0` (unreleased; not the future stable release)._
+
+## Planned contrasts and pairwise post-hoc inference
+
+- Added `permanova_contrasts()` for user-specified one-df contrasts among the
+  centroids of one categorical fixed factor with unequal group sizes.
+- Each contrast retains all orthogonal group-centroid directions as nuisance
+  structure and receives its own Freedman--Lane residual permutation.
+- Added `permanova_pairwise()` to construct every pairwise centroid difference.
+  Holm is the default adjustment; Bonferroni, BH, BY, and no adjustment are
+  explicit alternatives.
+- Invalid/non-zero-sum contrast definitions, mixed or multifactor designs,
+  aliases, and zero residual df reject before inference.
+- Added exact constrained-scalar references, non-Euclidean coverage, a pinned
+  null/power validation, and a Dune planned/pairwise vignette.
+
+_Internal checkpoint label: `0.9.0` (unreleased)._
+
+## Unbalanced nested and randomized-block inference
+
+- Added `permanova_unbalanced_nested()` for one treatment assigned to top
+  units of an unequal parent/child hierarchy. Equally weighted top centroids
+  exchange only among identical sorted child-count topologies.
+- Added `permanova_unbalanced_block()` for incomplete and/or unequally
+  replicated randomized blocks with an explicit treatment:block component.
+  Equally weighted intact cell centroids exchange only within block and exact
+  cell-size strata.
+- Both engines require their restricted permutation action to span every
+  treatment contrast and reject disconnected incidence, confounded topology,
+  aliases, or zero residual df.
+- Added exhaustive scalar reconstructions, non-Euclidean tests, a combined
+  operating-characteristic harness, and a Dune unbalanced-mixed vignette.
+
+_Internal checkpoint label: `0.8.0` (unreleased)._
+
+## Unequal-replication random-intercept inference
+
+- Added `permanova_unequal_random_intercept()` for one cluster-level
+  categorical treatment and one random intercept with unequal observations per
+  unit.
+- The estimand is explicitly cluster weighted: the analysis uses equally
+  weighted cluster centroids rather than silently giving larger clusters more
+  influence.
+- Freedman--Lane residual permutations move complete cluster centroids only
+  within exact cluster-size strata; those strata must span every treatment
+  contrast.
+- No pooled observation-weighted EMS or parametric F distribution is claimed.
+  Non-Euclidean empirical inference retains the complete Gower spectrum.
+- Added exhaustive scalar references, unsafe-design failures, a Pyrifos
+  vignette, and pinned null/power validation.
+
+_Internal checkpoint label: `0.7.0` (unreleased)._
+
+## Unbalanced fixed-effect inference
+
+- Added `derive_unbalanced_hypotheses()` and `permanova_unbalanced()` for
+  explicit fully estimable Type I, II, or III fixed-effect hypotheses.
+- Type I tests are sequential; additive Type II tests are marginal and
+  order-invariant; Type III tests retain all other terms and require a
+  full-rank model plus explicit sum-to-zero contrasts when interactions occur.
+- Partially estimable terms, aliased incomplete Type III models, Type II main
+  effects contained in interactions, zero residual df, and all random-effect
+  structures reject before inference.
+- Every term uses the common full-model residual denominator and its own
+  Freedman--Lane reduced-model residual permutation.
+- Added exact `5!` enumeration, non-Euclidean empirical inference, scalar
+  Type I/II/III references, incomplete-additive coverage, and pinned unequal-
+  cell null/power validation.
+
+_Internal checkpoint label: `0.6.0` (unreleased)._
+
+## Balanced crossed-nested hybrids
+
+- Added `permanova_hybrid()` for one fixed treatment crossed with regions and
+  with sites nested within regions.
+- The exact envelope requires explicit region, region:site,
+  treatment:region, and treatment:region:site random-intercept covariance
+  components, complete treatment occurrence within every site, and equal
+  residual replication.
+- Added orthogonal crossed-nested strata, trace-derived EMS, the exact
+  `MS[treatment:region]` denominator, and unrestricted five-component
+  variance estimates.
+- Exact or seeded Monte Carlo permutations move complete treatment-by-region
+  profiles within regions, carrying every site and replicate descendant
+  intact.
+- Added exhaustive profile-permutation references, non-Euclidean inference,
+  strict provenance/balance failures, and pinned null/power validation.
+
+_Internal checkpoint label: `0.5.0` (unreleased)._
+
+## Design-aware multivariate dispersion
+
+- Added `permanova_dispersion()` for one categorical fixed target in balanced
+  one-way, single-random-intercept, nested, and canonical randomized-block
+  designs.
+- Distances to group spatial medians are the default; centroids and the
+  equal-group-size bias adjustment are explicit options.
+- Positive and negative principal-coordinate axes are retained. Negative
+  squared pseudo-Euclidean distances to a center are counted, warned about,
+  and changed to zero rather than being silently discarded.
+- Dispersion responses use the target term's exact EMS denominator and
+  full-model residual permutations at the correct exchangeability level.
+- One-way geometry, F statistics, and permutation vectors agree with
+  `vegan::betadisper()` and `permutest()` under identical arrangements.
+- Added exhaustive scalar-reference checks for one-way and crossed residual
+  permutations plus a four-structure operating-characteristic validation.
+- Improved the Phase 6 cross-level interaction diagnostic to name explicit
+  `contr.sum` assignment and added an executable split-plot example.
+
+_Internal checkpoint label: `0.4.0` (unreleased)._
+
+## Crossed randomized-block permutation inference
+
+- Added `p_method = "permutation"` to `permanova_crossed()` for the canonical
+  balanced fixed-treatment × random-block model with an explicitly declared
+  treatment-by-block random component.
+- Permutations rearrange complete replicated treatment cells within each block;
+  no replicate separates from its cell and no cell crosses a block.
+- Added exact `(treatments!)^blocks` enumeration, seeded Monte Carlo sampling,
+  attainable-space metadata, duplicate-draw reporting, and retained statistics.
+- Empirical p-values remain available for non-Euclidean dissimilarities while
+  the complete negative spectrum is retained.
+- Added exhaustive two- and three-treatment references, direct response-level
+  statistic comparisons, exchangeability failures, a pinned validation with
+  dispersion sensitivity, and a randomized-block ecological vignette.
+
+_Internal checkpoint label: `0.3.0` (unreleased)._
+
+## Level-specific balanced nested inference
+
+- Generalized `permanova_nested()` from top-level effects to fixed terms
+  assigned at any one orthogonal level of a balanced hierarchy.
+- Region effects permute whole regions, site effects permute intact sites within
+  regions, and observation effects permute observations within deepest units.
+- Test Specifications now record assignment level, parent level, exact
+  level-specific EMS denominator, attainable permutation space, and the
+  hypothesis-specific exchangeability algorithm.
+- Added exhaustive global, within-parent, and within-unit permutation tests;
+  classical nested-ANOVA comparisons at all three levels; balanced cross-level
+  interaction checks; and explicit rejection of level-spanning covariates.
+- Added `simulate_nested_level_validation()` with binomial uncertainty and
+  per-level classical agreement diagnostics.
+
+_Internal checkpoint label: `0.2.0` (unreleased)._
+
+## Balanced nested mixed designs
+
+- Added exact inference for one complete balanced `/`-generated
+  random-intercept hierarchy, such as `(1 | region/site)`, when fixed
+  predictors are constant within top-level units.
+- Added trace-derived nested EMS, an exact residual top-unit denominator, and
+  term-specific Freedman--Lane permutation of intact top-level hierarchies.
+- Added unrestricted nested variance-component estimates, with zero truncation
+  available only as a separately reported sensitivity analysis.
+- Unsupported imbalance, incomplete or crossed hierarchies, random slopes, and
+  wrong-level fixed predictors reject explicitly.
+- Added analytical ANOVA agreement, exhaustive `6!` permutation coverage,
+  three-level hierarchy checks, a 500-replicate calibration experiment, and a
+  nested ecological-community vignette.
+
+_Internal checkpoint label: `0.1.1` (unreleased)._
+
+## Crossed-EMS safety amendment
+
+- Explicit `:` random interactions are distinct from `/` nesting throughout
+  the canonical Design Object.
+- Declared fixed-by-random interaction components enter trace-derived EMS and
+  can provide exact classical interaction denominators.
+- Omitted fixed-by-random components now reject by default. Additive pooling
+  requires `assume_additive = TRUE` and records all assumed-zero components and
+  pooled strata.
+- Satterthwaite p-values are suppressed for non-Euclidean dissimilarities.
+- Added deterministic adversarial checks and a reproducible crossed-interaction
+  Type I validation with binomial confidence intervals.

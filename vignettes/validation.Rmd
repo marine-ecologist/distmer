@@ -1,0 +1,226 @@
+---
+title: "Validation and reproducibility"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Validation and reproducibility}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 4.5,
+  fig.align = "center"
+)
+library(distmer)
+library(vegan)
+library(ggplot2)
+theme_set(theme_minimal(base_size = 12))
+```
+
+A distance-based mixed model should be reproducible at three levels: the data
+and ecological distance, the experimental design and permutation rule, and the
+software result. `distmer` exposes each of these rather than treating a
+pseudo-F and p-value as a black box.
+
+This guide shows reference comparisons, deterministic package checks,
+simulation tools, and a reporting record that can accompany a paper or data
+release.
+
+## Reference agreement on vegan data
+
+For an independent one-factor design, the fixed-effect statistic has the same
+dissimilarity-space definition as `vegan::adonis2()`. The following comparison
+uses the `dune` communities and Bray--Curtis dissimilarity.
+
+```{r adonis-reference}
+data(dune, dune.env, package = "vegan")
+dune_bray <- vegdist(dune, method = "bray")
+
+distmer_fit <- permanova(
+  dune_bray ~ Management, dune.env,
+  permutations = 199, mc_permutations = 0, seed = 101
+)
+vegan_fit <- adonis2(
+  dune_bray ~ Management, dune.env,
+  permutations = 199
+)
+
+data.frame(
+  implementation = c("distmer", "vegan::adonis2"),
+  pseudo_f = c(distmer_fit$table$`Pseudo-F`[1], vegan_fit$F[1])
+)
+```
+
+The statistic should agree to numerical tolerance. Permutation p-values need
+not be identical unless the two functions receive the identical permutation
+matrix; recording only a seed does not guarantee that different packages draw
+the same sequence of arrangements.
+
+The dispersion companion can also be checked against
+`vegan::betadisper()`.
+
+```{r dispersion-reference}
+selected <- dune.env$Management %in% c("NM", "SF")
+two_group_distance <- vegdist(dune[selected, ], method = "bray")
+two_group_env <- droplevels(dune.env[selected, , drop = FALSE])
+dispersion_design <- compile_permanova_design(
+  ~ Management, two_group_env, two_group_distance
+)
+distmer_dispersion <- permanova_dispersion(
+  dispersion_design, term = "Management", type = "median",
+  permutations = 199, seed = 101
+)
+vegan_dispersion <- betadisper(
+  two_group_distance, two_group_env$Management, type = "median"
+)
+
+c(
+  maximum_distance_difference = max(abs(
+    distmer_dispersion$distances - vegan_dispersion$distances
+  )),
+  pseudo_f_difference = distmer_dispersion$test$statistic -
+    unname(anova(vegan_dispersion)["Groups", "F value"])
+)
+```
+
+These are useful anchors, but validation is broader than agreement with one
+package. Mixed designs are also checked against their univariate Euclidean
+counterparts, exact enumeration, independent matrix calculations, and
+operating-characteristic simulations.
+
+## Run the deterministic checks
+
+`run_permanova_validation()` performs the package's fast analytic battery. It
+checks reference statistics, exact permutation counts, projector algebra,
+retained non-Euclidean geometry, mixed-design denominators, and failure
+boundaries.
+
+```{r validation}
+validation_report <- run_permanova_validation()
+validation_report[, c("check", "passed", "metric")]
+stopifnot(all(validation_report$passed))
+```
+
+Keep this report with the package version. A green report shows that the
+installed code reproduces its pinned numeric checks on the current platform;
+it does not certify that a new field design satisfies the package assumptions.
+
+## Use simulations for a proposed design
+
+Simulation asks a different question: how does a planned design behave under
+known null, location-shift, and assumption-stress scenarios? The small run
+below is intentionally only a code example so that the vignette builds quickly.
+
+```{r simulation}
+simulation <- simulate_mixed_validation(
+  simulations = 5, permutations = 19,
+  groups_per_treatment = 4, replicates = 3, seed = 101
+)
+simulation$summary[, c(
+  "scenario", "estimand", "rejection_rate", "monte_carlo_se",
+  "max_abs_denominator_f_difference"
+)]
+```
+
+```{r simulation-plot, fig.alt="Illustrative rejection rates from three mixed-model simulation scenarios"}
+simulation_plot <- simulation$summary
+ggplot(simulation_plot, aes(scenario, rejection_rate, fill = estimand)) +
+  geom_col(width = 0.65) +
+  geom_errorbar(
+    aes(
+      ymin = pmax(0, rejection_rate - 1.96 * monte_carlo_se),
+      ymax = pmin(1, rejection_rate + 1.96 * monte_carlo_se)
+    ),
+    width = 0.15
+  ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(title = "Five simulations are a smoke test, not calibration evidence",
+       x = NULL, y = "Rejection proportion", fill = "Target") +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+For scientific validation, increase the simulation count to hundreds or
+thousands, use realistic abundance distributions and missingness, and report
+binomial uncertainty. Include at least an exchangeable null, a plausible effect,
+dispersion heterogeneity, heavy tails or outliers where relevant, and the exact
+imbalance expected in the survey.
+
+Specialised helpers cover nested, crossed, unbalanced, contrast, random-slope,
+and strong-FWER designs. Their names are available with:
+
+```{r helpers}
+grep("^(simulate|audit)_.*validation$", getNamespaceExports("distmer"),
+     value = TRUE)
+```
+
+## Make the fitted design auditable
+
+A result contains more than its printed table. Preserve the elements that
+identify the statistical question and exchangeability rule.
+
+```{r audit-object}
+names(distmer_fit)
+distmer_fit$engine
+distmer_fit$design$spectral[c(
+  "euclidean", "negative_count", "negative_ratio", "correction"
+)]
+distmer_fit$fit$tests$Management[c(
+  "estimand", "exchangeable_units", "permutation_algorithm"
+)]
+```
+
+For mixed results, also retain the reported denominator, hierarchy assignment,
+unit-centroid weighting, attainable permutation count, and any symmetry or
+additivity assumption. `permanova_capabilities()` records the validated scope
+and exclusions for every specialised implementation.
+
+## A reproducible analysis pattern
+
+```{r reproducible-template, eval=FALSE}
+library(distmer)
+library(vegan)
+
+# 1. Freeze the input and ecological choices.
+community <- read.csv("community.csv", row.names = 1, check.names = FALSE)
+metadata <- read.csv("metadata.csv")
+distance <- vegdist(community, method = "bray")
+
+# 2. Fit with an explicit seed and enough permutations for the intended report.
+fit <- permanova(
+  distance ~ treatment + covariate + (1 | site),
+  metadata, permutations = 9999, seed = 20260723
+)
+
+# 3. Save the complete result, not only a copied p-value.
+saveRDS(
+  list(
+    fit = fit,
+    distance_diagnostics = distance_diagnostics(distance),
+    package_version = as.character(packageVersion("distmer")),
+    session = sessionInfo()
+  ),
+  "distance-model-result.rds"
+)
+```
+
+If the attainable permutation space is small, use `permutations = "all"` and
+record that the result is exact. If Monte Carlo sampling is used, the minimum
+possible p-value and its sampling variation should be compatible with the
+claims being made.
+
+## Reporting checklist
+
+- data source, exclusions, transformations, and treatment of zeros;
+- dissimilarity name and settings, plus signed-spectrum diagnostics;
+- formula and Type I/II/III choice where applicable;
+- experimental unit, nesting or crossing, denominator, and estimand;
+- what moved in a permutation or sign flip, and within which strata;
+- requested, attainable, and used permutation counts, plus the seed;
+- location, dispersion, planned contrasts, and multiplicity method;
+- `distmer`, `vegan`, and R versions and the saved fitted object;
+- code and session information sufficient to reproduce every table and figure.
+
+The package tests the algebra it claims to implement. The ecologist remains
+responsible for showing that the distance, model, experimental unit, and
+exchangeability assumptions represent the study that was actually conducted.
