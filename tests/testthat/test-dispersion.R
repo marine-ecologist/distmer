@@ -46,7 +46,7 @@ test_that("one-way dispersion geometry and permutation match vegan", {
       distance, data$Management, type = center
     )
     fit <- permanova_dispersion(
-      design, "Management", type = center, permutations = 19,
+      distance ~ Management, data, type = center, permutations = 19,
       seed = 71, keep_permutations = TRUE
     )
     expect_equal(fit$distances, reference$distances, tolerance = 1e-9)
@@ -80,6 +80,41 @@ test_that("one-way dispersion geometry and permutation match vegan", {
       tolerance = 1e-12
     )
   }
+})
+
+test_that("dispersion accepts formula, one-sided, and compiled-design inputs", {
+  skip_if_not_installed("vegan")
+  data(dune, dune.env, package = "vegan")
+  selected <- dune.env$Management %in% c("NM", "SF")
+  env <- droplevels(dune.env[selected, , drop = FALSE])
+  bray <- vegan::vegdist(dune[selected, ], method = "bray")
+  design <- compile_permanova_design(~ Management, env, bray)
+
+  direct <- permanova_dispersion(
+    bray ~ Management, env, permutations = 0
+  )
+  one_sided <- permanova_dispersion(
+    ~ Management, env, distance = bray, permutations = 0
+  )
+  legacy <- permanova_dispersion(
+    design, "Management", permutations = 0
+  )
+  named_legacy <- permanova_dispersion(
+    design = design, term = "Management", permutations = 0
+  )
+
+  expect_s3_class(direct, "permanova_dispersion")
+  expect_equal(direct$term, "Management")
+  expect_equal(direct$test$statistic, one_sided$test$statistic)
+  expect_equal(direct$test$statistic, legacy$test$statistic)
+  expect_equal(direct$test$statistic, named_legacy$test$statistic)
+  expect_equal(direct$design$distance, as.matrix(bray))
+  expect_error(
+    permanova_dispersion(
+      bray ~ Management, env, distance = bray, permutations = 0
+    ),
+    "Supply the dissimilarity once"
+  )
 })
 
 test_that("small one-way dispersion space is exhaustive", {

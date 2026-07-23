@@ -316,8 +316,17 @@
 #' a validated balanced design. The initial envelope contains exactly one
 #' categorical fixed main effect.
 #'
-#' @param design Canonical Design Object compiled with the original distance.
-#' @param term Name of the sole categorical fixed main-effect term.
+#' @param formula A model formula, or a compiled `permanova_design` object. The
+#'   dissimilarity may be supplied on the left-hand side, for example
+#'   `bray ~ treatment + (1 | site)`, or through `distance` with a one-sided
+#'   formula. A compiled design remains accepted for low-level workflows.
+#' @param data A data frame with one row per observation. Do not supply it when
+#'   `formula` is already a compiled design. For backward compatibility, the second
+#'   positional argument after a compiled design may be the target term name.
+#' @param distance A `dist` object or full distance matrix, used with a
+#'   one-sided formula.
+#' @param term Optional name of the sole categorical fixed main-effect term.
+#'   It is inferred when the model contains exactly one fixed term.
 #' @param type Group spatial `"median"` or `"centroid"`.
 #' @param bias_adjust Apply the small-sample group-size adjustment.
 #' @param permutations A non-negative integer or `"all"`.
@@ -325,24 +334,104 @@
 #' @param keep_permutations Retain permutation statistics.
 #' @param max_exact Maximum exact permutation space.
 #' @param tol Numerical tolerance.
+#' @param design Backward-compatible named alias for a compiled Design Object;
+#'   use `formula = design` or pass the object as the first argument.
 #' @return An object of class `permanova_dispersion`.
+#' @examples
+#' data(dune, dune.env, package = "vegan")
+#' selected <- dune.env$Management %in% c("NM", "SF")
+#' env <- droplevels(dune.env[selected, , drop = FALSE])
+#' bray <- vegan::vegdist(dune[selected, ], method = "bray")
+#' permanova_dispersion(
+#'   bray ~ Management, env, permutations = 19, seed = 1
+#' )
 #' @export
 permanova_dispersion <- function(
-    design, term, type = c("median", "centroid"), bias_adjust = FALSE,
+    formula = NULL, data = NULL, distance = NULL, term = NULL,
+    type = c("median", "centroid"), bias_adjust = FALSE,
     permutations = 999L, seed = NULL, keep_permutations = FALSE,
-    max_exact = 100000L, tol = 1e-10) {
+    max_exact = 100000L, tol = 1e-10, design = NULL) {
+  if (!is.null(design)) {
+    if (!is.null(formula)) {
+      stop("Supply the compiled design once, not through both `formula` and `design`.",
+           call. = FALSE)
+    }
+    formula <- design
+  }
+  if (is.null(formula)) {
+    stop("Supply a formula or a compiled `permanova_design` object.",
+         call. = FALSE)
+  }
+
+  if (inherits(formula, "permanova_design")) {
+    # Preserve the original `permanova_dispersion(design, "term")` call.
+    if (is.null(term) && is.character(data) && length(data) == 1L &&
+        !is.na(data) && nzchar(data)) {
+      term <- data
+      data <- NULL
+    }
+    if (!is.null(data)) {
+      stop("`data` is not used when the first argument is a compiled design.",
+           call. = FALSE)
+    }
+    if (!is.null(distance)) {
+      stop("`distance` is already stored in the compiled design.", call. = FALSE)
+    }
+    compiled <- formula
+  } else if (inherits(formula, "formula")) {
+    model_formula <- formula
+    if (length(formula) == 3L) {
+      if (!is.null(distance)) {
+        stop("Supply the dissimilarity once: on the formula's left-hand side or through `distance`.",
+             call. = FALSE)
+      }
+      distance <- eval(
+        formula[[2L]], envir = data, enclos = environment(formula)
+      )
+      model_formula <- stats::as.formula(
+        call("~", formula[[3L]]), env = environment(formula)
+      )
+    }
+    if (is.null(distance)) {
+      stop(
+        "Supply the dissimilarity: `permanova_dispersion(D ~ group, data)` or ",
+        "`permanova_dispersion(~ group, data, distance = D)`.",
+        call. = FALSE
+      )
+    }
+    if (is.null(data)) {
+      stop("`data` is required when `formula` is a model formula.", call. = FALSE)
+    }
+    compiled <- compile_permanova_design(
+      model_formula, data, distance, tol = tol
+    )
+  } else {
+    stop("`formula` must be a model formula or a compiled `permanova_design` object.",
+         call. = FALSE)
+  }
+
+  if (is.null(term)) {
+    if (length(compiled$fixed_effects) != 1L) {
+      stop(
+        "`term` can be inferred only when the model contains exactly one fixed term.",
+        call. = FALSE
+      )
+    }
+    term <- compiled$fixed_effects[[1L]]
+  }
+
   type <- match.arg(type)
-  target <- .validate_dispersion_target(design, term)
+  target <- .validate_dispersion_target(compiled, term)
   geometry <- .dispersion_geometry(
-    design$distance, target$group, type = type,
+    compiled$distance, target$group, type = type,
     bias_adjust = bias_adjust, tol = tol
   )
   response_design <- .dispersion_response_design(
-    design, geometry$distances, tol = tol
+    compiled, geometry$distances, tol = tol
   )
   if (!is.null(seed)) set.seed(seed)
   setup <- .dispersion_plan(
-    design, response_design, permutations = permutations,
+    compiled, response_design, permutations = permutations,
     max_exact = max_exact, tol = tol
   )
   if (nrow(setup$plan$orders) > 0L &&
@@ -423,7 +512,7 @@ permanova_dispersion <- function(
     row.names = NULL
   )
   out <- list(
-    call = match.call(), design = design, term = term,
+    call = match.call(), design = compiled, term = term,
     engine = setup$engine, table = table, test = specification,
     distances = geometry$distances,
     group = geometry$group, group_distances = geometry$group_distances,

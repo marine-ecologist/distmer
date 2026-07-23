@@ -65,7 +65,7 @@
       <a href="articles/fixed-effects.html">Fixed effects: Type I, II, and III</a>
     </li>
     <li>
-      <a href="articles/getting-started.html">Getting started with distmer</a>
+      <a href="articles/getting-started.html">1. Getting started with distmer</a>
     </li>
     <li>
       <a href="articles/random-effects.html">Random effects and ecological sampling designs</a>
@@ -95,585 +95,144 @@
       </header><div class="row">
   <div class="contents col-md-9">
 <div class="section level1">
-<div class="page-header"><h1 id="distmer">distmer<a class="anchor" aria-label="anchor" href="#distmer"></a>
+<div class="page-header"><h1 id="distmer-">distmer <img src="reference/figures/logo.png" align="right" height="170" alt="distmer hex logo"><a class="anchor" aria-label="anchor" href="#distmer-"></a>
 </h1></div>
-<p>A transparent, extensible R framework for distance-based fixed and mixed models (PERMANOVA-style) in ecological community analysis. Unsupported inference structures fail explicitly instead of receiving an implicit denominator or permutation scheme.</p>
+<!-- badges: start -->
+
 <div class="section level2">
-<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+<h2 id="distance-based-mixed-effects-models-for-ecological-communities">Distance-based mixed-effects models for ecological communities<a class="anchor" aria-label="anchor" href="#distance-based-mixed-effects-models-for-ecological-communities"></a>
 </h2>
-<p><code><a href="reference/permanova.html">permanova()</a></code> is the main user interface. Give it an <code>lmer</code>-style formula with the dissimilarity on the left-hand side. It validates the sampling structure, matches the model to a supported distance-based inference method, and returns a familiar results table with a permutation p-value and, where applicable, a smooth Monte-Carlo <code>P(MC)</code>.</p>
+<p><strong>Use the ecological distance that fits the question. Describe the sampling design the way it was collected. Permute at the level where replication actually lives.</strong></p>
+<p><code>distmer</code> extends the logic of PERMANOVA into a mixed-model workflow. It uses familiar <code>lmer</code>-style formulas for fixed effects, experimental units, nesting, blocks, repeated observations, and random slopes:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">distmer</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">dune</span>, <span class="va">dune.env</span>, package <span class="op">=</span> <span class="st">"vegan"</span><span class="op">)</span></span>
-<span><span class="va">bray</span> <span class="op">&lt;-</span> <span class="fu">vegan</span><span class="fu">::</span><span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">dune</span>, method <span class="op">=</span> <span class="st">"bray"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># one fixed factor (agrees with vegan::adonis2)</span></span>
-<span><span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">Management</span>, <span class="va">dune.env</span>, permutations <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># unbalanced fixed factors, Type II sums of squares</span></span>
-<span><span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">Management</span> <span class="op">+</span> <span class="va">Moisture</span>, <span class="va">dune.env</span>, type <span class="op">=</span> <span class="st">"II"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># one random intercept (whole-plot EMS denominator)</span></span>
-<span><span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span>, <span class="va">sampling_design</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># split-plot / RCB ANCOVA (covariate adjusted)</span></span>
-<span><span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="va">volume</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span>, <span class="va">sampling_design</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># nested hierarchy, covariate-adjusted nested strata, crossed/randomized block,</span></span>
-<span><span class="co"># crossed-nested hybrid, random slopes -- all through the same call:</span></span>
-<span><span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">region</span><span class="op">/</span><span class="va">site</span><span class="op">)</span>, <span class="va">sampling_design</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">x</span> <span class="op">|</span> <span class="va">group</span><span class="op">)</span>, <span class="va">sampling_design</span><span class="op">)</span></span></code></pre></div>
-<p>The selected implementation is printed in the header and stored in <code>fit$engine</code>; its detailed result is in <code>fit$fit</code>, and <code>summary(fit)</code> adds estimates of components of variation. Designs outside every supported envelope stop with a message naming the reason rather than guessing a denominator.</p>
-<p>Advanced users can compile a design explicitly with <code><a href="reference/compile_permanova_design.html">compile_permanova_design()</a></code> and call a specialised function when they need a low-level argument. For example, <code><a href="reference/permanova_dispersion.html">permanova_dispersion()</a></code> and the contrast families take a compiled design. In day-to-day use, start with <code><a href="reference/permanova.html">permanova()</a></code>.</p>
+<code class="sourceCode R"><span><span class="va">community_distance</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span></span></code></pre></div>
+<p>The response is a dissimilarity matrix rather than a single measured variable. <code>distmer</code> applies the model to its Gower-centred distance space and constructs the denominator and permutation rule implied by the sampling design.</p>
+<p>It is not a likelihood or REML wrapper around <code>lme4</code>. With no random terms, a supported model reduces to conventional PERMANOVA; for a univariate Euclidean response, supported mixed designs reproduce their classical linear-model counterparts.</p>
 </div>
 <div class="section level2">
-<h2 id="balanced-random-intercept-inference">Balanced random-intercept inference<a class="anchor" aria-label="anchor" href="#balanced-random-intercept-inference"></a>
+<h2 id="a-first-model">A first model<a class="anchor" aria-label="anchor" href="#a-first-model"></a>
 </h2>
+<p>The package works directly with distances produced by <a href="https://vegandevs.github.io/vegan/" class="external-link"><code>vegan</code></a>. This example asks whether plant community composition differs among management regimes in the <code>dune</code> data.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span>, <span class="va">sampling_design</span>,</span>
-<span>                 permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">treatment</span><span class="op">$</span><span class="va">symbolic_ems</span></span></code></pre></div>
-<p>Use <code>permutations = "all"</code> for exhaustive enumeration when the whole-plot permutation space does not exceed <code>max_exact</code>.</p>
-</div>
-<div class="section level2">
-<h2 id="balanced-crossed-mixed-inference">Balanced crossed mixed inference<a class="anchor" aria-label="anchor" href="#balanced-crossed-mixed-inference"></a>
-</h2>
-<p>Phase 3 supports complete, equally replicated factorial designs whose fixed-by-random covariance components are declared explicitly:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>  <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span></span>
-<span>    <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">block</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">observer</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">block</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">observer</span><span class="op">)</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">sampling_design</span>,</span>
-<span>  distance <span class="op">=</span> <span class="va">community_distance</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_crossed.html">permanova_crossed</a></span><span class="op">(</span><span class="va">design</span><span class="op">)</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">variance_components</span><span class="op">$</span><span class="va">unrestricted</span></span></code></pre></div>
-<p>Trace-derived EMS coefficients select and pool exact orthogonal denominator strata. <code><a href="reference/quasi_denominator.html">quasi_denominator()</a></code> constructs an EMS-matched linear combination when no single exact stratum exists. Negative unrestricted variance components are retained; request <code>truncate = TRUE</code> to report a separate zero-truncated sensitivity result. Parametric Satterthwaite p-values are never implicit and require <code>p_method = "satterthwaite"</code>; they are suppressed for non-Euclidean dissimilarities. Omitted fixed-by-random components fail by default. The <code>assume_additive = TRUE</code> escape hatch is an explicit zero-variance assumption, recorded with the pooled denominator strata in every Test Specification.</p>
-<p>The canonical randomized-block model also has a permutation path:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>  <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">block</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">block</span><span class="op">)</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">sampling_design</span>,</span>
-<span>  distance <span class="op">=</span> <span class="va">community_distance</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_crossed.html">permanova_crossed</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  p_method <span class="op">=</span> <span class="st">"permutation"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Complete replicated treatment cells move among treatment positions within each block. Use <code>permutations = "all"</code> when <code>(treatments!)^blocks</code> does not exceed <code>max_exact</code>. This empirical path supports retained non-Euclidean distances. Additional fixed/random factors, nesting, imbalance, or additive omissions remain explicit failures for permutation inference.</p>
-</div>
-<div class="section level2">
-<h2 id="balanced-nested-mixed-inference">Balanced nested mixed inference<a class="anchor" aria-label="anchor" href="#balanced-nested-mixed-inference"></a>
-</h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
-<span>  <span class="va">community_distance</span> <span class="op">~</span> <span class="va">region_treatment</span> <span class="op">+</span> <span class="va">site_treatment</span> <span class="op">+</span></span>
-<span>    <span class="va">observation_treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">region</span><span class="op">/</span><span class="va">site</span><span class="op">)</span>,</span>
-<span>  <span class="va">sampling_design</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">assignment_levels</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">tests</span><span class="op">$</span><span class="va">site_treatment</span><span class="op">$</span><span class="va">symbolic_ems</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">variance_components</span><span class="op">$</span><span class="va">unrestricted</span></span></code></pre></div>
-<p><code><a href="reference/derive_nested_ems.html">derive_nested_ems()</a></code> exposes the trace-derived numerator and denominator EMS. <code><a href="reference/estimate_nested_variance_components.html">estimate_nested_variance_components()</a></code> solves the hierarchy’s balanced EMS system and retains negative unrestricted estimates; <code>truncate = TRUE</code> adds a separate zero-truncated sensitivity result.</p>
-<p>Every term’s estimable projector must lie wholly in one stratum. Balanced cross-level interactions are supported when parameterized with orthogonal contrasts such as explicitly assigned <code>contr.sum</code>; otherwise the engine rejects the ambiguous projector and names that remedy. Contrasts are never changed silently because doing so could change the tested hypothesis.</p>
-</div>
-<div class="section level2">
-<h2 id="balanced-crossed-nested-hybrid-inference">Balanced crossed-nested hybrid inference<a class="anchor" aria-label="anchor" href="#balanced-crossed-nested-hybrid-inference"></a>
-</h2>
-<p>Phase 9 combines one nested hierarchy with explicitly declared treatment interactions:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>  <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span></span>
-<span>    <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">region</span><span class="op">/</span><span class="va">site</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">region</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">region</span><span class="op">:</span><span class="va">site</span><span class="op">)</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">sampling_design</span>,</span>
-<span>  distance <span class="op">=</span> <span class="va">community_distance</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">hybrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_hybrid.html">permanova_hybrid</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The treatment numerator is tested over <code>MS[treatment:region]</code>. Permutations move complete treatment-by-region profiles within each region, carrying every nested site and replicate intact. The first hybrid envelope is deliberately exact: one treatment, one region/site hierarchy, complete treatment occurrence within every site, equal replication, and all treatment-by-hierarchy covariance components declared explicitly.</p>
-</div>
-<div class="section level2">
-<h2 id="unbalanced-fixed-effect-inference">Unbalanced fixed-effect inference<a class="anchor" aria-label="anchor" href="#unbalanced-fixed-effect-inference"></a>
-</h2>
-<p>Phase 10 makes the requested hypothesis explicit:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
-<span>  <span class="va">community_distance</span> <span class="op">~</span> <span class="va">habitat</span> <span class="op">+</span> <span class="va">season</span>,</span>
-<span>  <span class="va">sampling_design</span>,</span>
-<span>  type <span class="op">=</span> <span class="st">"II"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Type I tests follow formula order. Type II tests respect marginality: a main effect is adjusted for terms that do not contain it while its containing higher-order interactions are held out of that reduced model. Type III retains all other terms and requires a full-rank model; with interactions, assign explicit sum-to-zero contrasts such as <code>contr.sum</code> before compiling. <code><a href="reference/derive_unbalanced_hypotheses.html">derive_unbalanced_hypotheses()</a></code> exposes df, nominal df, adjustment terms, aliases, and the projector before inference.</p>
-<p>Every selected term must be fully estimable and is tested over the final full-model residual mean square with its own Freedman–Lane permutation. Phase 10 does not infer an unbalanced mixed-model EMS denominator: any random effect causes an explicit failure.</p>
-</div>
-<div class="section level2">
-<h2 id="unequal-replication-random-intercept-inference">Unequal-replication random-intercept inference<a class="anchor" aria-label="anchor" href="#unequal-replication-random-intercept-inference"></a>
-</h2>
-<p>Phase 11 targets equally weighted whole-plot centroids when observation counts differ among random-intercept units:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>  <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">sampling_design</span>,</span>
-<span>  distance <span class="op">=</span> <span class="va">community_distance</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_unequal_random_intercept.html">permanova_unequal_random_intercept</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The pseudo-F uses a cluster-centroid residual denominator. Freedman–Lane residuals move only among whole clusters with the same observation count, and the size-stratified permutation action must span every treatment contrast. The result is a cluster-weighted empirical test. It is not an observation-weighted EMS approximation, and no parametric F p-value is reported.</p>
-</div>
-<div class="section level2">
-<h2 id="unbalanced-nested-and-randomized-block-inference">Unbalanced nested and randomized-block inference<a class="anchor" aria-label="anchor" href="#unbalanced-nested-and-randomized-block-inference"></a>
-</h2>
-<p>Phase 12 uses separate empirical engines for two different unit structures:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nested_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_unbalanced_nested.html">permanova_unbalanced_nested</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>    <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">region</span><span class="op">/</span><span class="va">site</span><span class="op">)</span>, <span class="va">sampling_design</span>, <span class="va">community_distance</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">block_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_unbalanced_block.html">permanova_unbalanced_block</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>    <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">block</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">block</span><span class="op">)</span>,</span>
-<span>    <span class="va">sampling_design</span>, <span class="va">community_distance</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The nested engine gives equal weight to top-unit centroids and permutes residuals only among identical sorted child observation-count topologies. The block engine gives equal weight to observed treatment-by-block cell centroids and permutes intact profiles only within block and exact cell size. In both cases the restricted permutation action must span every treatment contrast; otherwise the global hypothesis rejects before inference.</p>
-</div>
-<div class="section level2">
-<h2 id="lower-level-unbalanced-nested-inference">Lower-level unbalanced nested inference<a class="anchor" aria-label="anchor" href="#lower-level-unbalanced-nested-inference"></a>
-</h2>
-<p>Phase 25 handles a categorical treatment assigned below the parent in one unbalanced parent/child hierarchy:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">lower_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_unbalanced_nested_lower.html">permanova_unbalanced_nested_lower</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>    <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">region</span><span class="op">/</span><span class="va">site</span><span class="op">)</span>, <span class="va">sampling_design</span>, <span class="va">community_distance</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  level <span class="op">=</span> <span class="st">"auto"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>If treatment is constant within child, equally weighted child centroids are adjusted for parent and residuals move only among children in the same parent and exact-size stratum. If treatment varies within child, observations are adjusted for child and residuals move only within child. The same unit models are available to <code><a href="reference/permanova_mixed_contrasts.html">permanova_mixed_contrasts()</a></code>, <code><a href="reference/permanova_mixed_pairwise.html">permanova_mixed_pairwise()</a></code>, and the explicitly weak <code><a href="reference/permanova_mixed_maxT.html">permanova_mixed_maxT()</a></code> family. Parent-level treatment remains the existing topology-stratified top-unit problem.</p>
-</div>
-<div class="section level2">
-<h2 id="unbalanced-crossed-nested-hybrid-inference">Unbalanced crossed-nested hybrid inference<a class="anchor" aria-label="anchor" href="#unbalanced-crossed-nested-hybrid-inference"></a>
-</h2>
-<p>Phase 26 handles one treatment crossed with regions and sites nested within regions when site counts, profile incidence, or cell replication are unequal:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hybrid_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_unbalanced_hybrid.html">permanova_unbalanced_hybrid</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>    <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">region</span><span class="op">/</span><span class="va">site</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">region</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">region</span><span class="op">:</span><span class="va">site</span><span class="op">)</span>,</span>
-<span>    <span class="va">sampling_design</span>, <span class="va">community_distance</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Each observed treatment-by-region profile must contain every site in that region. Observations are first averaged within treatment-by-site cells, then site-cell centroids receive equal weight in the profile. The treatment test is adjusted for region and uses the remaining profile-centroid mean square; inference is empirical and makes no unbalanced EMS claim. Intact profiles move only within region and the same ordered site-specific cell-count topology. Missing whole profiles are allowed when incidence remains connected and those restricted actions span every treatment contrast. Mixed planned/pairwise and weak complete-null max-F contrasts reuse the same profiles and a common region reference grid.</p>
-</div>
-<div class="section level2">
-<h2 id="correlated-random-intercepts-and-slopes">Correlated random intercepts and slopes<a class="anchor" aria-label="anchor" href="#correlated-random-intercepts-and-slopes"></a>
-</h2>
-<p>Phase 27 supports a balanced complete two-condition repeated-measures model:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">slope_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
-<span>  <span class="va">community_distance</span> <span class="op">~</span> <span class="va">condition</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">condition</span> <span class="op">|</span> <span class="va">subject</span><span class="op">)</span>,</span>
-<span>  <span class="va">repeated_design</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="st">"all"</span>,</span>
-<span>  truncate <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>A continuous covariate slope, <code>~ x + (1 + x | group)</code>, routes instead to <code><a href="reference/permanova_random_slope_continuous.html">permanova_random_slope_continuous()</a></code>, which aggregates to per-group slope vectors and reproduces the exact two-stage slope test.</p>
-<p>The random intercept is the subject midpoint under centred two-condition coding; the random slope is the complete second-minus-first condition difference vector. The fixed-effect pseudo-F tests the population mean difference over between-subject slope variation and equals a paired t statistic squared for a Euclidean scalar response. Inference sign-flips whole subject difference vectors and therefore requires central symmetry under the null; it is not described as unrestricted condition-label exchangeability. The reported trace covariance removes equal within-cell sampling noise by method of moments, retains negative unrestricted estimates, and optionally supplies a separate positive-semidefinite sensitivity.</p>
-<p>More than two conditions, incomplete subjects, unequal or unreplicated cells, extra fixed effects, and asymmetric difference distributions lie outside this contract. Non-Euclidean empirical inference is retained, but its Gaussian parametric p-value is suppressed.</p>
-</div>
-<div class="section level2">
-<h2 id="planned-contrasts-and-pairwise-comparisons">Planned contrasts and pairwise comparisons<a class="anchor" aria-label="anchor" href="#planned-contrasts-and-pairwise-comparisons"></a>
-</h2>
-<p>Phase 13 tests explicit one-df contrasts among the centroids of one categorical fixed factor, including unequal group sizes:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">planned</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  `A - B` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fl">1</span>, B <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, C <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  `AB - C` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fl">0.5</span>, B <span class="op">=</span> <span class="fl">0.5</span>, C <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">planned_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_contrasts.html">permanova_contrasts</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  contrasts <span class="op">=</span> <span class="va">planned</span>,</span>
-<span>  adjust <span class="op">=</span> <span class="st">"holm"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pairwise_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_pairwise.html">permanova_pairwise</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  adjust <span class="op">=</span> <span class="st">"holm"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Contrast coefficients apply to unweighted group centroids and must sum to zero. Each contrast receives a reduced model that retains every orthogonal group-centroid direction plus its own Freedman–Lane permutation. Holm is the default multiplicity adjustment; Bonferroni, BH, BY, and no adjustment are available explicitly.</p>
-</div>
-<div class="section level2">
-<h2 id="multifactor-marginal-contrasts">Multifactor marginal contrasts<a class="anchor" aria-label="anchor" href="#multifactor-marginal-contrasts"></a>
-</h2>
-<p>Phase 15 defines how nuisance factors are averaged before testing a target- factor contrast:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">means</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/derive_marginal_means.html">derive_marginal_means</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, factor <span class="op">=</span> <span class="st">"treatment"</span>, weights <span class="op">=</span> <span class="st">"equal"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_marginal_contrasts.html">permanova_marginal_contrasts</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  factor <span class="op">=</span> <span class="st">"treatment"</span>,</span>
-<span>  contrasts <span class="op">=</span> <span class="va">planned</span>,</span>
-<span>  weights <span class="op">=</span> <span class="st">"equal"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_marginal_pairwise.html">permanova_marginal_pairwise</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  factor <span class="op">=</span> <span class="st">"treatment"</span>,</span>
-<span>  weights <span class="op">=</span> <span class="st">"proportional"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Equal weights average the complete categorical nuisance grid. Proportional weights use observed joint nuisance-cell frequencies. The fixed model must be full rank and categorical. Random effects reject; use the explicit covariate- reference interface below when numeric predictors are present.</p>
-</div>
-<div class="section level2">
-<h2 id="continuous-covariate-adjusted-contrasts">Continuous-covariate adjusted contrasts<a class="anchor" aria-label="anchor" href="#continuous-covariate-adjusted-contrasts"></a>
-</h2>
-<p>Phase 20 tests fixed-model contrasts at user-declared numeric covariate values:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">means</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/derive_adjusted_means.html">derive_adjusted_means</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, factor <span class="op">=</span> <span class="st">"treatment"</span>, at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>temperature <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>,</span>
-<span>  weights <span class="op">=</span> <span class="st">"equal"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_adjusted_contrasts.html">permanova_adjusted_contrasts</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, factor <span class="op">=</span> <span class="st">"treatment"</span>, contrasts <span class="op">=</span> <span class="va">planned</span>,</span>
-<span>  at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>temperature <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>, weights <span class="op">=</span> <span class="st">"equal"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_adjusted_pairwise.html">permanova_adjusted_pairwise</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, factor <span class="op">=</span> <span class="st">"treatment"</span>, at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>temperature <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>,</span>
-<span>  weights <span class="op">=</span> <span class="st">"proportional"</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Every ordinary numeric nuisance covariate requires one named finite scalar in <code>at</code>; none is inferred from the observations. Categorical nuisance factors are averaged over an equal reference grid or observed joint frequencies. Random effects, aliased or ill-conditioned fixed models, unsupported predictor classes, and incomplete reference specifications reject explicitly. The adjusted-mean result reports <code>fixed_model_condition_ratio</code>; models whose ratio cannot support stable information-matrix construction at <code>tol</code> reject before projector construction.</p>
-</div>
-<div class="section level2">
-<h2 id="mixed-design-contrasts">Mixed-design contrasts<a class="anchor" aria-label="anchor" href="#mixed-design-contrasts"></a>
-</h2>
-<p>Phase 16 tests treatment contrasts on the experimental-unit scale selected by the declared balanced random structure:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_mixed_contrasts.html">permanova_mixed_contrasts</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  contrasts <span class="op">=</span> <span class="va">planned</span>,</span>
-<span>  adjust <span class="op">=</span> <span class="st">"holm"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_mixed_pairwise.html">permanova_mixed_pairwise</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, adjust <span class="op">=</span> <span class="st">"holm"</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>One random intercept uses equally weighted whole-unit centroids; a top-level nested treatment uses intact top-unit centroids; a declared randomized block uses treatment-by-block cell centroids; and the balanced region/site hybrid uses treatment-by-region profiles. Unequal unit sizes restrict whole-unit residuals by exact size, unbalanced nested units by complete topology, and incomplete block cells jointly by block and exact cell size. Incomplete blocks use one common block reference grid for treatment means. Treatments assigned below the top of an unbalanced hierarchy remain explicit failures.</p>
-</div>
-<div class="section level2">
-<h2 id="global-null-max-f-contrasts">Global-null max-F contrasts<a class="anchor" aria-label="anchor" href="#global-null-max-f-contrasts"></a>
-</h2>
-<p>Phase 17 uses one shared raw-observation permutation distribution for a fixed one-factor contrast family:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_maxT.html">permanova_maxT</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, contrasts <span class="op">=</span> <span class="va">planned</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_maxT_pairwise.html">permanova_maxT_pairwise</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Each permutation contributes the largest contrast pseudo-F. <code>p_maxT</code> compares each observed statistic with those maxima. The guarantee is deliberately limited to weak familywise error control under the complete equal-centroid null. Strong subset-null control is not claimed by this engine.</p>
-</div>
-<div class="section level2">
-<h2 id="strong-closed-pairwise-inference">Strong closed pairwise inference<a class="anchor" aria-label="anchor" href="#strong-closed-pairwise-inference"></a>
-</h2>
-<p>Phase 28 provides a narrower family for which subset-null exchangeability can be proved:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_pairwise_strong.html">permanova_pairwise_strong</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>For every intersection of pairwise equalities, factor levels joined by those equalities form connected components. Observations are reassigned only within each component while preserving group sizes; non-null groups remain fixed. Under independent observations and equality of the complete distributions inside each component, this raw-label action leaves the intersection-null law invariant. A maximum pseudo-F tests the intersection, and closed testing gives <code>p_closed</code> strong FWER without invoking subset pivotality.</p>
-<p>The distinction is substantive: this is not a strong-control claim for equal centroids when dispersions or distribution shapes differ. Planned non-pairwise contrasts, dependent observations, repeated measures, and mixed designs remain unsupported by the strong engine.</p>
-</div>
-<div class="section level2">
-<h2 id="mixed-design-global-null-max-f-contrasts">Mixed-design global-null max-F contrasts<a class="anchor" aria-label="anchor" href="#mixed-design-global-null-max-f-contrasts"></a>
-</h2>
-<p>Phase 21 carries the same complete-null maximum-statistic contract to the experimental-unit scale of supported mixed designs:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_mixed_maxT.html">permanova_mixed_maxT</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, contrasts <span class="op">=</span> <span class="va">planned</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_mixed_maxT_pairwise.html">permanova_mixed_maxT_pairwise</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>, permutations <span class="op">=</span> <span class="fl">9999</span>, seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>One shared raw experimental-unit permutation stream is used across every contrast. Balanced whole units move intact; unequal units remain within exact size strata; unbalanced nested top units remain within topology strata; and block or hybrid profiles remain within the corresponding block, block-by-size, or region strata. <code>p_maxT</code> provides weak FWER under the complete treatment-null randomization hypothesis. It does not provide strong subset-null control.</p>
-</div>
-<div class="section level2">
-<h2 id="v2-support-registry">V2 support registry<a class="anchor" aria-label="anchor" href="#v2-support-registry"></a>
-</h2>
-<p>Phase 22 consolidates the public inference contract without broadening any runtime support envelope:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/permanova_capabilities.html">permanova_capabilities</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Each row names a primary engine and its validated design, estimand, denominator, permutation contract, error-control claim, and explicit exclusions. The human-readable companion is <code>inst/SUPPORT-MATRIX.md</code>. These maps aid discovery; the compiler and each engine’s runtime validator remain authoritative for a particular design.</p>
-</div>
-<div class="section level2">
-<h2 id="calibration-hardening">Calibration hardening<a class="anchor" aria-label="anchor" href="#calibration-hardening"></a>
-</h2>
-<p>Phase 14 audits unequal-random-intercept inference against the exact unique treatment-label randomization distribution across independent seed batches:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">calibration_audit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/audit_unequal_random_intercept_calibration.html">audit_unequal_random_intercept_calibration</a></span><span class="op">(</span></span>
-<span>  batches <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  simulations_per_batch <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  engine_checks <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260719</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">marginal_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_marginal_contrast_validation.html">simulate_marginal_contrast_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260719</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="release-readiness">Release readiness<a class="anchor" aria-label="anchor" href="#release-readiness"></a>
-</h2>
-<p>The source tree is the 0.9.0.9000 pre-release development version. The next stable version is 1.0.0; no tag or submission is implied by development checks. See <code>inst/RELEASE-HANDOFF.md</code> for the owner-only publication boundary. The package version policy is recorded in <code>inst/VERSIONING.md</code>.</p>
-<p>The structural audit, test suite, source build, and package check are reproducible locally:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="ex">Rscript</span> tools/release-audit.R</span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'testthat::test_local(reporter = "progress")'</span></span>
-<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="ex">R</span> CMD build .</span>
-<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="ex">R</span> CMD check <span class="at">--no-manual</span> distmer_0.9.0.9000.tar.gz</span></code></pre></div>
-<p>Hosted CI repeats an <code>--as-cran</code> check on Linux, macOS, and Windows. The audit reports publication metadata separately from technical package integrity; set <code>STRICT_RELEASE_METADATA=true</code> to make unresolved metadata fatal. See <code>inst/RELEASE-READINESS.md</code> for the exact handoff gate.</p>
-<p>The current gate covers the deterministic validation battery, complete source test suite, all seven consolidated vignettes, source build, and installed package check. Results are recorded only after those commands have run against the active version; retired Phase artifacts are not treated as evidence for the development tree.</p>
-<p>The audit separates <code>13,824</code> distinct profile rearrangements from <code>216</code> unique labels in the canonical balanced-allocation example, verifies identical exact p-values, and records seed ranges spaced one million apart. Exchangeable Gaussian, heavy-tail, and unequal-allocation nulls determine the calibration gate. Treatment-specific dispersion is reported only as a violated- exchangeability sensitivity.</p>
-</div>
-<div class="section level2">
-<h2 id="design-aware-multivariate-dispersion">Design-aware multivariate dispersion<a class="anchor" aria-label="anchor" href="#design-aware-multivariate-dispersion"></a>
-</h2>
-<p><code><a href="reference/permanova_dispersion.html">permanova_dispersion()</a></code> tests whether mean distances to group spatial medians or centroids differ while retaining the design’s exact EMS denominator and restricted exchangeability units:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compile_permanova_design.html">compile_permanova_design</a></span><span class="op">(</span></span>
-<span>  <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">block</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">treatment</span><span class="op">:</span><span class="va">block</span><span class="op">)</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">sampling_design</span>,</span>
-<span>  distance <span class="op">=</span> <span class="va">community_distance</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">dispersion</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_dispersion.html">permanova_dispersion</a></span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  term <span class="op">=</span> <span class="st">"treatment"</span>,</span>
-<span>  type <span class="op">=</span> <span class="st">"median"</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The original positive and negative principal-coordinate axes are retained. The default spatial median has materially better small-sample null calibration than the centroid in the pinned validation; centroid results remain available as an explicit sensitivity. Phase 8 requires a design containing exactly one categorical fixed main effect with equal target-group sizes. A significant dispersion result can complicate interpretation of a location test, while a non-significant result does not prove exchangeability.</p>
-</div>
-<div class="section level2">
-<h2 id="validation-simulation-and-benchmarks">Validation, simulation, and benchmarks<a class="anchor" aria-label="anchor" href="#validation-simulation-and-benchmarks"></a>
-</h2>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/run_permanova_validation.html">run_permanova_validation</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">simulation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_mixed_validation.html">simulate_mixed_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">interaction_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_crossed_interaction_validation.html">simulate_crossed_interaction_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  blocks <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  replicates <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">nested_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_nested_validation.html">simulate_nested_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  regions_per_treatment <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  sites_per_region <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  replicates <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">level_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_nested_level_validation.html">simulate_nested_level_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  regions_per_treatment <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  replicates <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">crossed_permutation_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_crossed_permutation_validation.html">simulate_crossed_permutation_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  blocks <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  replicates <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">unequal_random_intercept_validation</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/simulate_unequal_random_intercept_validation.html">simulate_unequal_random_intercept_validation</a></span><span class="op">(</span></span>
-<span>    simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>    permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>    seed <span class="op">=</span> <span class="fl">20260719</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="va">unbalanced_mixed_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_unbalanced_mixed_validation.html">simulate_unbalanced_mixed_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260719</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">contrast_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_contrast_validation.html">simulate_contrast_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260719</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">calibration_audit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/audit_unequal_random_intercept_calibration.html">audit_unequal_random_intercept_calibration</a></span><span class="op">(</span></span>
-<span>  batches <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  simulations_per_batch <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260719</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">dispersion_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_dispersion_validation.html">simulate_dispersion_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  type <span class="op">=</span> <span class="st">"median"</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">hybrid_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_hybrid_validation.html">simulate_hybrid_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  regions <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  sites <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  replicates <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">unbalanced_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_unbalanced_validation.html">simulate_unbalanced_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  effect <span class="op">=</span> <span class="fl">0.8</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260718</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">strong_pairwise_validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_strong_pairwise_validation.html">simulate_strong_pairwise_validation</a></span><span class="op">(</span></span>
-<span>  simulations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">99</span>,</span>
-<span>  effect <span class="op">=</span> <span class="fl">1.2</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">20260726</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/benchmark_permanova.html">benchmark_permanova</a></span><span class="op">(</span></span>
-<span>  group_counts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">16</span>, <span class="fl">32</span><span class="op">)</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">99</span>, <span class="fl">999</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Simulation output includes Monte Carlo uncertainty, denominator agreement, failure counts, dispersion sensitivity, and runtime. Benchmark results are machine-specific measurements, not universal performance claims. See the package vignette for supported-design boundaries and interpretation.</p>
-</div>
-<div class="section level2">
-<h2 id="vignette-series">Vignette series<a class="anchor" aria-label="anchor" href="#vignette-series"></a>
-</h2>
-<p>The guide begins with ordinary ecological questions and introduces the implementation detail only when random effects make it useful.</p>
-<ul>
-<li>
-<strong>Getting started with distmer</strong> (<code><a href="articles/getting-started.html">vignette("getting-started")</a></code>): what a distance-based mixed model is, how it relates to PERMANOVA, and a first <code><a href="https://vegandevs.github.io/vegan/reference/dune.html" class="external-link">vegan::dune</a></code> analysis;</li>
-<li>
-<strong>Fixed effects: Type I, II, and III</strong> (<code><a href="articles/fixed-effects.html">vignette("fixed-effects")</a></code>): choosing an estimable fixed-effect question with the <code><a href="https://vegandevs.github.io/vegan/reference/mite.html" class="external-link">vegan::mite</a></code> data;</li>
-<li>
-<strong>Pairwise contrasts and multiple comparisons</strong> (<code><a href="articles/contrasts.html">vignette("contrasts")</a></code>): planned, pairwise, marginal, and covariate-adjusted comparisons using <code>dune</code>;</li>
-<li>
-<strong>Dispersion and distance diagnostics</strong> (<code><a href="articles/dispersion.html">vignette("dispersion")</a></code>): distance geometry, design-aware dispersion, and <code><a href="https://vegandevs.github.io/vegan/reference/betadisper.html" class="external-link">vegan::betadisper()</a></code> agreement;</li>
-<li>
-<strong>Unbalanced designs</strong> (<code><a href="articles/unbalanced-mixed.html">vignette("unbalanced-mixed")</a></code>): unequal fixed cells, missed repeated visits, unit weighting, and restricted permutations;</li>
-<li>
-<strong>Random effects and ecological sampling designs</strong> (<code><a href="articles/random-effects.html">vignette("random-effects")</a></code>): repeated sites, nesting, blocks, hybrids, random slopes, and the specialised implementation reference;</li>
-<li>
-<strong>Validation and reproducibility</strong> (<code><a href="articles/validation.html">vignette("validation")</a></code>): reference agreement, deterministic checks, simulations, and a reporting checklist.</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
-</h2>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">distmer</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://vegandevs.github.io/vegan/" class="external-link">vegan</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fl">0</span>, <span class="fl">0</span>,</span>
-<span>    <span class="fl">0</span>, <span class="fl">1</span>,</span>
-<span>    <span class="fl">1</span>, <span class="fl">0</span>,</span>
-<span>    <span class="fl">4</span>, <span class="fl">4</span>,</span>
-<span>    <span class="fl">4</span>, <span class="fl">5</span>,</span>
-<span>    <span class="fl">5</span>, <span class="fl">4</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  ncol <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  byrow <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">dune</span>, <span class="va">dune.env</span>, package <span class="op">=</span> <span class="st">"vegan"</span><span class="op">)</span></span>
+<span><span class="va">bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">dune</span>, method <span class="op">=</span> <span class="st">"bray"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
+<span>  <span class="va">bray</span> <span class="op">~</span> <span class="va">Management</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">dune.env</span>,</span>
+<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">2026</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/dist.html" class="external-link">dist</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/permanova_oneway.html">permanova_oneway</a></span><span class="op">(</span></span>
-<span>  distance <span class="op">=</span> <span class="va">D</span>,</span>
-<span>  group <span class="op">=</span> <span class="va">group</span>,</span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+<p>The result reports the ecological effect being tested, its pseudo-(F), permutation p-value, attainable permutation space, and the exchangeability assumptions used for inference.</p>
+<p>For a repeated or grouped field design, add the independent sampling unit in the same way you would in a mixed model:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
+<span>  <span class="va">community_distance</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">field_design</span>,</span>
 <span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  engine <span class="op">=</span> <span class="st">"pairwise"</span></span>
+<span>  seed <span class="op">=</span> <span class="fl">2026</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p>Observations from a site remain together when the treatment is replicated among sites. Adding a random term does not manufacture replication: the formula must reflect how treatments were assigned and samples were collected.</p>
 </div>
 <div class="section level2">
-<h2 id="multi-factor-development-engine">Multi-factor development engine<a class="anchor" aria-label="anchor" href="#multi-factor-development-engine"></a>
+<h2 id="from-field-question-to-formula">From field question to formula<a class="anchor" aria-label="anchor" href="#from-field-question-to-formula"></a>
 </h2>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span></span>
-<span>  treatment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"control"</span>, <span class="st">"impact"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  block <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  replicate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Ecological question</th>
+<th>Formula</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Do communities differ among groups?</td>
+<td><code>d ~ habitat</code></td>
+</tr>
+<tr>
+<td>Does treatment matter after an environmental gradient?</td>
+<td><code>d ~ treatment + depth</code></td>
+</tr>
+<tr>
+<td>What is the treatment effect with repeated samples per site?</td>
+<td><code>d ~ treatment + (1 \| site)</code></td>
+</tr>
+<tr>
+<td>At which level of a nested survey does an effect occur?</td>
+<td><code>d ~ treatment + (1 \| region/site)</code></td>
+</tr>
+<tr>
+<td>Was treatment randomized within blocks?</td>
+<td><code>d ~ treatment + (1 \| block) + (1 \| treatment:block)</code></td>
+</tr>
+<tr>
+<td>Do sites differ in their temporal response?</td>
+<td><code>d ~ time + (1 + time \| site)</code></td>
+</tr>
+</tbody>
+</table>
+<p><code><a href="reference/permanova.html">permanova()</a></code> checks whether the declared design falls inside a validated inference envelope. Unsupported or confounded structures stop with an explanation instead of receiving a convenient but unjustified denominator.</p>
+</div>
+<div class="section level2">
+<h2 id="location-dispersion-and-comparisons">Location, dispersion, and comparisons<a class="anchor" aria-label="anchor" href="#location-dispersion-and-comparisons"></a>
+</h2>
+<p>A location result should be considered alongside multivariate dispersion. The dispersion companion uses the same formula-and-data style:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">keep</span> <span class="op">&lt;-</span> <span class="va">dune.env</span><span class="op">$</span><span class="va">Management</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NM"</span>, <span class="st">"SF"</span><span class="op">)</span></span>
+<span><span class="va">two_group_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="va">dune.env</span><span class="op">[</span><span class="va">keep</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">two_group_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">dune</span><span class="op">[</span><span class="va">keep</span>, <span class="op">]</span>, method <span class="op">=</span> <span class="st">"bray"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span> <span class="op">*</span> <span class="fl">8</span>, lambda <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
-<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/dist.html" class="external-link">dist</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/permanova_fixed.html">permanova_fixed</a></span><span class="op">(</span></span>
-<span>  distance <span class="op">=</span> <span class="va">D</span>,</span>
-<span>  formula <span class="op">=</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">*</span> <span class="va">block</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">dat</span>,</span>
-<span>  permutations <span class="op">=</span> <span class="fl">999</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="va">spread</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova_dispersion.html">permanova_dispersion</a></span><span class="op">(</span></span>
+<span>  <span class="va">two_group_bray</span> <span class="op">~</span> <span class="va">Management</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">two_group_env</span>,</span>
+<span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">2026</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The <code><a href="reference/permanova_fixed.html">permanova_fixed()</a></code> function tests all terms over residual and therefore must not itself be used for random, nested, repeated, or mixed designs. Use the dedicated mixed engines only within their documented support boundaries.</p>
+<p>The package also supports planned and pairwise contrasts, multiplicity adjustment, Type I/II/III fixed-effect hypotheses, unbalanced sampling, nested and crossed designs, and validated random-slope models. The guides introduce these in ecological language before exposing implementation details.</p>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>Install the development version from GitHub:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span></span>
+<span>  <span class="st">"marine-ecologist/distmer"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><code>distmer</code> is currently on the <code>0.9.0.9000</code> development line leading to the first stable <code>1.0.0</code> release.</p>
+</div>
+<div class="section level2">
+<h2 id="start-with-the-guides">Start with the guides<a class="anchor" aria-label="anchor" href="#start-with-the-guides"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>
+<code><a href="articles/getting-started.html">vignette("getting-started", package = "distmer")</a></code> — the distance-based mixed-model idea and a first analysis.</li>
+<li>
+<code><a href="articles/random-effects.html">vignette("random-effects", package = "distmer")</a></code> — repeated sites, nested sampling, blocks, hybrids, and random slopes.</li>
+<li>
+<code><a href="articles/dispersion.html">vignette("dispersion", package = "distmer")</a></code> — distance geometry and multivariate dispersion.</li>
+<li>
+<code><a href="articles/contrasts.html">vignette("contrasts", package = "distmer")</a></code> — planned comparisons, pairwise tests, and multiplicity control.</li>
+<li>
+<code><a href="articles/fixed-effects.html">vignette("fixed-effects", package = "distmer")</a></code> — Type I, II, and III fixed-effect questions.</li>
+<li>
+<code><a href="articles/unbalanced-mixed.html">vignette("unbalanced-mixed", package = "distmer")</a></code> — unequal cells, missing visits, and unit weighting.</li>
+<li>
+<code><a href="articles/validation.html">vignette("validation", package = "distmer")</a></code> — reference agreement, simulations, and reproducible reporting.</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="built-to-be-checked">Built to be checked<a class="anchor" aria-label="anchor" href="#built-to-be-checked"></a>
+</h2>
+<p>Supported analyses are tested against <code>vegan</code>, classical scalar analogues, direct matrix calculations, exact permutation enumeration, and adversarial simulation. Distance diagnostics retain and report non-Euclidean geometry rather than silently changing it.</p>
+<p>For the detailed evidence and current support boundary, see <a href="inst/VALIDATION.html"><code>inst/VALIDATION.md</code></a> and <code><a href="reference/permanova_capabilities.html">permanova_capabilities()</a></code>.</p>
 </div>
 </div>
   </div>
@@ -703,7 +262,12 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/marine-ecologist/distmer/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/marine-ecologist/distmer/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+</ul>
+</div>
 
   </div>
 </div>

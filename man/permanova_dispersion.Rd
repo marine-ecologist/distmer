@@ -5,21 +5,35 @@
 \title{Design-aware multivariate dispersion inference}
 \usage{
 permanova_dispersion(
-  design,
-  term,
+  formula = NULL,
+  data = NULL,
+  distance = NULL,
+  term = NULL,
   type = c("median", "centroid"),
   bias_adjust = FALSE,
   permutations = 999L,
   seed = NULL,
   keep_permutations = FALSE,
   max_exact = 100000L,
-  tol = 1e-10
+  tol = 1e-10,
+  design = NULL
 )
 }
 \arguments{
-\item{design}{Canonical Design Object compiled with the original distance.}
+\item{formula}{A model formula, or a compiled `permanova_design` object. The
+dissimilarity may be supplied on the left-hand side, for example
+`bray ~ treatment + (1 | site)`, or through `distance` with a one-sided
+formula. A compiled design remains accepted for low-level workflows.}
 
-\item{term}{Name of the sole categorical fixed main-effect term.}
+\item{data}{A data frame with one row per observation. Do not supply it when
+`formula` is already a compiled design. For backward compatibility, the second
+positional argument after a compiled design may be the target term name.}
+
+\item{distance}{A `dist` object or full distance matrix, used with a
+one-sided formula.}
+
+\item{term}{Optional name of the sole categorical fixed main-effect term.
+It is inferred when the model contains exactly one fixed term.}
 
 \item{type}{Group spatial `"median"` or `"centroid"`.}
 
@@ -34,6 +48,9 @@ permanova_dispersion(
 \item{max_exact}{Maximum exact permutation space.}
 
 \item{tol}{Numerical tolerance.}
+
+\item{design}{Backward-compatible named alias for a compiled Design Object;
+use `formula = design` or pass the object as the first argument.}
 }
 \value{
 An object of class `permanova_dispersion`.
@@ -44,4 +61,13 @@ its target-group spatial median or centroid, then tests that scalar response
 with the EMS denominator and restricted residual permutation appropriate to
 a validated balanced design. The initial envelope contains exactly one
 categorical fixed main effect.
+}
+\examples{
+data(dune, dune.env, package = "vegan")
+selected <- dune.env$Management \%in\% c("NM", "SF")
+env <- droplevels(dune.env[selected, , drop = FALSE])
+bray <- vegan::vegdist(dune[selected, ], method = "bray")
+permanova_dispersion(
+  bray ~ Management, env, permutations = 19, seed = 1
+)
 }
