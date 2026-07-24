@@ -1,8 +1,8 @@
 ---
-title: "Pairwise contrasts and multiple comparisons"
+title: "5. Pairwise contrasts and multiple comparisons"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{4. Pairwise contrasts and multiple comparisons}
+  %\VignetteIndexEntry{5. Pairwise contrasts and multiple comparisons}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -13,8 +13,9 @@ knitr::opts_chunk$set(
   fig.align = "center"
 )
 library(distmer)
-library(vegan)
+library(vegan) 
 library(ggplot2)
+library(kableExtra)
 theme_set(theme_minimal(base_size = 12))
 data(dune, dune.env, package = "vegan")
 bray <- vegdist(dune, method = "bray")
@@ -28,7 +29,9 @@ to planned contrasts, all pairwise comparisons, and multiplicity control.
 ```{r overview}
 management <- data.frame(Management = droplevels(dune.env$Management))
 m1 <- permanova(bray ~ Management, management, permutations = 499, seed = 41)
-summary(m1)
+summary(m1) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 The ordination is a visual summary, not the test itself. The model uses the
@@ -67,7 +70,9 @@ planned <- rbind(
 planned_fit <- permanova_contrasts(
   design, planned, adjust = "holm", permutations = 499, seed = 41
 )
-planned_fit$table
+planned_fit$table |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 Each contrast keeps the remaining group structure in the model, then obtains a
@@ -85,7 +90,9 @@ family.
 pw <- permanova_pairwise(
   design, adjust = "holm", permutations = 499, seed = 41
 )
-pw$table[, c("contrast", "pseudo_f", "p_perm", "p_adjusted")]
+pw$table[, c("contrast", "pseudo_f", "p_perm", "p_adjusted")] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ```{r pairwise-plot, fig.alt="Adjusted p-values for all pairwise management comparisons"}
@@ -123,7 +130,9 @@ multifactor <- compile_permanova_design(~ Management + Use, factors, bray)
 permanova_marginal_contrasts(
   multifactor, factor = "Management", contrasts = planned,
   weights = "equal", permutations = 199, seed = 41
-)$table
+)$table |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 If a factor interacts with a numeric environmental gradient, its comparison
@@ -144,7 +153,9 @@ permanova_adjusted_contrasts(
   adjusted_design, factor = "Management", contrasts = planned,
   at = c(A1 = mean(env$A1)), weights = "equal",
   permutations = 199, seed = 41
-)$table
+)$table |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ## Choosing familywise protection
@@ -162,8 +173,12 @@ a clear default. `distmer` also provides two shared-permutation procedures:
 max_f <- permanova_maxT_pairwise(design, permutations = 199, seed = 41)
 closed <- permanova_pairwise_strong(design, permutations = 199, seed = 41)
 
-max_f$table[, c("contrast", "p_perm", "p_maxT")]
-closed$table[, c("contrast", "p_perm", "p_closed")]
+max_f$table[, c("contrast", "p_perm", "p_maxT")] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+closed$table[, c("contrast", "p_perm", "p_closed")] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 The strong finite-sample guarantee has an important boundary. It applies to

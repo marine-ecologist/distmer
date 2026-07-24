@@ -13,3 +13,4 @@ code/
 ^docs$
 ^pkgdown$
 ^_pkgdown\.yml$
+^codecov\.yml$

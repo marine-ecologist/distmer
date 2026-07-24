@@ -1,4 +1,4 @@
-pandoc: 3.7.0.2
+pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
@@ -9,4 +9,4 @@ articles:
   random-effects: random-effects.html
   unbalanced-mixed: unbalanced-mixed.html
   validation: validation.html
-last_built: 2026-07-23T02:31Z
+last_built: 2026-07-24T11:47Z

@@ -1,8 +1,8 @@
 ---
-title: "Fixed effects: Type I, II, and III"
+title: "2. Fixed effects and Contrasts (Type I-II-III)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Fixed effects: Type I, II, and III}
+  %\VignetteIndexEntry{2. Fixed effects and Contrasts (Type I-II-III)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,24 +15,30 @@ knitr::opts_chunk$set(
 library(distmer)
 library(vegan)
 library(ggplot2)
+library(kableExtra)
 theme_set(theme_minimal(base_size = 12))
 ```
 
-Fixed effects describe systematic differences in community composition. In
-mixed-model language they are the population-level relationships we want to
-estimate or test: habitat, treatment, season, environmental gradients, and
-their interactions.
+Fixed effects describe systematic differences in community composition (e.g. 
+habitat, treatment, season, environmental gradients, and their interactions)
 
-Type I, II, and III are not competing algorithms. They specify different
-questions when predictor subspaces overlap. In a perfectly orthogonal design
-they coincide; with unequal cells, correlation, or interactions they need not.
+Type I, II, and III specify different questions when predictor subspaces overlap. 
+In a perfectly orthogonal design they coincide; with unequal cells, correlation, 
+or interactions they need not.
+
+## Choosing the type
+
+- **Type I:** order represents a planned sequence of adjustment.
+- **Type II:** main effects are interpreted marginally while respecting their
+  containing interactions.
+- **Type III:** each term is tested conditional on every other estimable term.
 
 ## Mite communities along environmental gradients
 
 The `vegan::mite` data contain 35 oribatid mite taxa from 70 samples. For a
 compact factorial example we combine the recorded topographic class with
-tertiles of water content. Categorising a continuous variable is only for this
-illustration; an ecological analysis would usually keep water content numeric.
+tertiles of water content. Water content is categorised into three groups: 
+dry, intermediate, and wet.
 
 ```{r mite-data}
 data(mite, mite.env, package = "vegan")
@@ -47,7 +53,10 @@ env <- transform(
   ),
   Topo = droplevels(factor(Topo))
 )
-with(env, table(Wetness, Topo))
+with(env, table(Wetness, Topo)) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+
 ```
 
 All six combinations occur, but their sample sizes differ. The ordination
@@ -66,13 +75,23 @@ ggplot(ord, aes(Axis1, Axis2, colour = Wetness, shape = Topo)) +
     subtitle = "Bray-Curtis principal coordinates",
     x = "PCoA axis 1", y = "PCoA axis 2"
   ) +
+  theme_bw() + 
+  coord_fixed() +
   theme(legend.position = "bottom")
+
 ```
 
 ## Type I: a sequential question
 
 Type I asks what each term adds at the point where it enters the formula. The
-question is explicitly ordered:
+question is explicitly ordered. 
+
+Use Type I when order expresses the scientific model: for example, adjust for
+a pre-treatment gradient before asking what treatment adds. Do not choose an
+order because it produces the smaller p-value.
+
+
+With wetness first:
 
 ```{r type-one}
 wetness_first <- permanova(
@@ -80,18 +99,24 @@ wetness_first <- permanova(
   type = "I", permutations = 499, seed = 11
 )
 
+wetness_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
+   kbl(digits=3, caption = "Type I") |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+```
+
+Or with topography first:
+
+```{r}
 topography_first <- permanova(
   mite_bray ~ Topo * Wetness, env,
   type = "I", permutations = 499, seed = 11
 )
 
-wetness_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]
-topography_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]
+topography_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
+  kbl(digits=3, caption = "Type I") |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
-Use Type I when order expresses the scientific model: for example, adjust for
-a pre-treatment gradient before asking what treatment adds. Do not choose an
-order because it produces the smaller p-value.
 
 ## Type II: population effects respecting marginality
 
@@ -105,7 +130,9 @@ fit_II <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "II", permutations = 499, seed = 11
 )
-fit_II$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]
+fit_II$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
+  kbl(digits=3, caption   = "Type II") |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 Type II is often a sensible default for ecological main effects when unequal
@@ -123,7 +150,10 @@ fit_III <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "III", permutations = 499, seed = 11
 )
-fit_III$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]
+
+fit_III$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]|> 
+   kbl(digits=3, caption = "Type III") |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 The three definitions can be compared directly:
@@ -140,11 +170,12 @@ comparison <- do.call(rbind, lapply(names(fits), function(type) {
 }))
 
 ggplot(comparison, aes(Term, PseudoF, fill = Type)) +
-  geom_col(position = position_dodge(width = 0.8), width = 0.72) +
+  geom_col(position = position_dodge(width = 0.8), color="black", width = 0.72) +
   labs(
     title = "The hypothesis definition can change the test",
     x = NULL, y = "Pseudo-F"
   ) +
+  theme_bw() +
   theme(legend.position = "bottom")
 ```
 
@@ -159,20 +190,12 @@ gradient_fit <- permanova(
   data = env,
   type = "II", permutations = 499, seed = 21
 )
-gradient_fit$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]
+gradient_fit$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
+   kbl(digits=3, caption = "Type I") |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 Standardising a predictor changes its coefficient scale but not the subspace
 tested by a one-degree-of-freedom term. Transformations that change ordering or
 linearity can change the ecological hypothesis and should be justified.
 
-## Choosing the type
-
-- **Type I:** order represents a planned sequence of adjustment.
-- **Type II:** main effects are interpreted marginally while respecting their
-  containing interactions.
-- **Type III:** each term is tested conditional on every other estimable term.
-
-Always state the type in the methods. If the conclusions depend strongly on
-the choice, show that sensitivity and return to the biological question rather
-than treating the three p-values as interchangeable answers.

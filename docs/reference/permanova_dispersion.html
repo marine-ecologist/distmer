@@ -36,25 +36,25 @@ categorical fixed main effect."><meta property="og:image" content="/logo.png"><!
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/contrasts.html">Pairwise contrasts and multiple comparisons</a>
+      <a href="../articles/contrasts.html">5. Pairwise contrasts and multiple comparisons</a>
     </li>
     <li>
-      <a href="../articles/dispersion.html">Dispersion and distance diagnostics</a>
+      <a href="../articles/dispersion.html">6. Dispersion and distance diagnostics</a>
     </li>
     <li>
-      <a href="../articles/fixed-effects.html">Fixed effects: Type I, II, and III</a>
+      <a href="../articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a>
     </li>
     <li>
-      <a href="../articles/getting-started.html">Getting started with distmer</a>
+      <a href="../articles/getting-started.html">1. Getting started with distmer</a>
     </li>
     <li>
-      <a href="../articles/random-effects.html">Random effects and ecological sampling designs</a>
+      <a href="../articles/random-effects.html">3. Random effects and ecological sampling designs</a>
     </li>
     <li>
-      <a href="../articles/unbalanced-mixed.html">Unbalanced designs</a>
+      <a href="../articles/unbalanced-mixed.html">4. Unbalanced designs</a>
     </li>
     <li>
-      <a href="../articles/validation.html">Validation and reproducibility</a>
+      <a href="../articles/validation.html">7. Validation and reproducibility</a>
     </li>
   </ul></li>
 <li>
@@ -84,15 +84,18 @@ categorical fixed main effect.</p>
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">permanova_dispersion</span><span class="op">(</span></span>
-<span>  <span class="va">design</span>,</span>
-<span>  <span class="va">term</span>,</span>
+<span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  distance <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  term <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"median"</span>, <span class="st">"centroid"</span><span class="op">)</span>,</span>
 <span>  bias_adjust <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  permutations <span class="op">=</span> <span class="fl">999L</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  keep_permutations <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  max_exact <span class="op">=</span> <span class="fl">100000L</span>,</span>
-<span>  tol <span class="op">=</span> <span class="fl">1e-10</span></span>
+<span>  tol <span class="op">=</span> <span class="fl">1e-10</span>,</span>
+<span>  design <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -100,12 +103,27 @@ categorical fixed main effect.</p>
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-design">design<a class="anchor" aria-label="anchor" href="#arg-design"></a></dt>
-<dd><p>Canonical Design Object compiled with the original distance.</p></dd>
+<dl><dt id="arg-formula">formula<a class="anchor" aria-label="anchor" href="#arg-formula"></a></dt>
+<dd><p>A model formula, or a compiled `permanova_design` object. The
+dissimilarity may be supplied on the left-hand side, for example
+`bray ~ treatment + (1 | site)`, or through `distance` with a one-sided
+formula. A compiled design remains accepted for low-level workflows.</p></dd>
+
+
+<dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
+<dd><p>A data frame with one row per observation. Do not supply it when
+`formula` is already a compiled design. For backward compatibility, the second
+positional argument after a compiled design may be the target term name.</p></dd>
+
+
+<dt id="arg-distance">distance<a class="anchor" aria-label="anchor" href="#arg-distance"></a></dt>
+<dd><p>A `dist` object or full distance matrix, used with a
+one-sided formula.</p></dd>
 
 
 <dt id="arg-term">term<a class="anchor" aria-label="anchor" href="#arg-term"></a></dt>
-<dd><p>Name of the sole categorical fixed main-effect term.</p></dd>
+<dd><p>Optional name of the sole categorical fixed main-effect term.
+It is inferred when the model contains exactly one fixed term.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -135,12 +153,35 @@ categorical fixed main effect.</p>
 <dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
 <dd><p>Numerical tolerance.</p></dd>
 
+
+<dt id="arg-design">design<a class="anchor" aria-label="anchor" href="#arg-design"></a></dt>
+<dd><p>Backward-compatible named alias for a compiled Design Object;
+use `formula = design` or pass the object as the first argument.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     <p>An object of class `permanova_dispersion`.</p>
     </div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">dune</span>, <span class="va">dune.env</span>, package <span class="op">=</span> <span class="st">"vegan"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">selected</span> <span class="op">&lt;-</span> <span class="va">dune.env</span><span class="op">$</span><span class="va">Management</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NM"</span>, <span class="st">"SF"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="va">dune.env</span><span class="op">[</span><span class="va">selected</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">bray</span> <span class="op">&lt;-</span> <span class="fu">vegan</span><span class="fu">::</span><span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">dune</span><span class="op">[</span><span class="va">selected</span>, <span class="op">]</span>, method <span class="op">=</span> <span class="st">"bray"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">permanova_dispersion</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">bray</span> <span class="op">~</span> <span class="va">Management</span>, <span class="va">env</span>, permutations <span class="op">=</span> <span class="fl">19</span>, seed <span class="op">=</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Design-aware multivariate dispersion test</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Term: Management  Center: median </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Engine: one-way </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Permutation: full-model residual permutation of observations </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        term df         ss         ms  pseudo_f p_perm</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Management  1 0.02578244 0.02578244 0.9172607   0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Residual 10 0.28108080 0.02810808        NA     NA</span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>

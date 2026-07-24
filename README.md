@@ -1,14 +1,12 @@
-# distmer <img src="man/figures/logo.png" align="right" height="170" alt="distmer hex logo" />
+# distmer <img src="man/figures/logo.png" align="right" style="height:170px; width:147px;" alt="distmer hex logo" />
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/marine-ecologist/distmer/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/marine-ecologist/distmer/actions/workflows/R-CMD-check.yaml)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![Codecov test coverage](https://codecov.io/gh/marine-ecologist/distmer/graph/badge.svg)](https://app.codecov.io/gh/marine-ecologist/distmer)
 <!-- badges: end -->
 
-## Distance-based mixed-effects models for ecological communities
-
-**Use the ecological distance that fits the question. Describe the sampling
-design the way it was collected. Permute at the level where replication
-actually lives.**
+### distance-based mixed-effects models with permutational inference
 
 `distmer` extends the logic of PERMANOVA into a mixed-model workflow. It uses
 familiar `lmer`-style formulas for fixed effects, experimental units, nesting,
@@ -18,59 +16,83 @@ blocks, repeated observations, and random slopes:
 community_distance ~ treatment + (1 | site)
 ```
 
-The response is a dissimilarity matrix rather than a single measured variable.
-`distmer` applies the model to its Gower-centred distance space and constructs
-the denominator and permutation rule implied by the sampling design.
+The response is a dissimilarity matrix from `vegdist()` rather than a single variable.
+`distmer` applies a common projection and mixed-design framework to the Gower-centred 
+matrix induced by the user’s chosen dissimilarity (see [Anderson 2001](https://ecoevol.ufg.br/adrimelo/div/Anderson-2001-AustEcol_non-parametric_manova.pdf)). With no random effects, `distmer` reduces to ordinary PERMANOVA identical to
+`vegan::adonis2()`. With a univariate Euclidean response, supported models reduce 
+to their classical `stats::anova()` or mixed-model counterparts (e.g. `lme4::lmer()`)
 
-It is not a likelihood or REML wrapper around `lme4`. With no random terms, a
-supported model reduces to conventional PERMANOVA; for a univariate Euclidean
-response, supported mixed designs reproduce their classical linear-model
-counterparts.
 
-## A first model
+#### fixed effects
 
-The package works directly with distances produced by
-[`vegan`](https://vegandevs.github.io/vegan/). This example asks whether plant
-community composition differs among management regimes in the `dune` data.
+The `distmer` package works directly with distances produced by
+[`vegan`](https://vegandevs.github.io/vegan/). The below example uses the `pyrifos`
+data to test whether an insecticide (chlorpyrifos) treatment altered aquatic invertebrate community composition:
 
 ```r
 library(distmer)
 library(vegan)
 
-data(dune, dune.env, package = "vegan")
-bray <- vegdist(dune, method = "bray")
+data(pyrifos)
+
+ditch <- gl(12, 1, length = 132)
+week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
+dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
+
+pyr.env <- data.frame(ditch, week, dose)
+pyr.bray <- vegdist(pyrifos)  
 
 fit <- permanova(
-  bray ~ Management,
-  data = dune.env,
-  permutations = 9999,
-  seed = 2026
+  pyr.bray ~ dose,
+  data = pyr.env,
+  permutations = 999,
+  seed = 101
 )
 
 summary(fit)
+
 ```
 
 The result reports the ecological effect being tested, its pseudo-\(F\),
 permutation p-value, attainable permutation space, and the exchangeability
 assumptions used for inference.
 
+
+#### random effects
+
 For a repeated or grouped field design, add the independent sampling unit in
-the same way you would in a mixed model:
+the same way as a mixed-effects model:
 
 ```r
-fit <- permanova(
-  community_distance ~ treatment + (1 | site),
-  data = field_design,
-  permutations = 9999,
-  seed = 2026
+
+fit2 <- permanova(
+  pyr.bray ~ dose + (1 | ditch),
+  data = pyr.env,
+  permutations = 999,
+  seed = 101
 )
+
+summary(fit2)
+
 ```
 
-Observations from a site remain together when the treatment is replicated
-among sites. Adding a random term does not manufacture replication: the
-formula must reflect how treatments were assigned and samples were collected.
+#### dispersion
 
-## From field question to formula
+A location result should be considered alongside multivariate dispersion. The
+dispersion companion uses the same formula-and-data style:
+
+```r
+
+permanova_dispersion(
+   pyr.bray ~ ditch ,
+  data = pyr.env,
+  permutations = 9999,
+  seed = 101
+)
+
+```
+
+#### Formula:
 
 | Ecological question | Formula |
 |---|---|
@@ -85,23 +107,6 @@ formula must reflect how treatments were assigned and samples were collected.
 inference envelope. Unsupported or confounded structures stop with an
 explanation instead of receiving a convenient but unjustified denominator.
 
-## Location, dispersion, and comparisons
-
-A location result should be considered alongside multivariate dispersion. The
-dispersion companion uses the same formula-and-data style:
-
-```r
-keep <- dune.env$Management %in% c("NM", "SF")
-two_group_env <- droplevels(dune.env[keep, , drop = FALSE])
-two_group_bray <- vegdist(dune[keep, ], method = "bray")
-
-spread <- permanova_dispersion(
-  two_group_bray ~ Management,
-  data = two_group_env,
-  permutations = 9999,
-  seed = 2026
-)
-```
 
 The package also supports planned and pairwise contrasts, multiplicity
 adjustment, Type I/II/III fixed-effect hypotheses, unbalanced sampling, nested
@@ -120,9 +125,9 @@ remotes::install_github(
 ```
 
 `distmer` is currently on the `0.9.0.9000` development line leading to the
-first stable `1.0.0` release.
+first stable `1.0.0` release. 
 
-## Start with the guides
+### vignettes
 
 1. `vignette("getting-started", package = "distmer")` — the distance-based
    mixed-model idea and a first analysis.
@@ -139,7 +144,7 @@ first stable `1.0.0` release.
 7. `vignette("validation", package = "distmer")` — reference agreement,
    simulations, and reproducible reporting.
 
-## Built to be checked
+## Checks:
 
 Supported analyses are tested against `vegan`, classical scalar analogues,
 direct matrix calculations, exact permutation enumeration, and adversarial

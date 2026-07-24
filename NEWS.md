@@ -1,3 +1,5 @@
+# distmer 0.9.1
+
 # distmer 0.9.0.9000
 
 ## Versioning reset before the first stable release

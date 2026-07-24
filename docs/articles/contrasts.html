@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pairwise contrasts and multiple comparisons • distmer</title>
+<title>5. Pairwise contrasts and multiple comparisons • distmer</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="../favicon-48x48.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -16,7 +16,7 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Pairwise contrasts and multiple comparisons">
+<script src="../pkgdown.js"></script><meta property="og:title" content="5. Pairwise contrasts and multiple comparisons">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -54,25 +54,25 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/contrasts.html">Pairwise contrasts and multiple comparisons</a>
+      <a href="../articles/contrasts.html">5. Pairwise contrasts and multiple comparisons</a>
     </li>
     <li>
-      <a href="../articles/dispersion.html">Dispersion and distance diagnostics</a>
+      <a href="../articles/dispersion.html">6. Dispersion and distance diagnostics</a>
     </li>
     <li>
-      <a href="../articles/fixed-effects.html">Fixed effects: Type I, II, and III</a>
+      <a href="../articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a>
     </li>
     <li>
-      <a href="../articles/getting-started.html">Getting started with distmer</a>
+      <a href="../articles/getting-started.html">1. Getting started with distmer</a>
     </li>
     <li>
-      <a href="../articles/random-effects.html">Random effects and ecological sampling designs</a>
+      <a href="../articles/random-effects.html">3. Random effects and ecological sampling designs</a>
     </li>
     <li>
-      <a href="../articles/unbalanced-mixed.html">Unbalanced designs</a>
+      <a href="../articles/unbalanced-mixed.html">4. Unbalanced designs</a>
     </li>
     <li>
-      <a href="../articles/validation.html">Validation and reproducibility</a>
+      <a href="../articles/validation.html">7. Validation and reproducibility</a>
     </li>
   </ul>
 </li>
@@ -90,10 +90,12 @@
 
 
 
-      </header><div class="row">
+      </header><script src="contrasts_files/kePrint-0.0.1/kePrint.js"></script><link href="contrasts_files/lightable-0.0.1/lightable.css" rel="stylesheet">
+<div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Pairwise contrasts and multiple comparisons</h1>
+      <h1 data-toc-skip>5. Pairwise contrasts and multiple
+comparisons</h1>
             
       
 
@@ -110,11 +112,144 @@ responsible. This guide uses the four management classes in
 contrasts, all pairwise comparisons, and multiplicity control.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">management</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Management <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="va">dune.env</span><span class="op">$</span><span class="va">Management</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">Management</span>, <span class="va">management</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">41</span><span class="op">)</span><span class="op">$</span><span class="va">table</span></span>
-<span><span class="co">#&gt;       Source df       SS        MS Pseudo-F P(perm) P(MC) Unique perms</span></span>
-<span><span class="co">#&gt; 1 Management  3 1.468592 0.4895306 2.767243   0.004 0.005          499</span></span>
-<span><span class="co">#&gt; 2   Residual 16 2.830430 0.1769019       NA      NA    NA           NA</span></span>
-<span><span class="co">#&gt; 3      Total 19 4.299022        NA       NA      NA    NA           NA</span></span></code></pre></div>
+<span><span class="va">m1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">bray</span> <span class="op">~</span> <span class="va">Management</span>, <span class="va">management</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">41</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; Distance-based PERMANOVA</span></span>
+<span><span class="co">#&gt; Engine: fixed effects  (Type I SS)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Factors</span></span>
+<span><span class="co">#&gt;  Name       Type  Levels</span></span>
+<span><span class="co">#&gt;  Management Fixed 4     </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; PERMANOVA table of results</span></span>
+<span><span class="co">#&gt;  Source     df SS    MS    Pseudo-F P(perm) P(MC)  Unique perms</span></span>
+<span><span class="co">#&gt;  Management 3  1.469 0.490 2.7672   0.0040  0.0050 499         </span></span>
+<span><span class="co">#&gt;  Residual   16 2.830 0.177                                     </span></span>
+<span><span class="co">#&gt;  Total      19 4.299                                           </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Details of the expected mean squares (EMS) for the model</span></span>
+<span><span class="co">#&gt;  Source     EMS                           </span></span>
+<span><span class="co">#&gt;  Management 1*V(Res) + 4.900*S(Management)</span></span>
+<span><span class="co">#&gt;  Res        1*V(Res)                      </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Construction of Pseudo-F ratio(s) from mean squares</span></span>
+<span><span class="co">#&gt;  Source     Numerator    Denominator Num.df Den.df</span></span>
+<span><span class="co">#&gt;  Management 1*Management 1*Res       3      16    </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Estimates of components of variation</span></span>
+<span><span class="co">#&gt;  Source        Estimate Sq.root</span></span>
+<span><span class="co">#&gt;  S(Management) 0.064    0.253  </span></span>
+<span><span class="co">#&gt;  V(Res)        0.177    0.421</span></span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+Source
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+SS
+</th>
+<th style="text-align:right;">
+MS
+</th>
+<th style="text-align:right;">
+Pseudo-F
+</th>
+<th style="text-align:right;">
+P(perm)
+</th>
+<th style="text-align:right;">
+P(MC)
+</th>
+<th style="text-align:right;">
+Unique perms
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Management
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+1.469
+</td>
+<td style="text-align:right;">
+0.490
+</td>
+<td style="text-align:right;">
+2.767
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+499
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Residual
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+2.830
+</td>
+<td style="text-align:right;">
+0.177
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Total
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+4.299
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
 <p>The ordination is a visual summary, not the test itself. The model
 uses the complete Bray–Curtis matrix, whereas the plot shows only two
 axes.</p>
@@ -124,9 +259,10 @@ axes.</p>
 <span>  Axis1 <span class="op">=</span> <span class="va">ord</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, Axis2 <span class="op">=</span> <span class="va">ord</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, Management <span class="op">=</span> <span class="va">management</span><span class="op">$</span><span class="va">Management</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">ord_plot</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span>, colour <span class="op">=</span> <span class="va">Management</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_point</span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">stat_ellipse</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>group <span class="op">=</span> <span class="va">Management</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span>, type <span class="op">=</span> <span class="st">"norm"</span>,</span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">geom_point</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ord_plot</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span>, fill <span class="op">=</span> <span class="va">Management</span><span class="op">)</span>, shape<span class="op">=</span><span class="fl">21</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">stat_ellipse</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ord_plot</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span>, colour <span class="op">=</span> <span class="va">Management</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span>, type <span class="op">=</span> <span class="st">"norm"</span>,</span>
 <span>               show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">labs</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Dune communities by management"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"PCoA axis 1"</span>, y <span class="op">=</span> <span class="st">"PCoA axis 2"</span>, colour <span class="op">=</span> <span class="st">"Management"</span><span class="op">)</span></span>
@@ -153,16 +289,108 @@ zero.</p>
 <span><span class="va">planned_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova_contrasts.html">permanova_contrasts</a></span><span class="op">(</span></span>
 <span>  <span class="va">design</span>, <span class="va">planned</span>, adjust <span class="op">=</span> <span class="st">"holm"</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">41</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">planned_fit</span><span class="op">$</span><span class="va">table</span></span>
-<span><span class="co">#&gt;                                              contrast df        ss        ms</span></span>
-<span><span class="co">#&gt; biological - hobby farming biological - hobby farming  1 0.1617135 0.1617135</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean       BF/HF mean - NM/SF mean  1 0.5627522 0.5627522</span></span>
-<span><span class="co">#&gt;                            denominator_df  pseudo_f p_perm p_adjusted</span></span>
-<span><span class="co">#&gt; biological - hobby farming             16 0.9141421  0.458      0.458</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean                16 3.1811546  0.020      0.040</span></span>
-<span><span class="co">#&gt;                            adjustment</span></span>
-<span><span class="co">#&gt; biological - hobby farming       holm</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean          holm</span></span></code></pre></div>
+<span><span class="va">planned_fit</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+contrast
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+ss
+</th>
+<th style="text-align:right;">
+ms
+</th>
+<th style="text-align:right;">
+denominator_df
+</th>
+<th style="text-align:right;">
+pseudo_f
+</th>
+<th style="text-align:right;">
+p_perm
+</th>
+<th style="text-align:right;">
+p_adjusted
+</th>
+<th style="text-align:left;">
+adjustment
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+biological - hobby farming
+</td>
+<td style="text-align:left;">
+biological - hobby farming
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.162
+</td>
+<td style="text-align:right;">
+0.162
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.914
+</td>
+<td style="text-align:right;">
+0.458
+</td>
+<td style="text-align:right;">
+0.458
+</td>
+<td style="text-align:left;">
+holm
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF/HF mean - NM/SF mean
+</td>
+<td style="text-align:left;">
+BF/HF mean - NM/SF mean
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.563
+</td>
+<td style="text-align:right;">
+0.563
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+3.181
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+<td style="text-align:right;">
+0.040
+</td>
+<td style="text-align:left;">
+holm
+</td>
+</tr>
+</tbody>
+</table>
 <p>Each contrast keeps the remaining group structure in the model, then
 obtains a permutation p-value for that comparison. Holm adjustment
 protects the family of planned questions without assuming that the
@@ -179,14 +407,131 @@ examined the complete family.</p>
 <code class="sourceCode R"><span><span class="va">pw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova_pairwise.html">permanova_pairwise</a></span><span class="op">(</span></span>
 <span>  <span class="va">design</span>, adjust <span class="op">=</span> <span class="st">"holm"</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">41</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">pw</span><span class="op">$</span><span class="va">table</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"contrast"</span>, <span class="st">"pseudo_f"</span>, <span class="st">"p_perm"</span>, <span class="st">"p_adjusted"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;         contrast  pseudo_f p_perm p_adjusted</span></span>
-<span><span class="co">#&gt; BF - HF  BF - HF 0.9141421  0.458      0.458</span></span>
-<span><span class="co">#&gt; BF - NM  BF - NM 3.2009023  0.012      0.048</span></span>
-<span><span class="co">#&gt; BF - SF  BF - SF 2.2705377  0.076      0.228</span></span>
-<span><span class="co">#&gt; HF - NM  HF - NM 3.6817517  0.006      0.030</span></span>
-<span><span class="co">#&gt; HF - SF  HF - SF 1.5990807  0.150      0.300</span></span>
-<span><span class="co">#&gt; NM - SF  NM - SF 4.2824464  0.002      0.012</span></span></code></pre></div>
+<span><span class="va">pw</span><span class="op">$</span><span class="va">table</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"contrast"</span>, <span class="st">"pseudo_f"</span>, <span class="st">"p_perm"</span>, <span class="st">"p_adjusted"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+contrast
+</th>
+<th style="text-align:right;">
+pseudo_f
+</th>
+<th style="text-align:right;">
+p_perm
+</th>
+<th style="text-align:right;">
+p_adjusted
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BF - HF
+</td>
+<td style="text-align:left;">
+BF - HF
+</td>
+<td style="text-align:right;">
+0.914
+</td>
+<td style="text-align:right;">
+0.458
+</td>
+<td style="text-align:right;">
+0.458
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF - NM
+</td>
+<td style="text-align:left;">
+BF - NM
+</td>
+<td style="text-align:right;">
+3.201
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+0.048
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF - SF
+</td>
+<td style="text-align:left;">
+BF - SF
+</td>
+<td style="text-align:right;">
+2.271
+</td>
+<td style="text-align:right;">
+0.076
+</td>
+<td style="text-align:right;">
+0.228
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HF - NM
+</td>
+<td style="text-align:left;">
+HF - NM
+</td>
+<td style="text-align:right;">
+3.682
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+0.030
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HF - SF
+</td>
+<td style="text-align:left;">
+HF - SF
+</td>
+<td style="text-align:right;">
+1.599
+</td>
+<td style="text-align:right;">
+0.150
+</td>
+<td style="text-align:right;">
+0.300
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NM - SF
+</td>
+<td style="text-align:left;">
+NM - SF
+</td>
+<td style="text-align:right;">
+4.282
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+</tr>
+</tbody>
+</table>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pw_plot</span> <span class="op">&lt;-</span> <span class="va">pw</span><span class="op">$</span><span class="va">table</span></span>
 <span><span class="va">pw_plot</span><span class="op">$</span><span class="va">contrast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">pw_plot</span><span class="op">$</span><span class="va">contrast</span>, <span class="va">pw_plot</span><span class="op">$</span><span class="va">p_adjusted</span><span class="op">)</span></span>
@@ -222,16 +567,108 @@ the observed sample composition.</p>
 <span><span class="fu"><a href="../reference/permanova_marginal_contrasts.html">permanova_marginal_contrasts</a></span><span class="op">(</span></span>
 <span>  <span class="va">multifactor</span>, factor <span class="op">=</span> <span class="st">"Management"</span>, contrasts <span class="op">=</span> <span class="va">planned</span>,</span>
 <span>  weights <span class="op">=</span> <span class="st">"equal"</span>, permutations <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">41</span></span>
-<span><span class="op">)</span><span class="op">$</span><span class="va">table</span></span>
-<span><span class="co">#&gt;                                              contrast weighting df        ss</span></span>
-<span><span class="co">#&gt; biological - hobby farming biological - hobby farming     equal  1 0.1592432</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean       BF/HF mean - NM/SF mean     equal  1 0.6524315</span></span>
-<span><span class="co">#&gt;                            denominator_df  pseudo_f p_perm p_adjusted</span></span>
-<span><span class="co">#&gt; biological - hobby farming             14 0.9082249  0.495      0.495</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean                14 3.7210658  0.015      0.030</span></span>
-<span><span class="co">#&gt;                            adjustment</span></span>
-<span><span class="co">#&gt; biological - hobby farming       holm</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean          holm</span></span></code></pre></div>
+<span><span class="op">)</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+contrast
+</th>
+<th style="text-align:left;">
+weighting
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+ss
+</th>
+<th style="text-align:right;">
+denominator_df
+</th>
+<th style="text-align:right;">
+pseudo_f
+</th>
+<th style="text-align:right;">
+p_perm
+</th>
+<th style="text-align:right;">
+p_adjusted
+</th>
+<th style="text-align:left;">
+adjustment
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+biological - hobby farming
+</td>
+<td style="text-align:left;">
+biological - hobby farming
+</td>
+<td style="text-align:left;">
+equal
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.159
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0.908
+</td>
+<td style="text-align:right;">
+0.495
+</td>
+<td style="text-align:right;">
+0.495
+</td>
+<td style="text-align:left;">
+holm
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF/HF mean - NM/SF mean
+</td>
+<td style="text-align:left;">
+BF/HF mean - NM/SF mean
+</td>
+<td style="text-align:left;">
+equal
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.652
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+3.721
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+0.030
+</td>
+<td style="text-align:left;">
+holm
+</td>
+</tr>
+</tbody>
+</table>
 <p>If a factor interacts with a numeric environmental gradient, its
 comparison also depends on where that gradient is evaluated. The
 reference value is therefore supplied rather than silently chosen.</p>
@@ -249,16 +686,108 @@ reference value is therefore supplied rather than silently chosen.</p>
 <span>  <span class="va">adjusted_design</span>, factor <span class="op">=</span> <span class="st">"Management"</span>, contrasts <span class="op">=</span> <span class="va">planned</span>,</span>
 <span>  at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>A1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">env</span><span class="op">$</span><span class="va">A1</span><span class="op">)</span><span class="op">)</span>, weights <span class="op">=</span> <span class="st">"equal"</span>,</span>
 <span>  permutations <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">41</span></span>
-<span><span class="op">)</span><span class="op">$</span><span class="va">table</span></span>
-<span><span class="co">#&gt;                                              contrast weighting df         ss</span></span>
-<span><span class="co">#&gt; biological - hobby farming biological - hobby farming     equal  1 0.09987203</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean       BF/HF mean - NM/SF mean     equal  1 0.09535882</span></span>
-<span><span class="co">#&gt;                            denominator_df  pseudo_f p_perm p_adjusted</span></span>
-<span><span class="co">#&gt; biological - hobby farming             10 0.6277811   0.64          1</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean                10 0.5994117   0.67          1</span></span>
-<span><span class="co">#&gt;                            adjustment</span></span>
-<span><span class="co">#&gt; biological - hobby farming       holm</span></span>
-<span><span class="co">#&gt; BF/HF mean - NM/SF mean          holm</span></span></code></pre></div>
+<span><span class="op">)</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+contrast
+</th>
+<th style="text-align:left;">
+weighting
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+ss
+</th>
+<th style="text-align:right;">
+denominator_df
+</th>
+<th style="text-align:right;">
+pseudo_f
+</th>
+<th style="text-align:right;">
+p_perm
+</th>
+<th style="text-align:right;">
+p_adjusted
+</th>
+<th style="text-align:left;">
+adjustment
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+biological - hobby farming
+</td>
+<td style="text-align:left;">
+biological - hobby farming
+</td>
+<td style="text-align:left;">
+equal
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0.628
+</td>
+<td style="text-align:right;">
+0.64
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+holm
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF/HF mean - NM/SF mean
+</td>
+<td style="text-align:left;">
+BF/HF mean - NM/SF mean
+</td>
+<td style="text-align:left;">
+equal
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.095
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0.599
+</td>
+<td style="text-align:right;">
+0.67
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+holm
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="choosing-familywise-protection">Choosing familywise protection<a class="anchor" aria-label="anchor" href="#choosing-familywise-protection"></a>
@@ -280,22 +809,215 @@ protects every pair even when other pairs genuinely differ.</li>
 <code class="sourceCode R"><span><span class="va">max_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova_maxT_pairwise.html">permanova_maxT_pairwise</a></span><span class="op">(</span><span class="va">design</span>, permutations <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">41</span><span class="op">)</span></span>
 <span><span class="va">closed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova_pairwise_strong.html">permanova_pairwise_strong</a></span><span class="op">(</span><span class="va">design</span>, permutations <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">41</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">max_f</span><span class="op">$</span><span class="va">table</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"contrast"</span>, <span class="st">"p_perm"</span>, <span class="st">"p_maxT"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;         contrast p_perm p_maxT</span></span>
-<span><span class="co">#&gt; BF - HF  BF - HF  0.495  0.910</span></span>
-<span><span class="co">#&gt; BF - NM  BF - NM  0.005  0.065</span></span>
-<span><span class="co">#&gt; BF - SF  BF - SF  0.060  0.190</span></span>
-<span><span class="co">#&gt; HF - NM  HF - NM  0.010  0.025</span></span>
-<span><span class="co">#&gt; HF - SF  HF - SF  0.115  0.465</span></span>
-<span><span class="co">#&gt; NM - SF  NM - SF  0.010  0.010</span></span>
-<span><span class="va">closed</span><span class="op">$</span><span class="va">table</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"contrast"</span>, <span class="st">"p_perm"</span>, <span class="st">"p_closed"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;         contrast     p_perm  p_closed</span></span>
-<span><span class="co">#&gt; BF - HF  BF - HF 0.19642857 0.1964286</span></span>
-<span><span class="co">#&gt; BF - NM  BF - NM 0.02380952 0.0750000</span></span>
-<span><span class="co">#&gt; BF - SF  BF - SF 0.05952381 0.0750000</span></span>
-<span><span class="co">#&gt; HF - NM  HF - NM 0.03500000 0.0600000</span></span>
-<span><span class="co">#&gt; HF - SF  HF - SF 0.09500000 0.1700000</span></span>
-<span><span class="co">#&gt; NM - SF  NM - SF 0.01500000 0.0250000</span></span></code></pre></div>
+<span><span class="va">max_f</span><span class="op">$</span><span class="va">table</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"contrast"</span>, <span class="st">"p_perm"</span>, <span class="st">"p_maxT"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+contrast
+</th>
+<th style="text-align:right;">
+p_perm
+</th>
+<th style="text-align:right;">
+p_maxT
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BF - HF
+</td>
+<td style="text-align:left;">
+BF - HF
+</td>
+<td style="text-align:right;">
+0.495
+</td>
+<td style="text-align:right;">
+0.910
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF - NM
+</td>
+<td style="text-align:left;">
+BF - NM
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+0.065
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF - SF
+</td>
+<td style="text-align:left;">
+BF - SF
+</td>
+<td style="text-align:right;">
+0.060
+</td>
+<td style="text-align:right;">
+0.190
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HF - NM
+</td>
+<td style="text-align:left;">
+HF - NM
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+0.025
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HF - SF
+</td>
+<td style="text-align:left;">
+HF - SF
+</td>
+<td style="text-align:right;">
+0.115
+</td>
+<td style="text-align:right;">
+0.465
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NM - SF
+</td>
+<td style="text-align:left;">
+NM - SF
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">closed</span><span class="op">$</span><span class="va">table</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"contrast"</span>, <span class="st">"p_perm"</span>, <span class="st">"p_closed"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+contrast
+</th>
+<th style="text-align:right;">
+p_perm
+</th>
+<th style="text-align:right;">
+p_closed
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BF - HF
+</td>
+<td style="text-align:left;">
+BF - HF
+</td>
+<td style="text-align:right;">
+0.196
+</td>
+<td style="text-align:right;">
+0.196
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF - NM
+</td>
+<td style="text-align:left;">
+BF - NM
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+<td style="text-align:right;">
+0.075
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BF - SF
+</td>
+<td style="text-align:left;">
+BF - SF
+</td>
+<td style="text-align:right;">
+0.060
+</td>
+<td style="text-align:right;">
+0.075
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HF - NM
+</td>
+<td style="text-align:left;">
+HF - NM
+</td>
+<td style="text-align:right;">
+0.035
+</td>
+<td style="text-align:right;">
+0.060
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HF - SF
+</td>
+<td style="text-align:left;">
+HF - SF
+</td>
+<td style="text-align:right;">
+0.095
+</td>
+<td style="text-align:right;">
+0.170
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NM - SF
+</td>
+<td style="text-align:left;">
+NM - SF
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+0.025
+</td>
+</tr>
+</tbody>
+</table>
 <p>The strong finite-sample guarantee has an important boundary. It
 applies to pairwise equality of <strong>complete distributions</strong>
 for independent one-factor observations. It is not a strong guarantee

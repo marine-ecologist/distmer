@@ -56,25 +56,25 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/contrasts.html">Pairwise contrasts and multiple comparisons</a>
+      <a href="articles/contrasts.html">5. Pairwise contrasts and multiple comparisons</a>
     </li>
     <li>
-      <a href="articles/dispersion.html">Dispersion and distance diagnostics</a>
+      <a href="articles/dispersion.html">6. Dispersion and distance diagnostics</a>
     </li>
     <li>
-      <a href="articles/fixed-effects.html">Fixed effects: Type I, II, and III</a>
+      <a href="articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a>
     </li>
     <li>
       <a href="articles/getting-started.html">1. Getting started with distmer</a>
     </li>
     <li>
-      <a href="articles/random-effects.html">Random effects and ecological sampling designs</a>
+      <a href="articles/random-effects.html">3. Random effects and ecological sampling designs</a>
     </li>
     <li>
-      <a href="articles/unbalanced-mixed.html">Unbalanced designs</a>
+      <a href="articles/unbalanced-mixed.html">4. Unbalanced designs</a>
     </li>
     <li>
-      <a href="articles/validation.html">Validation and reproducibility</a>
+      <a href="articles/validation.html">7. Validation and reproducibility</a>
     </li>
   </ul>
 </li>
@@ -95,14 +95,13 @@
       </header><div class="row">
   <div class="contents col-md-9">
 <div class="section level1">
-<div class="page-header"><h1 id="distmer-">distmer <img src="reference/figures/logo.png" align="right" height="170" alt="distmer hex logo"><a class="anchor" aria-label="anchor" href="#distmer-"></a>
+<div class="page-header"><h1 id="distmer-">distmer <img src="reference/figures/logo.png" align="right" style="height:170px; width:147px;" alt="distmer hex logo"><a class="anchor" aria-label="anchor" href="#distmer-"></a>
 </h1></div>
 <!-- badges: start -->
 
 <div class="section level2">
 <h2 id="distance-based-mixed-effects-models-for-ecological-communities">Distance-based mixed-effects models for ecological communities<a class="anchor" aria-label="anchor" href="#distance-based-mixed-effects-models-for-ecological-communities"></a>
 </h2>
-<p><strong>Use the ecological distance that fits the question. Describe the sampling design the way it was collected. Permute at the level where replication actually lives.</strong></p>
 <p><code>distmer</code> extends the logic of PERMANOVA into a mixed-model workflow. It uses familiar <code>lmer</code>-style formulas for fixed effects, experimental units, nesting, blocks, repeated observations, and random slopes:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">community_distance</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span></span></code></pre></div>
@@ -112,7 +111,7 @@
 <div class="section level2">
 <h2 id="a-first-model">A first model<a class="anchor" aria-label="anchor" href="#a-first-model"></a>
 </h2>
-<p>The package works directly with distances produced by <a href="https://vegandevs.github.io/vegan/" class="external-link"><code>vegan</code></a>. This example asks whether plant community composition differs among management regimes in the <code>dune</code> data.</p>
+<p>The package works directly with distances produced by <a href="https://vegandevs.github.io/vegan/" class="external-link"><code>vegan</code></a>. For example: does community composition differ among management regimes in the <code>dune</code> data?</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">distmer</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://vegandevs.github.io/vegan/" class="external-link">vegan</a></span><span class="op">)</span></span>
@@ -140,7 +139,7 @@
 <p>Observations from a site remain together when the treatment is replicated among sites. Adding a random term does not manufacture replication: the formula must reflect how treatments were assigned and samples were collected.</p>
 </div>
 <div class="section level2">
-<h2 id="from-field-question-to-formula">From field question to formula<a class="anchor" aria-label="anchor" href="#from-field-question-to-formula"></a>
+<h2 id="formula">Formula:<a class="anchor" aria-label="anchor" href="#formula"></a>
 </h2>
 <table class="table">
 <colgroup>
@@ -229,7 +228,7 @@
 </ol>
 </div>
 <div class="section level2">
-<h2 id="built-to-be-checked">Built to be checked<a class="anchor" aria-label="anchor" href="#built-to-be-checked"></a>
+<h2 id="checks">Checks:<a class="anchor" aria-label="anchor" href="#checks"></a>
 </h2>
 <p>Supported analyses are tested against <code>vegan</code>, classical scalar analogues, direct matrix calculations, exact permutation enumeration, and adversarial simulation. Distance diagnostics retain and report non-Euclidean geometry rather than silently changing it.</p>
 <p>For the detailed evidence and current support boundary, see <a href="inst/VALIDATION.html"><code>inst/VALIDATION.md</code></a> and <code><a href="reference/permanova_capabilities.html">permanova_capabilities()</a></code>.</p>

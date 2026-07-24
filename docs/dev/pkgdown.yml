@@ -1,0 +1,15 @@
+pandoc: 3.8.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  contrasts: contrasts.html
+  dispersion: dispersion.html
+  fixed-effects: fixed-effects.html
+  getting-started: getting-started.html
+  random-effects: random-effects.html
+  unbalanced-mixed: unbalanced-mixed.html
+  validation: validation.html
+last_built: 2026-07-24T23:34Z
+urls:
+  reference: https://marine-ecologist.github.io/distmer/reference
+  article: https://marine-ecologist.github.io/distmer/articles

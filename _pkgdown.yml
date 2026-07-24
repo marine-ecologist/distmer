@@ -1,0 +1,74 @@
+url: https://marine-ecologist.github.io/distmer/
+
+home:
+  title: "distmer package overview"
+  description: "distance-based mixed-effects models with permutational inference" # Short description for metadata
+
+authors:
+  George Roff:
+    href: https://github.com/marine.ecologist/
+
+template:
+  bootstrap: 5
+  math-rendering: mathjax
+  light-switch: true
+  includes:
+    in_header: |
+      <script>
+      document.documentElement.setAttribute('data-bs-theme', 'light');
+      </script>
+
+development:
+  mode: devel
+
+navbar:
+  structure:
+    left:
+      - reference
+      - articles
+      - news
+    right:
+      - search
+      - github
+      - lightswitch
+
+  components:
+    reference:
+      text: Reference
+      href: reference/index.html
+
+    search:
+      search: []
+
+    lightswitch:
+      icon: fa-sun
+      aria-label: Light switch
+      id: lightswitch
+      menu:
+        - text: Light
+          theme: light
+          icon: fa-sun
+        - text: Dark
+          theme: dark
+          icon: fa-moon
+        - text: Auto
+          theme: auto
+          icon: fa-adjust
+
+    articles:
+      text: Articles
+      menu:
+        - text: "1. Getting started with distmer"
+          href: articles/getting-started.html
+        - text: "2. Fixed effects and Contrasts (Type I-II-III)"
+          href: articles/fixed-effects.html
+        - text: "3. Random effects and ecological sampling designs"
+          href: articles/random-effects.html
+        - text: "4. Unbalanced designs"
+          href: articles/unbalanced-mixed.html
+        - text: "5. Pairwise contrasts and multiple comparisons"
+          href: articles/contrasts.html
+        - text: "6. Dispersion and distance diagnostics"
+          href: articles/dispersion.html
+        - text: "7. Validation and reproducibility"
+          href: articles/validation.html

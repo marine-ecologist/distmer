@@ -1,8 +1,8 @@
 ---
-title: "Unbalanced designs"
+title: "4. Unbalanced designs"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Unbalanced designs}
+  %\VignetteIndexEntry{4. Unbalanced designs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 library(distmer)
 library(vegan)
 library(ggplot2)
+library(kableExtra)
 theme_set(theme_minimal(base_size = 12))
 ```
 
@@ -55,7 +56,9 @@ mite_bray <- vegdist(mite, method = "bray")
 
 cell_counts <- as.data.frame(table(mite_env$Wetness, mite_env$Topo))
 names(cell_counts) <- c("Wetness", "Topography", "sites")
-cell_counts
+cell_counts |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ```{r cell-counts, fig.alt="Unequal numbers of mite sites across wetness and topography combinations"}
@@ -63,6 +66,7 @@ ggplot(cell_counts, aes(Topography, Wetness, fill = sites)) +
   geom_tile(colour = "white", linewidth = 1) +
   geom_text(aes(label = sites), colour = "white", fontface = "bold") +
   scale_fill_viridis_c(option = "C", direction = -1) +
+  theme_bw() +
   labs(title = "The environmental combinations are not equally represented",
        x = "Topography", y = "Wetness class", fill = "Sites")
 ```
@@ -76,7 +80,9 @@ mite_fit <- permanova(
   mite_bray ~ Wetness + Topo,
   mite_env, type = "II", permutations = 999, seed = 17
 )
-mite_fit$table
+mite_fit$table |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 Use Type III only when an interaction is scientifically required and the
@@ -125,7 +131,8 @@ ditch_summary$treatment <- factor(
 
 ```{r visit-plot, fig.alt="Three to six retained visits per Pyrifos ditch, coloured by exposure group"}
 ggplot(ditch_summary, aes(ditch, visits, fill = treatment)) +
-  geom_col(width = 0.75) +
+  geom_col(color="black", width = 0.75) +
+  theme_bw() +
   scale_y_continuous(breaks = 0:6, limits = c(0, 6.5)) +
   labs(title = "Unequal observation counts do not create extra ditches",
        x = "Ditch", y = "Retained visits", fill = "Group")
@@ -136,10 +143,15 @@ pyrifos_fit <- permanova(
   pyrifos_bray ~ treatment + (1 | ditch),
   pyrifos_env, permutations = 999, seed = 17
 )
-pyrifos_fit$table
+pyrifos_fit$table |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+
 pyrifos_fit$fit$test[
   c("estimand", "exchangeable_units", "permutation_strata")
-]
+] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 The comparison gives every ditch centroid equal weight, regardless of whether
@@ -194,7 +206,9 @@ permanova_mixed_contrasts(
   contrast_design,
   contrasts = list(`mean positive dose - control` = positive_vs_control),
   permutations = 199, seed = 17
-)$table
+)$table |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ## Checklist before fitting

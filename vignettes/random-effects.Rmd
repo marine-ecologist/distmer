@@ -1,8 +1,8 @@
 ---
-title: "Random effects and ecological sampling designs"
+title: "3. Random effects and ecological sampling designs"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{2. Random effects and ecological sampling designs}
+  %\VignetteIndexEntry{3. Random effects and ecological sampling designs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 library(distmer)
 library(vegan)
 library(ggplot2)
+library(kableExtra)
 theme_set(theme_minimal(base_size = 12))
 ```
 
@@ -51,7 +52,9 @@ pyrifos_env <- data.frame(
   week = week[keep]
 )
 pyrifos_bray <- vegdist(community, method = "bray")
-with(pyrifos_env, table(ditch, dose))
+with(pyrifos_env, table(ditch, dose)) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ```{r repeated-ordination, fig.alt="Post-treatment Pyrifos samples connected through time within each ditch"}
@@ -84,7 +87,9 @@ ditch_fit <- permanova(
   pyrifos_env, permutations = 999, seed = 26
 )
 
-summary(ditch_fit)
+summary(ditch_fit) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 The random term also determines the denominator. Consequently, `type = "II"`
@@ -106,7 +111,9 @@ period_env <- transform(
     levels = c("early", "late")
   )
 )
-with(period_env, table(ditch, period))
+with(period_env, table(ditch, period)) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ```{r period-plot, fig.alt="Early to late changes on PCoA axis 1 for each Pyrifos ditch"}
@@ -131,7 +138,9 @@ period_fit <- permanova(
   pyrifos_bray ~ period + (1 + period | ditch),
   period_env, permutations = "all", seed = 26
 )
-summary(period_fit)
+summary(period_fit) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 
 ```
 
@@ -146,7 +155,9 @@ continuous_fit <- permanova(
   pyrifos_env, permutations = 999, seed = 26
 )
 
-summary(continuous_fit)
+summary(continuous_fit) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 
 ```
 

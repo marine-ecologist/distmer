@@ -1,8 +1,8 @@
 ---
-title: "Dispersion and distance diagnostics"
+title: "6. Dispersion and distance diagnostics"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{3. Dispersion and distance diagnostics}
+  %\VignetteIndexEntry{6. Dispersion and distance diagnostics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 library(distmer)
 library(vegan)
 library(ggplot2)
+library(kableExtra) 
 theme_set(theme_minimal(base_size = 12))
 data(dune, dune.env, package = "vegan")
 ```
@@ -42,7 +43,9 @@ data.frame(
     bray_diag$negative_ratio, jaccard_diag$negative_ratio
   ),
   euclidean = c(bray_diag$euclidean, jaccard_diag$euclidean)
-)
+) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 `distance_diagnostics()` applies the same Gower-centring operation to every
@@ -94,7 +97,9 @@ selected <- dune.env$Management %in% c("NM", "SF")
 community <- dune[selected, ]
 env <- droplevels(dune.env[selected, , drop = FALSE])
 subset_bray <- vegdist(community, method = "bray")
-table(env$Management)
+table(env$Management) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ```{r tests}
@@ -108,8 +113,12 @@ dispersion <- permanova_dispersion(
   permutations = 999, seed = 82
 )
 
-location$table[1, c("Pseudo-F", "P(perm)")]
-dispersion$table[1, c("pseudo_f", "p_perm")]
+location$table[1, c("Pseudo-F", "P(perm)")] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+dispersion$table[1, c("pseudo_f", "p_perm")] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ```{r distance-plot, fig.alt="Distances of NM and SF dune sites to their group spatial medians"}
@@ -118,10 +127,11 @@ disp_plot <- data.frame(
   distance_to_median = dispersion$distances
 )
 
-ggplot(disp_plot, aes(Management, distance_to_median, colour = Management)) +
-  geom_boxplot(width = 0.55, outlier.shape = NA, alpha = 0.15) +
+ggplot(disp_plot, aes(Management, distance_to_median, fill = Management)) +
+  geom_boxplot(width = 0.55, outlier.shape = NA, color="black", alpha = 0.15) +
   geom_jitter(width = 0.08, height = 0, size = 2.5) +
   guides(colour = "none") +
+  theme_bw() +
   labs(title = "Within-group multivariate spread",
        x = "Management", y = "Distance to group spatial median")
 ```
@@ -145,7 +155,9 @@ c(
   ),
   distmer_F = dispersion$test$statistic,
   vegan_F = unname(anova(vegan_dispersion)["Groups", "F value"])
-)
+) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 `type = "median"` is the default because it generally has better small-sample
@@ -169,7 +181,9 @@ repeated_design <- compile_permanova_design(
 permanova_dispersion(
   repeated_design, term = "treatment", type = "median",
   permutations = 9999, seed = 82
-)
+) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 At present, dispersion inference requires one categorical target with equal

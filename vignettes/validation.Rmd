@@ -1,8 +1,8 @@
 ---
-title: "Validation and reproducibility"
+title: "7. Validation and reproducibility"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Validation and reproducibility}
+  %\VignetteIndexEntry{7. Validation and reproducibility}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,7 +14,8 @@ knitr::opts_chunk$set(
 )
 library(distmer)
 library(vegan)
-library(ggplot2)
+library(ggplot2) 
+library(kableExtra)
 theme_set(theme_minimal(base_size = 12))
 ```
 
@@ -49,7 +50,9 @@ vegan_fit <- adonis2(
 data.frame(
   implementation = c("distmer", "vegan::adonis2"),
   pseudo_f = c(distmer_fit$table$`Pseudo-F`[1], vegan_fit$F[1])
-)
+) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 The statistic should agree to numerical tolerance. Permutation p-values need
@@ -81,7 +84,9 @@ c(
   )),
   pseudo_f_difference = distmer_dispersion$test$statistic -
     unname(anova(vegan_dispersion)["Groups", "F value"])
-)
+) |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 These are useful anchors, but validation is broader than agreement with one
@@ -120,7 +125,9 @@ simulation <- simulate_mixed_validation(
 simulation$summary[, c(
   "scenario", "estimand", "rejection_rate", "monte_carlo_se",
   "max_abs_denominator_f_difference"
-)]
+)] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
 
 ```{r simulation-plot, fig.alt="Illustrative rejection rates from three mixed-model simulation scenarios"}
@@ -164,10 +171,16 @@ names(distmer_fit)
 distmer_fit$engine
 distmer_fit$design$spectral[c(
   "euclidean", "negative_count", "negative_ratio", "correction"
-)]
+)] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+
 distmer_fit$fit$tests$Management[c(
   "estimand", "exchangeable_units", "permutation_algorithm"
-)]
+)] |> 
+  kbl(digits=3) |> 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+
 ```
 
 For mixed results, also retain the reported denominator, hierarchy assignment,

@@ -1,7 +1,7 @@
 Package: distmer
 Type: Package
 Title: Transparent Distance-Based Models for Ecological Communities
-Version: 0.9.0.9000
+Version: 0.9.1
 Authors@R: person("Roff", "George", email = "groff@reefresearch.org", role = c("aut", "cre"))
 Description: Transparent distance algebra, canonical design compilation, and
     permutation inference for ecological community models. Initial scope is
