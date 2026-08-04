@@ -15,15 +15,15 @@ permanova_mixed(
 )
 }
 \arguments{
-\item{design}{A canonical `permanova_design` compiled with `distance`.}
+\item{design}{A canonical \code{permanova_design} compiled with \code{distance}.}
 
-\item{permutations}{A non-negative integer or `"all"`. Enumeration is used
+\item{permutations}{A non-negative integer or \code{"all"}. Enumeration is used
 automatically when the requested sample covers the attainable space.}
 
 \item{seed}{Optional random seed.}
 
-\item{hypothesis}{Fixed-effect sum-of-squares partition: `"I"` (sequential),
-`"II"` (marginal), or `"III"` (partial).}
+\item{hypothesis}{Fixed-effect sum-of-squares partition: \code{"I"} (sequential),
+\code{"II"} (marginal), or \code{"III"} (partial).}
 
 \item{keep_permutations}{Retain permutation statistics in each test spec.}
 
@@ -32,7 +32,7 @@ automatically when the requested sample covers the attainable space.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_mixed`.
+An object of class \code{permanova_mixed}.
 }
 \description{
 Builds an explicit test specification for every fixed term, selects the

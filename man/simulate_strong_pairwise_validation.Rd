@@ -33,6 +33,6 @@ A strong-pairwise validation report.
 \description{
 Audits complete- and partial-null familywise rejection, reconstructs every
 sampled intersection maximum directly from the retained label assignments,
-and verifies that the partial `A = B` intersection never moves observations
-from the non-null `C` group.
+and verifies that the partial \code{A = B} intersection never moves observations
+from the non-null \code{C} group.
 }

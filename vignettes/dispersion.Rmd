@@ -43,9 +43,7 @@ data.frame(
     bray_diag$negative_ratio, jaccard_diag$negative_ratio
   ),
   euclidean = c(bray_diag$euclidean, jaccard_diag$euclidean)
-) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+)  |> tab()
 ```
 
 `distance_diagnostics()` applies the same Gower-centring operation to every
@@ -97,9 +95,7 @@ selected <- dune.env$Management %in% c("NM", "SF")
 community <- dune[selected, ]
 env <- droplevels(dune.env[selected, , drop = FALSE])
 subset_bray <- vegdist(community, method = "bray")
-table(env$Management) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+table(env$Management) |> tab()
 ```
 
 ```{r tests}
@@ -113,12 +109,12 @@ dispersion <- permanova_dispersion(
   permutations = 999, seed = 82
 )
 
-location$table[1, c("Pseudo-F", "P(perm)")] |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-dispersion$table[1, c("pseudo_f", "p_perm")] |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+location$table[1, c("Pseudo-F", "P(perm)")]  |> tab()
+
+```
+
+```{r}
+dispersion$table[1, c("pseudo_f", "p_perm")] |> tab()
 ```
 
 ```{r distance-plot, fig.alt="Distances of NM and SF dune sites to their group spatial medians"}
@@ -155,9 +151,7 @@ c(
   ),
   distmer_F = dispersion$test$statistic,
   vegan_F = unname(anova(vegan_dispersion)["Groups", "F value"])
-) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+) |> tab()
 ```
 
 `type = "median"` is the default because it generally has better small-sample
@@ -181,9 +175,7 @@ repeated_design <- compile_permanova_design(
 permanova_dispersion(
   repeated_design, term = "treatment", type = "median",
   permutations = 9999, seed = 82
-) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+)  |> tab()
 ```
 
 At present, dispersion inference requires one categorical target with equal

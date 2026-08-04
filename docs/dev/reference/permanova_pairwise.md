@@ -1,7 +1,8 @@
 # Pairwise one-factor distance comparisons
 
 Constructs every pairwise difference among the levels of the sole fixed
-factor and delegates to \`permanova_contrasts()\`.
+factor and delegates to
+[`permanova_contrasts()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts.md).
 
 ## Usage
 
@@ -25,16 +26,17 @@ permanova_pairwise(
 
 - adjust:
 
-  Multiplicity method: \`"holm"\`, \`"bonferroni"\`, \`"BH"\`, \`"BY"\`,
-  or \`"none"\`.
+  Multiplicity method for
+  [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) (default
+  "holm").
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  Number of permutations; defaults to `fit`'s value.
 
 - seed:
 
-  Optional random seed.
+  RNG seed; defaults to `fit`'s value.
 
 - keep_permutations:
 
@@ -50,4 +52,4 @@ permanova_pairwise(
 
 ## Value
 
-An object of class \`permanova_contrasts\` with a pairwise family.
+An object of class `permanova_contrasts` with a pairwise family.

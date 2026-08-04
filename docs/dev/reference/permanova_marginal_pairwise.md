@@ -30,7 +30,7 @@ permanova_marginal_pairwise(
 
 - weights:
 
-  \`"equal"\` or \`"proportional"\` nuisance-cell weights.
+  `"equal"` or `"proportional"` nuisance-cell weights.
 
 - adjust:
 
@@ -38,7 +38,7 @@ permanova_marginal_pairwise(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -58,4 +58,4 @@ permanova_marginal_pairwise(
 
 ## Value
 
-An object of class \`permanova_marginal_contrasts\`.
+An object of class `permanova_marginal_contrasts`.

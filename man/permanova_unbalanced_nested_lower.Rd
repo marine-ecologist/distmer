@@ -18,9 +18,9 @@ permanova_unbalanced_nested_lower(
 \item{design}{Canonical unbalanced parent/child Design Object containing a
 distance.}
 
-\item{level}{`"auto"`, `"child"`, or `"observation"`.}
+\item{level}{\code{"auto"}, \code{"child"}, or \code{"observation"}.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -31,7 +31,7 @@ distance.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_unbalanced_nested_lower`.
+An object of class \code{permanova_unbalanced_nested_lower}.
 }
 \description{
 Tests one categorical treatment assigned either to child units or to

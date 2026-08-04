@@ -16,17 +16,29 @@ cells, correlation, or interactions they need not.
 - **Type III:** each term is tested conditional on every other estimable
   term.
 
+Note: This approach differs from the most mixed-models: Base `lme4`
+reports fixed-effect coefficients with Wald t-values via
+[`summary()`](https://rdrr.io/r/base/summary.html) (i.e. not an ANOVA
+table) — while `lme4::anova()` on an lmer model returns sequential (Type
+I) F-tests. `lmerTest` returns Type III ANOVA tables by default (with
+Satterthwaite degrees of freedom), and
+[`car::Anova()`](https://rdrr.io/pkg/car/man/Anova.html) takes an
+explicit `type = "II"` or `type = "III"`.
+[`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)
+makes the choice explicit rather than defaulting, because on unbalanced
+designs the three types give genuinely different answers and no default
+is universally correct.
+
 ## Mite communities along environmental gradients
 
 The
 [`vegan::mite`](https://vegandevs.github.io/vegan/reference/mite.html)
 data contain 35 oribatid mite taxa from 70 samples. For a compact
-factorial example we combine the recorded topographic class with
+factorial example the recorded topographic class is combined with
 tertiles of water content. Water content is categorised into three
 groups: dry, intermediate, and wet.
 
 ``` r
-
 data(mite, mite.env, package = "vegan")
 mite_bray <- vegdist(mite, method = "bray")
 
@@ -39,9 +51,7 @@ env <- transform(
   ),
   Topo = droplevels(factor(Topo))
 )
-with(env, table(Wetness, Topo)) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+with(env, table(Wetness, Topo)) |> tab()
 ```
 
 |              | Blanket | Hummock |
@@ -54,7 +64,6 @@ All six combinations occur, but their sample sizes differ. The
 ordination suggests that both predictors may contribute to composition.
 
 ``` r
-
 ord <- as.data.frame(cmdscale(mite_bray, k = 2))
 names(ord) <- c("Axis1", "Axis2")
 ord$Wetness <- env$Wetness
@@ -86,15 +95,12 @@ Do not choose an order because it produces the smaller p-value.
 With wetness first:
 
 ``` r
-
 wetness_first <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "I", permutations = 499, seed = 11
 )
 
-wetness_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
-   kbl(digits=3, caption = "Type I") |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+wetness_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> tab()
 ```
 
 | Source       |  df | Pseudo-F | P(perm) |
@@ -103,21 +109,15 @@ wetness_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |>
 | Topo         |   1 |    7.396 |   0.002 |
 | Wetness:Topo |   2 |    1.265 |   0.176 |
 
-Type I {.table .table .table-striped .table-hover .table-condensed
-style="margin-left: auto; margin-right: auto;"}
-
 Or with topography first:
 
 ``` r
-
 topography_first <- permanova(
   mite_bray ~ Topo * Wetness, env,
   type = "I", permutations = 499, seed = 11
 )
 
-topography_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
-  kbl(digits=3, caption = "Type I") |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+topography_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> tab()
 ```
 
 | Source       |  df | Pseudo-F | P(perm) |
@@ -125,9 +125,6 @@ topography_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |>
 | Topo         |   1 |   15.069 |   0.002 |
 | Wetness      |   2 |    7.059 |   0.002 |
 | Topo:Wetness |   2 |    1.265 |   0.176 |
-
-Type I {.table .table .table-striped .table-hover .table-condensed
-style="margin-left: auto; margin-right: auto;"}
 
 ## Type II: population effects respecting marginality
 
@@ -137,14 +134,11 @@ additive model it is the familiar question “what does this predictor add
 after the other predictors?” and is invariant to formula order.
 
 ``` r
-
 fit_II <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "II", permutations = 499, seed = 11
 )
-fit_II$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
-  kbl(digits=3, caption   = "Type II") |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+fit_II$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]  |> tab()
 ```
 
 | Source       |  df | Pseudo-F | P(perm) |
@@ -152,9 +146,6 @@ fit_II$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |>
 | Wetness      |   2 |    7.059 |   0.002 |
 | Topo         |   1 |    7.396 |   0.002 |
 | Wetness:Topo |   2 |    1.265 |   0.176 |
-
-Type II {.table .table .table-striped .table-hover .table-condensed
-style="margin-left: auto; margin-right: auto;"}
 
 Type II is often a sensible default for ecological main effects when
 unequal cell counts are incidental and the interaction is not the main
@@ -170,15 +161,12 @@ applies them to a copy of the data so the original data frame is not
 modified.
 
 ``` r
-
 fit_III <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "III", permutations = 499, seed = 11
 )
 
-fit_III$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]|> 
-   kbl(digits=3, caption = "Type III") |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+fit_III$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> tab()
 ```
 
 | Source       |  df | Pseudo-F | P(perm) |
@@ -187,13 +175,9 @@ fit_III$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]|>
 | Topo         |   1 |    7.388 |   0.002 |
 | Wetness:Topo |   2 |    1.265 |   0.176 |
 
-Type III {.table .table .table-striped .table-hover .table-condensed
-style="margin-left: auto; margin-right: auto;"}
-
 The three definitions can be compared directly:
 
 ``` r
-
 fits <- list(I = wetness_first, II = fit_II, III = fit_III)
 comparison <- do.call(rbind, lapply(names(fits), function(type) {
   tab <- fits[[type]]$table
@@ -222,15 +206,12 @@ Ordinary numeric covariates can be combined with factors. Here water
 content and substrate density remain on their measured scales:
 
 ``` r
-
 gradient_fit <- permanova(
   mite_bray ~ Topo + WatrCont + SubsDens,
   data = env,
   type = "II", permutations = 499, seed = 21
 )
-gradient_fit$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> 
-   kbl(digits=3, caption = "Type I") |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+gradient_fit$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")]  |> tab()
 ```
 
 | Source   |  df | Pseudo-F | P(perm) |
@@ -239,10 +220,7 @@ gradient_fit$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |>
 | WatrCont |   1 |   15.632 |   0.002 |
 | SubsDens |   1 |    5.999 |   0.002 |
 
-Type I {.table .table .table-striped .table-hover .table-condensed
-style="margin-left: auto; margin-right: auto;"}
-
-Standardising a predictor changes its coefficient scale but not the
-subspace tested by a one-degree-of-freedom term. Transformations that
-change ordering or linearity can change the ecological hypothesis and
-should be justified.
+Note: Standardising a predictor changes its coefficient scale but not
+the subspace tested by a one-degree-of-freedom term. Transformations
+that change ordering or linearity can change the ecological hypothesis
+and should be justified.

@@ -22,7 +22,7 @@ simulate_dispersion_validation(
 
 \item{seed}{Reproducibility seed.}
 
-\item{type}{Group spatial center: `"median"` or `"centroid"`.}
+\item{type}{Group spatial center: \code{"median"} or \code{"centroid"}.}
 
 \item{keep_results}{Retain iteration-level results.}
 }

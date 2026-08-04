@@ -23,7 +23,7 @@ permanova_mixed_maxT_pairwise(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -43,4 +43,4 @@ permanova_mixed_maxT_pairwise(
 
 ## Value
 
-An object of class \`permanova_mixed_maxT\`.
+An object of class `permanova_mixed_maxT`.

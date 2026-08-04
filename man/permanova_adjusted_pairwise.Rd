@@ -25,11 +25,11 @@ permanova_adjusted_pairwise(
 \item{at}{Named numeric vector or list giving one finite scalar for every
 continuous nuisance variable.}
 
-\item{weights}{`"equal"` or `"proportional"` categorical nuisance weights.}
+\item{weights}{\code{"equal"} or \code{"proportional"} categorical nuisance weights.}
 
 \item{adjust}{Multiplicity adjustment.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -40,7 +40,7 @@ continuous nuisance variable.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_adjusted_contrasts`.
+An object of class \code{permanova_adjusted_contrasts}.
 }
 \description{
 Pairwise explicitly covariate-adjusted distance contrasts

@@ -9,7 +9,6 @@ The vignette separates three checks that are often conflated:
 ## Compare plausible ecological distances
 
 ``` r
-
 bray <- vegdist(dune, method = "bray")
 jaccard <- vegdist(dune, method = "jaccard", binary = TRUE)
 
@@ -23,9 +22,7 @@ data.frame(
     bray_diag$negative_ratio, jaccard_diag$negative_ratio
   ),
   euclidean = c(bray_diag$euclidean, jaccard_diag$euclidean)
-) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+)  |> tab()
 ```
 
 | distance       | negative_axes | negative_to_positive_inertia | euclidean |
@@ -48,7 +45,6 @@ discarding them. The negative inertia ratio is a diagnostic, not an
 automatic reason to abandon Bray–Curtis.
 
 ``` r
-
 spectrum_data <- rbind(
   data.frame(distance = "Bray-Curtis", axis = seq_along(bray_diag$eigenvalues),
              eigenvalue = bray_diag$eigenvalues),
@@ -83,14 +79,11 @@ centres differ. The dispersion model asks whether observations differ in
 their average distance to their own group centre.
 
 ``` r
-
 selected <- dune.env$Management %in% c("NM", "SF")
 community <- dune[selected, ]
 env <- droplevels(dune.env[selected, , drop = FALSE])
 subset_bray <- vegdist(community, method = "bray")
-table(env$Management) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+table(env$Management) |> tab()
 ```
 
 | Var1 | Freq |
@@ -99,7 +92,6 @@ table(env$Management) |>
 | SF   |    6 |
 
 ``` r
-
 location <- permanova(
   subset_bray ~ Management, env, permutations = 999, seed = 82
 )
@@ -110,9 +102,7 @@ dispersion <- permanova_dispersion(
   permutations = 999, seed = 82
 )
 
-location$table[1, c("Pseudo-F", "P(perm)")] |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+location$table[1, c("Pseudo-F", "P(perm)")]  |> tab()
 ```
 
 | Pseudo-F | P(perm) |
@@ -120,10 +110,7 @@ location$table[1, c("Pseudo-F", "P(perm)")] |>
 |    3.426 |   0.006 |
 
 ``` r
-
-dispersion$table[1, c("pseudo_f", "p_perm")] |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+dispersion$table[1, c("pseudo_f", "p_perm")] |> tab()
 ```
 
 | pseudo_f | p_perm |
@@ -131,7 +118,6 @@ dispersion$table[1, c("pseudo_f", "p_perm")] |>
 |    0.917 |  0.344 |
 
 ``` r
-
 disp_plot <- data.frame(
   Management = dispersion$group,
   distance_to_median = dispersion$distances
@@ -163,7 +149,6 @@ pseudo-F agree with
 [`vegan::betadisper()`](https://vegandevs.github.io/vegan/reference/betadisper.html).
 
 ``` r
-
 vegan_dispersion <- betadisper(subset_bray, env$Management, type = "median")
 c(
   maximum_distance_difference = max(
@@ -171,9 +156,7 @@ c(
   ),
   distmer_F = dispersion$test$statistic,
   vegan_F = unname(anova(vegan_dispersion)["Groups", "F value"])
-) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+) |> tab()
 ```
 
 |                             |     x |
@@ -198,16 +181,13 @@ intact sites then form the exchangeable units. Balanced nested and
 randomized-block structures are handled in the same design-aware way.
 
 ``` r
-
 repeated_design <- compile_permanova_design(
   ~ treatment + (1 | site), field_data, field_distance
 )
 permanova_dispersion(
   repeated_design, term = "treatment", type = "median",
   permutations = 9999, seed = 82
-) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+)  |> tab()
 ```
 
 At present, dispersion inference requires one categorical target with

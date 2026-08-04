@@ -15,7 +15,7 @@ permanova_fixed(
 )
 }
 \arguments{
-\item{distance}{A `dist` object or full distance matrix.}
+\item{distance}{A \code{dist} object or full distance matrix.}
 
 \item{formula}{One-sided or two-sided model formula; the response is ignored.}
 
@@ -30,7 +30,7 @@ permanova_fixed(
 \item{tol}{QR tolerance.}
 }
 \value{
-An object of class `permanova_fixed`.
+An object of class \code{permanova_fixed}.
 }
 \description{
 Initial clean-room multi-factor engine. It implements Type-I/sequential

@@ -16,7 +16,7 @@ permanova_unequal_random_intercept(
 \arguments{
 \item{design}{Canonical Design Object with one random intercept.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -27,7 +27,7 @@ permanova_unequal_random_intercept(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_unequal_random_intercept`.
+An object of class \code{permanova_unequal_random_intercept}.
 }
 \description{
 Tests one cluster-level categorical treatment using equally weighted random-

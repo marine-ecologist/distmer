@@ -40,7 +40,7 @@ permanova_mixed_contrasts(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -60,4 +60,4 @@ permanova_mixed_contrasts(
 
 ## Value
 
-An object of class \`permanova_mixed_contrasts\`.
+An object of class `permanova_mixed_contrasts`.

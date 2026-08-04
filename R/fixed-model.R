@@ -148,11 +148,16 @@ permanova_fixed <- function(
       set.seed(seed)
     }
 
+    progress <- .permutation_progress(
+      as.integer(permutations), "Permuting observations"
+    )
+    on.exit(progress$close(), add = TRUE)
     for (b in seq_len(permutations)) {
       idx <- sample.int(n, size = n, replace = FALSE)
       G_perm <- G[idx, idx, drop = FALSE]
       perm_table <- .fixed_sequential_table(G_perm, prepared)
       permutation_f[b, ] <- perm_table$pseudo_f[seq_len(term_count)]
+      progress$tick(b)
     }
 
     observed_f <- observed_table$pseudo_f[seq_len(term_count)]
@@ -186,4 +191,63 @@ print.permanova_fixed <- function(x, ...) {
   cat("Method:", x$method, "\n")
   print(x$table, row.names = FALSE)
   invisible(x)
+}
+
+.fix2_distinct_perms <- function(Fperm, F_obs = NULL, tol = 1e-9) {
+  vals <- c(F_obs, Fperm)
+  vals <- vals[is.finite(vals)]
+  if (!length(vals)) return(NA_integer_)
+  # bucket to tolerance so floating-point equal statistics count as one
+  length(unique(round(vals / max(abs(vals)), digits = ceiling(-log10(tol)))))
+}
+
+# estimable df within-stratum is 0.
+.fix3_confounded <- function(term_values, stratum_values) {
+  # for each stratum unit, does the term vary?
+  by_unit <- tapply(as.character(term_values), stratum_values,
+                    function(v) length(unique(v)))
+  all(by_unit == 1L)                        # constant in every unit -> confounded
+}
+
+# When confounded, emit a 0-df / no-test row instead of fitting:
+.fix3_no_test_row <- function(term_name) {
+  data.frame(
+    Source   = term_name,
+    df       = 0L,
+    SS       = 0,
+    MS       = NA_real_,
+    `Pseudo-F` = NA_real_,
+    `P(perm)`  = NA_real_,
+    note     = "No test (confounded with random stratum)",
+    check.names = FALSE, stringsAsFactors = FALSE
+  )
+}
+
+
+# Classify a random grouping relative to a fixed factor:
+#   "whole_plot"  : fixed factor constant within each group (between-unit)
+#   "block"       : fixed factor varies within each group (within-unit / RCB)
+#   "partial"     : mixed -> genuine confounding (keep the refusal, that's D2/B2)
+.fix4_classify_grouping <- function(fixed_values, group_values) {
+  by_grp <- tapply(as.character(fixed_values), group_values,
+                   function(v) length(unique(v)))
+  n_lev  <- length(unique(as.character(fixed_values)))
+  if (all(by_grp == 1L))            return("whole_plot")   # constant in every group
+  if (all(by_grp == n_lev))         return("block")        # full factor in every group
+  "partial"                                                # some groups partial -> confounded
+}
+
+
+.fix5_no_fixed_message <- function(random_terms) {
+  .stopf(paste0(
+    "No fixed factor in the model. distmer tests fixed effects against random ",
+    "strata; it does not estimate a pure random-effects (variance-components) ",
+    "decomposition.\n",
+    "  Your random structure: %s\n",
+    "  To analyse this design, either:\n",
+    "   - add the fixed factor of interest, e.g. `d ~ treatment + (1 | %s)`, or\n",
+    "   - for pure variance components, use a dedicated nested-ANOVA / REML tool.\n",
+    "  (See the 'designs distmer does not fit' vignette section.)"),
+    paste(random_terms, collapse = ", "),
+    random_terms[[1]] %||% "group")
 }

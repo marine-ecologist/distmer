@@ -7,7 +7,7 @@
 as_distance_matrix(x, tol = sqrt(.Machine$double.eps))
 }
 \arguments{
-\item{x}{A `dist` object or a numeric square matrix.}
+\item{x}{A \code{dist} object or a numeric square matrix.}
 
 \item{tol}{Numerical tolerance for symmetry and diagonal checks.}
 }

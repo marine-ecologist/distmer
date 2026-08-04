@@ -14,7 +14,7 @@ distance_diagnostics(distance, tol = 1e-10)
 
 - distance:
 
-  A \`dist\` object or full distance matrix.
+  A `dist` object or full distance matrix.
 
 - tol:
 

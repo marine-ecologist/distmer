@@ -35,7 +35,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 
     <a class="navbar-brand me-2" href="../index.html">distmer</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,9 +51,9 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting started with distmer</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
     <li><a class="dropdown-item" href="../articles/random-effects.html">3. Random effects and ecological sampling designs</a></li>
-    <li><a class="dropdown-item" href="../articles/unbalanced-mixed.html">4. Unbalanced designs</a></li>
-    <li><a class="dropdown-item" href="../articles/contrasts.html">5. Pairwise contrasts and multiple comparisons</a></li>
-    <li><a class="dropdown-item" href="../articles/dispersion.html">6. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="../articles/contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
+    <li><a class="dropdown-item" href="../articles/dispersion.html">5. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="../articles/atypical-distance-matrices.html">6. Atypical distance matrices</a></li>
     <li><a class="dropdown-item" href="../articles/validation.html">7. Validation and reproducibility</a></li>
   </ul>
 </li>
@@ -63,6 +63,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/marine-ecologist/distmer/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -86,7 +87,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
       <img src="../logo.png" class="logo" alt=""><h1>2. Fixed effects and Contrasts (Type I-II-III)</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/marine-ecologist/distmer/blob/HEAD/vignettes/fixed-effects.Rmd" class="external-link"><code>vignettes/fixed-effects.Rmd</code></a></small>
       <div class="d-none name"><code>fixed-effects.Rmd</code></div>
     </div>
 
@@ -112,13 +113,23 @@ while respecting their containing interactions.</li>
 <strong>Type III:</strong> each term is tested conditional on every
 other estimable term.</li>
 </ul>
+<p>Note: This approach differs from the most mixed-models: Base
+<code>lme4</code> reports fixed-effect coefficients with Wald t-values
+via <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> (i.e. not an ANOVA table) — while
+<code>lme4::anova()</code> on an lmer model returns sequential (Type I)
+F-tests. <code>lmerTest</code> returns Type III ANOVA tables by default
+(with Satterthwaite degrees of freedom), and <code><a href="https://rdrr.io/pkg/car/man/Anova.html" class="external-link">car::Anova()</a></code>
+takes an explicit <code>type = "II"</code> or <code>type = "III"</code>.
+<code><a href="../reference/permanova.html">permanova()</a></code> makes the choice explicit rather than
+defaulting, because on unbalanced designs the three types give genuinely
+different answers and no default is universally correct.</p>
 </div>
 <div class="section level2">
 <h2 id="mite-communities-along-environmental-gradients">Mite communities along environmental gradients<a class="anchor" aria-label="anchor" href="#mite-communities-along-environmental-gradients"></a>
 </h2>
 <p>The <code><a href="https://vegandevs.github.io/vegan/reference/mite.html" class="external-link">vegan::mite</a></code> data contain 35 oribatid mite taxa from
-70 samples. For a compact factorial example we combine the recorded
-topographic class with tertiles of water content. Water content is
+70 samples. For a compact factorial example the recorded topographic
+class is combined with tertiles of water content. Water content is
 categorised into three groups: dry, intermediate, and wet.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mite</span>, <span class="va">mite.env</span>, package <span class="op">=</span> <span class="st">"vegan"</span><span class="op">)</span></span>
@@ -133,9 +144,7 @@ categorised into three groups: dry, intermediate, and wet.</p>
 <span>  <span class="op">)</span>,</span>
 <span>  Topo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">Topo</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">env</span>, <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">Wetness</span>, <span class="va">Topo</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">env</span>, <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">Wetness</span>, <span class="va">Topo</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
 <thead><tr>
 <th style="text-align:left;">
@@ -219,13 +228,8 @@ Do not choose an order because it produces the smaller p-value.</p>
 <span>  type <span class="op">=</span> <span class="st">"I"</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">11</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">wetness_first</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
-<span>   <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span>, caption <span class="op">=</span> <span class="st">"Type I"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">wetness_first</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
-<caption>
-Type I
-</caption>
 <thead><tr>
 <th style="text-align:left;">
 Source
@@ -292,13 +296,8 @@ Wetness:Topo
 <span>  type <span class="op">=</span> <span class="st">"I"</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">11</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">topography_first</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span>, caption <span class="op">=</span> <span class="st">"Type I"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">topography_first</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
-<caption>
-Type I
-</caption>
 <thead><tr>
 <th style="text-align:left;">
 Source
@@ -371,13 +370,8 @@ after the other predictors?” and is invariant to formula order.</p>
 <span>  <span class="va">mite_bray</span> <span class="op">~</span> <span class="va">Wetness</span> <span class="op">*</span> <span class="va">Topo</span>, <span class="va">env</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"II"</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">11</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">fit_II</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span>, caption   <span class="op">=</span> <span class="st">"Type II"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">fit_II</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
-<caption>
-Type II
-</caption>
 <thead><tr>
 <th style="text-align:left;">
 Source
@@ -455,13 +449,8 @@ so the original data frame is not modified.</p>
 <span>  type <span class="op">=</span> <span class="st">"III"</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">11</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fit_III</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span><span class="op">|&gt;</span> </span>
-<span>   <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span>, caption <span class="op">=</span> <span class="st">"Type III"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">fit_III</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
-<caption>
-Type III
-</caption>
 <thead><tr>
 <th style="text-align:left;">
 Source
@@ -554,13 +543,8 @@ content and substrate density remain on their measured scales:</p>
 <span>  data <span class="op">=</span> <span class="va">env</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"II"</span>, permutations <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">21</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">gradient_fit</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
-<span>   <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span>, caption <span class="op">=</span> <span class="st">"Type I"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">gradient_fit</span><span class="op">$</span><span class="va">table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source"</span>, <span class="st">"df"</span>, <span class="st">"Pseudo-F"</span>, <span class="st">"P(perm)"</span><span class="op">)</span><span class="op">]</span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
-<caption>
-Type I
-</caption>
 <thead><tr>
 <th style="text-align:left;">
 Source
@@ -620,10 +604,10 @@ SubsDens
 </tr>
 </tbody>
 </table>
-<p>Standardising a predictor changes its coefficient scale but not the
-subspace tested by a one-degree-of-freedom term. Transformations that
-change ordering or linearity can change the ecological hypothesis and
-should be justified.</p>
+<p>Note: Standardising a predictor changes its coefficient scale but not
+the subspace tested by a one-degree-of-freedom term. Transformations
+that change ordering or linearity can change the ecological hypothesis
+and should be justified.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

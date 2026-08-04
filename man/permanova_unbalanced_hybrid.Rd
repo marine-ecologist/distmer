@@ -16,7 +16,7 @@ permanova_unbalanced_hybrid(
 \arguments{
 \item{design}{Canonical unbalanced hybrid Design Object with a distance.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional permutation seed.}
 
@@ -27,7 +27,7 @@ permanova_unbalanced_hybrid(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_unbalanced_hybrid`.
+An object of class \code{permanova_unbalanced_hybrid}.
 }
 \description{
 Tests one treatment crossed with a region/site hierarchy when regions have

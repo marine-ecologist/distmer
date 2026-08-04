@@ -32,7 +32,7 @@ permanova_maxT(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -52,4 +52,4 @@ permanova_maxT(
 
 ## Value
 
-An object of class \`permanova_maxT\`.
+An object of class `permanova_maxT`.

@@ -17,16 +17,16 @@ permanova_nested_covariate(
 \arguments{
 \item{design}{Canonical Design Object whose fixed model contains at least one
 categorical factor and at least one continuous covariate, with one balanced
-`/`-generated random hierarchy.}
+\code{/}-generated random hierarchy.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
-\item{hypothesis}{Sum-of-squares partition for the fixed factors: `"I"`
-(sequential), `"II"` (marginal), or `"III"` (partial). Types coincide for an
+\item{hypothesis}{Sum-of-squares partition for the fixed factors: \code{"I"}
+(sequential), \code{"II"} (marginal), or \code{"III"} (partial). Types coincide for an
 orthogonal balanced fixed structure; Type III with interactions requires
-sum-to-zero contrasts, set automatically by the `permanova()` front door.}
+sum-to-zero contrasts, set automatically by the \code{permanova()} front door.}
 
 \item{keep_permutations}{Retain permutation statistics.}
 
@@ -35,14 +35,14 @@ sum-to-zero contrasts, set automatically by the `permanova()` front door.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_nested`.
+An object of class \code{permanova_nested}.
 }
 \description{
-Tests categorical factors in a balanced `/`-generated nested hierarchy while
+Tests categorical factors in a balanced \code{/}-generated nested hierarchy while
 adjusting for one or more continuous covariates. Each factor is tested for an
-effect *beyond* the covariate relationship: its numerator is the sum of
+effect \emph{beyond} the covariate relationship: its numerator is the sum of
 squares added over the covariate(s), and its denominator is the same exact
-nested expected-mean-square stratum used by [permanova_nested()]. The
+nested expected-mean-square stratum used by \code{\link[=permanova_nested]{permanova_nested()}}. The
 covariate is treated as an observation-level nuisance (charged to the
 residual) and is itself tested over that residual.
 }

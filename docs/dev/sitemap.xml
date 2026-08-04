@@ -1,5 +1,6 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/LICENSE-text.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/atypical-distance-matrices.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/articles/contrasts.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/articles/dispersion.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/articles/fixed-effects.html</loc></url>
@@ -11,10 +12,12 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/authors.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/index.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/news/index.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/as.data.frame.permanova_contrasts.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/as_distance_matrix.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/audit_unequal_random_intercept_calibration.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/benchmark_permanova.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/compile_permanova_design.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/contrast_matrix.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/decompose_covariate.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/derive_adjusted_means.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/derive_ems.html</loc></url>
@@ -23,6 +26,7 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/derive_nested_ems.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/derive_unbalanced_hypotheses.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/distance_diagnostics.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/distmer-package.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/estimate_hybrid_variance_components.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/estimate_nested_variance_components.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/estimate_random_slope_covariance.html</loc></url>
@@ -32,6 +36,7 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_adjusted_contrasts.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_adjusted_pairwise.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_capabilities.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed.html</loc></url>
@@ -60,7 +65,9 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_hybrid.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_lower.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unequal_random_intercept.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/print.permanova_contrasts.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/projection_matrix.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/quasi_denominator.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/run_permanova_validation.html</loc></url>
@@ -87,5 +94,7 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unequal_random_intercept_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/structured_denominator.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/summary.permanova_contrasts.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/tab.html</loc></url>
 </urlset>
 

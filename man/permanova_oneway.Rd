@@ -14,25 +14,25 @@ permanova_oneway(
 )
 }
 \arguments{
-\item{distance}{A `dist` object or full distance matrix.}
+\item{distance}{A \code{dist} object or full distance matrix.}
 
 \item{group}{Grouping factor.}
 
-\item{permutations}{Number of random permutations. Use `0` for no test.}
+\item{permutations}{Number of random permutations. Use \code{0} for no test.}
 
 \item{seed}{Optional integer seed.}
 
-\item{engine}{Either `"pairwise"` or `"projection"`.}
+\item{engine}{Either \code{"pairwise"} or \code{"projection"}.}
 
 \item{keep_permutations}{Retain the permutation pseudo-F values.}
 }
 \value{
-An object of class `permanova_oneway`.
+An object of class \code{permanova_oneway}.
 }
 \description{
-Reconstructs the one-way algorithm in Anderson (2001). The `pairwise`
+Reconstructs the one-way algorithm in Anderson (2001). The \code{pairwise}
 engine directly evaluates the published squared-distance equations and
-therefore requires equal replication. The `projection` engine evaluates
+therefore requires equal replication. The \code{projection} engine evaluates
 the equivalent Gower-centred projection-matrix formulation and also works
 with unequal group sizes.
 }

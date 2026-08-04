@@ -22,11 +22,11 @@ permanova_nested(
 
 - design:
 
-  Canonical Design Object compiled with \`distance\`.
+  Canonical Design Object compiled with `distance`.
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -50,4 +50,4 @@ permanova_nested(
 
 ## Value
 
-An object of class \`permanova_nested\`.
+An object of class `permanova_nested`.

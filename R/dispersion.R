@@ -281,17 +281,23 @@
   full_residuals <- as.vector(
     (diag(response_design$n) - response_design$projections$fixed$H) %*% response
   )
-  permuted <- numeric(nrow(setup$plan$orders))
-  for (row in seq_len(nrow(setup$plan$orders))) {
-    index <- .block_permutation_index(
-      setup$unit_blocks, setup$plan$orders[row, ]
-    )
-    permuted_response <- full_residuals[index]
-    G_permuted <- tcrossprod(permuted_response)
-    numerator_perm <- trace_hgh(numerator$H, G_permuted) / numerator$df
-    denominator_perm <- trace_hgh(denominator$H, G_permuted) / denominator$df
-    permuted[[row]] <- numerator_perm / denominator_perm
-  }
+  # The permuted response is a vector, so G_permuted is the rank-one outer
+  # product and tr(H G_permuted) is the quadratic form z'Hz. Taking it that way
+  # keeps each permutation to two matrix-vector products with no n-by-n
+  # intermediate.
+  permuted <- .permuted_statistics(
+    nrow(setup$plan$orders),
+    function(row) {
+      index <- .block_permutation_index(
+        setup$unit_blocks, setup$plan$orders[row, ]
+      )
+      z <- full_residuals[index]
+      numerator_perm <- sum(z * (numerator$H %*% z)) / numerator$df
+      denominator_perm <- sum(z * (denominator$H %*% z)) / denominator$df
+      numerator_perm / denominator_perm
+    },
+    label = "Permuting dispersion residuals"
+  )
   p_value <- NA_real_
   if (length(permuted)) {
     extreme <- sum(permuted >= observed - tol, na.rm = TRUE)

@@ -29,7 +29,7 @@ permanova_pairwise_strong(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -53,7 +53,7 @@ permanova_pairwise_strong(
 
 ## Value
 
-An object of class \`permanova_pairwise_strong\`.
+An object of class `permanova_pairwise_strong`.
 
 ## Details
 

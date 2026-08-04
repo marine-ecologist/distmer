@@ -378,16 +378,19 @@ quasi_denominator <- function(numerator_ems, denominator_ems, mean_squares, dfs,
          call. = FALSE)
   }
   observed <- numerator$ms / observed_denominator
-  statistics <- numeric(nrow(plan$orders))
-  for (row in seq_len(nrow(plan$orders))) {
-    index <- .block_permutation_index(
-      permutation_structure$cell_blocks, plan$orders[row, ]
-    )
-    G_permuted <- design$G[index, index, drop = FALSE]
-    numerator_ms <- trace_hgh(numerator$H, G_permuted) / numerator$df
-    denominator_ms <- trace_hgh(denominator$H, G_permuted) / denominator$df
-    statistics[[row]] <- numerator_ms / denominator_ms
-  }
+  statistics <- .permuted_statistics(
+    nrow(plan$orders),
+    function(row) {
+      index <- .block_permutation_index(
+        permutation_structure$cell_blocks, plan$orders[row, ]
+      )
+      G_permuted <- design$G[index, index, drop = FALSE]
+      numerator_ms <- trace_hgh(numerator$H, G_permuted) / numerator$df
+      denominator_ms <- trace_hgh(denominator$H, G_permuted) / denominator$df
+      numerator_ms / denominator_ms
+    },
+    label = "Permuting intact treatment cells within blocks"
+  )
   p_value <- NA_real_
   if (length(statistics)) {
     extreme <- sum(statistics >= observed - tol, na.rm = TRUE)

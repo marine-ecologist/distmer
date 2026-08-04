@@ -20,7 +20,7 @@ permanova_mixed_maxT(
 \item{contrasts}{Numeric treatment-level contrast vector, row matrix, or
 named list.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -31,7 +31,7 @@ named list.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_mixed_maxT`.
+An object of class \code{permanova_mixed_maxT}.
 }
 \description{
 Uses one shared raw experimental-unit permutation distribution for a family

@@ -22,11 +22,11 @@ permanova_mixed(
 
 - design:
 
-  A canonical \`permanova_design\` compiled with \`distance\`.
+  A canonical `permanova_design` compiled with `distance`.
 
 - permutations:
 
-  A non-negative integer or \`"all"\`. Enumeration is used automatically
+  A non-negative integer or `"all"`. Enumeration is used automatically
   when the requested sample covers the attainable space.
 
 - seed:
@@ -35,8 +35,8 @@ permanova_mixed(
 
 - hypothesis:
 
-  Fixed-effect sum-of-squares partition: \`"I"\` (sequential), \`"II"\`
-  (marginal), or \`"III"\` (partial).
+  Fixed-effect sum-of-squares partition: `"I"` (sequential), `"II"`
+  (marginal), or `"III"` (partial).
 
 - keep_permutations:
 
@@ -52,4 +52,4 @@ permanova_mixed(
 
 ## Value
 
-An object of class \`permanova_mixed\`.
+An object of class `permanova_mixed`.

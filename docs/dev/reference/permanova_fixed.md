@@ -23,7 +23,7 @@ permanova_fixed(
 
 - distance:
 
-  A \`dist\` object or full distance matrix.
+  A `dist` object or full distance matrix.
 
 - formula:
 
@@ -51,7 +51,7 @@ permanova_fixed(
 
 ## Value
 
-An object of class \`permanova_fixed\`.
+An object of class `permanova_fixed`.
 
 ## Details
 

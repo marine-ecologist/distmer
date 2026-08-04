@@ -15,9 +15,9 @@ compile_permanova_design(formula, data, distance = NULL, tol = 1e-10)
 
 - formula:
 
-  An \`lme4\`-style formula. Random effects support \`(1 \| group)\`,
-  nesting with \`/\`, explicit grouping interactions with \`:\`, and one
-  correlated \`(1 + slope \| group)\` declaration.
+  An `lme4`-style formula. Random effects support `(1 | group)`, nesting
+  with `/`, explicit grouping interactions with `:`, and one correlated
+  `(1 + slope | group)` declaration.
 
 - data:
 
@@ -33,4 +33,4 @@ compile_permanova_design(formula, data, distance = NULL, tol = 1e-10)
 
 ## Value
 
-An object of class \`permanova_design\`.
+An object of class `permanova_design`.

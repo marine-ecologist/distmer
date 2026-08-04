@@ -210,7 +210,8 @@ permanova_unbalanced_nested_lower <- function(
   result <- .unit_freedman_lane(
     structure$aggregated$G, validated$H_numerator,
     validated$numerator_df, validated$H_reduced,
-    units$H_denominator, units$denominator_df, plan, tol
+    units$H_denominator, units$denominator_df, plan, tol,
+    label = "Permuting lower-level unit centroids"
   )
   notes <- character()
   if (is.finite(plan$attainable) && plan$attainable < 100) {

@@ -191,19 +191,14 @@ derive_ems <- function(design, hypothesis = "I", tol = 1e-10) {
   }
   observed <- numerator_ms / denominator_ms
 
-  permuted <- numeric(nrow(orders))
-  if (nrow(orders)) {
-    residual <- diag(design$n) - projection$H_reduced
-    for (b in seq_len(nrow(orders))) {
-      index <- .block_permutation_index(structure$blocks, orders[b, ])
-      A <- projection$H_reduced + residual[index, , drop = FALSE]
-      G_permuted <- A %*% G %*% t(A)
-      numerator <- trace_hgh(projection$H_term, G_permuted) / projection$df
-      denominator <- trace_hgh(structure$H_denominator, G_permuted) /
-        structure$denominator_df
-      permuted[[b]] <- numerator / denominator
-    }
-  }
+  permuted <- .freedman_lane_statistics(
+    G, projection$H_reduced,
+    projection$H_term, projection$df,
+    structure$H_denominator, structure$denominator_df,
+    orders,
+    index = function(order) .block_permutation_index(structure$blocks, order),
+    label = paste0("Permuting whole plots for term `", term, "`"), tol = tol
+  )
 
   p_value <- NA_real_
   if (length(permuted)) {

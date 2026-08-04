@@ -2,8 +2,8 @@
 
 Audits complete- and partial-null familywise rejection, reconstructs
 every sampled intersection maximum directly from the retained label
-assignments, and verifies that the partial \`A = B\` intersection never
-moves observations from the non-null \`C\` group.
+assignments, and verifies that the partial `A = B` intersection never
+moves observations from the non-null `C` group.
 
 ## Usage
 

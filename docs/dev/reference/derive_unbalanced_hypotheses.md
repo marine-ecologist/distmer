@@ -24,7 +24,7 @@ derive_unbalanced_hypotheses(
 
 - hypothesis:
 
-  One of \`"I"\`, \`"II"\`, or \`"III"\`.
+  One of `"I"`, `"II"`, or `"III"`.
 
 - terms:
 

@@ -7,12 +7,12 @@
 gower_center(distance)
 }
 \arguments{
-\item{distance}{A `dist` object or full distance matrix.}
+\item{distance}{A \code{dist} object or full distance matrix.}
 }
 \value{
-The centred inner-product matrix `G`.
+The centred inner-product matrix \code{G}.
 }
 \description{
-Implements `G = -0.5 * J %*% D^2 %*% J`, where
-`J = I - 11'/N`.
+Implements \code{G = -0.5 * J \%*\% D^2 \%*\% J}, where
+\verb{J = I - 11'/N}.
 }

@@ -10,10 +10,10 @@ run_permanova_validation(seed = 1L, include_vegan = TRUE)
 \item{seed}{Reproducibility seed.}
 
 \item{include_vegan}{Compare the supported fixed one-way case with
-`vegan::adonis2()` when vegan is installed.}
+\code{vegan::adonis2()} when vegan is installed.}
 }
 \value{
-A data frame of validation checks with class `permanova_validation`.
+A data frame of validation checks with class \code{permanova_validation}.
 }
 \description{
 Run the deterministic validation suite

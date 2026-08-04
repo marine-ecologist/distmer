@@ -17,7 +17,7 @@ permanova_pairwise_strong(
 \arguments{
 \item{design}{Canonical fixed one-factor Design Object.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -32,7 +32,7 @@ computational guard.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_pairwise_strong`.
+An object of class \code{permanova_pairwise_strong}.
 }
 \description{
 Tests every pairwise hypothesis for a fixed one-factor design. For each

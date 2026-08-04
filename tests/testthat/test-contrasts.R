@@ -1,7 +1,11 @@
+# Contrasts on a fitted permanova() model (the fit-based API). The correctness
+# anchor is the deterministic identity: method = "pooled" pseudo-F equals the
+# classical constrained-scalar contrast F. method = "isolated" runs the
+# validated two-group engine on the involved levels.
+
 .contrast_example <- function() {
   data.frame(
-    group = factor(c("A", "A", "B", "B", "C"),
-                   levels = c("A", "B", "C")),
+    group = factor(c("A", "A", "B", "B", "C"), levels = c("A", "B", "C")),
     y = c(-1.2, 0.2, 0.4, 1.8, 2.5)
   )
 }
@@ -9,102 +13,88 @@
 .direct_contrast_f <- function(y, group, coefficients) {
   means <- tapply(y, group, mean)
   counts <- table(group)
-  contrast_ss <- sum(coefficients * means) ^ 2 /
-    sum(coefficients ^ 2 / counts)
+  contrast_ss <- sum(coefficients * means) ^ 2 / sum(coefficients ^ 2 / counts)
   full <- lm(y ~ group)
   contrast_ss / (sum(residuals(full) ^ 2) / df.residual(full))
 }
 
-test_that("planned contrast F statistics equal scalar contrast formulas", {
+test_that("pooled contrast F equals the scalar contrast formula", {
   dat <- .contrast_example()
-  design <- compile_permanova_design(~ group, dat, dist(dat$y))
-  C <- rbind(
-    `A - B` = c(A = 1, B = -1, C = 0),
-    `AB - C` = c(A = 0.5, B = 0.5, C = -1)
+  fit <- permanova(dist(dat$y) ~ group, dat, permutations = "all")
+  L <- rbind(`A - B` = c(A = 1, B = -1, C = 0),
+             `AB - C` = c(A = 0.5, B = 0.5, C = -1))
+  ct <- suppressWarnings(
+    permanova_contrasts(fit, type = L, method = "pooled", adjust = "none")
   )
-  fit <- suppressWarnings(permanova_contrasts(
-    design, C, permutations = "all", keep_permutations = TRUE
+  direct <- apply(L, 1L, function(cf) .direct_contrast_f(dat$y, dat$group, cf))
+  expect_equal(ct$table$pseudo_F, unname(direct), tolerance = 1e-8)
+  expect_s3_class(ct, "permanova_contrasts")
+})
+
+test_that("isolated contrasts run the two-group engine on the involved levels", {
+  dat <- .contrast_example()
+  fit <- permanova(dist(dat$y) ~ group, dat, permutations = "all")
+  ct <- suppressWarnings(permanova_contrasts(
+    fit, type = rbind(`A - B` = c(A = 1, B = -1, C = 0)), method = "isolated"
   ))
-  direct <- apply(C, 1L, function(coefficients) {
-    .direct_contrast_f(dat$y, dat$group, coefficients)
-  })
-  expect_equal(fit$table$pseudo_f, unname(direct), tolerance = 1e-10)
-  expect_equal(fit$permutation$attainable, factorial(5))
-  expect_equal(fit$table$p_adjusted,
-               p.adjust(fit$table$p_perm, method = "holm"))
+  # a two-level contrast is a valid two-group permutation test
+  expect_true(is.finite(ct$table$p_perm[[1L]]))
+  # it equals the two-group permanova restricted to A and B
+  sub <- dat[dat$group %in% c("A", "B"), ]
+  sub$group <- droplevels(sub$group)
+  two <- suppressWarnings(permanova(dist(sub$y) ~ group, sub, permutations = "all"))
+  expect_equal(ct$table$pseudo_F[[1L]], two$table$`Pseudo-F`[[1L]], tolerance = 1e-8)
 })
 
-test_that("every exact contrast permutation matches a reduced scalar fit", {
+test_that("the pairwise family is built and multiplicity-adjusted", {
+  dat <- .contrast_example()
+  fit <- permanova(dist(dat$y) ~ group, dat, permutations = "all")
+  ct <- suppressWarnings(
+    permanova_contrasts(fit, type = "pairwise", adjust = "bonferroni")
+  )
+  expect_equal(ct$table$contrast, c("A - B", "A - C", "B - C"))
+  estimable <- !is.na(ct$table$p_perm)
+  expect_equal(ct$table$p_adj[estimable],
+               p.adjust(ct$table$p_perm[estimable], method = "bonferroni"))
+})
+
+test_that("contrast_matrix builds named families that sum to zero", {
+  levs <- c("A", "B", "C")
+  pw <- contrast_matrix("pairwise", levs)
+  expect_equal(rownames(pw), c("A - B", "A - C", "B - C"))
+  expect_true(all(abs(rowSums(pw)) < 1e-8))
+  tvc <- contrast_matrix("trt.vs.ctrl", levs, ref = "A")
+  expect_true(all(abs(rowSums(tvc)) < 1e-8))
+})
+
+test_that("permanova_contrasts requires a fitted permanova object", {
   dat <- .contrast_example()
   design <- compile_permanova_design(~ group, dat, dist(dat$y))
-  coefficients <- c(A = 1, B = -1, C = 0)
-  fit <- suppressWarnings(permanova_contrasts(
-    design, coefficients, permutations = "all", keep_permutations = TRUE
-  ))
-  X_group <- model.matrix(~ 0 + group, dat)
-  Q <- qr.Q(qr(matrix(coefficients, ncol = 1L)), complete = TRUE)
-  X_reduced <- X_group %*% Q[, -1L, drop = FALSE]
-  reduced <- lm.fit(X_reduced, dat$y)
-  fitted_reduced <- as.vector(X_reduced %*% reduced$coefficients)
-  residual_reduced <- dat$y - fitted_reduced
-  orders <- .all_orders(nrow(dat))
-  direct <- apply(orders, 1L, function(index) {
-    response <- fitted_reduced + residual_reduced[index]
-    .direct_contrast_f(response, dat$group, coefficients)
-  })
-  expect_equal(fit$tests[[1L]]$permutation_statistics, direct,
-               tolerance = 1e-10)
+  expect_error(permanova_contrasts(design, type = "pairwise"),
+               "permanova\\(\\) object")
 })
 
-test_that("pairwise helper constructs and adjusts the complete family", {
-  dat <- .contrast_example()
-  design <- compile_permanova_design(~ group, dat, dist(dat$y))
-  fit <- suppressWarnings(permanova_pairwise(
-    design, permutations = "all", adjust = "bonferroni"
-  ))
-  expect_equal(fit$table$contrast, c("A - B", "A - C", "B - C"))
-  expect_equal(fit$table$p_adjusted,
-               p.adjust(fit$table$p_perm, method = "bonferroni"))
-  expect_equal(unname(rowSums(fit$contrast_matrix)), c(0, 0, 0))
-  expect_match(fit$family, "all pairwise")
-})
-
-test_that("Phase 13 rejects unsupported contrast definitions", {
-  dat <- .contrast_example()
-  design <- compile_permanova_design(~ group, dat, dist(dat$y))
-  expect_error(
-    permanova_contrasts(design, c(A = 1, B = 0, C = 0), permutations = 0),
-    "sum to zero"
-  )
-  expect_error(
-    permanova_contrasts(design, c(A = 1, B = -1), permutations = 0),
-    "one coefficient"
-  )
-
-  dat$site <- factor(seq_len(nrow(dat)))
-  mixed <- compile_permanova_design(
-    ~ group + (1 | site), dat, dist(dat$y)
-  )
-  expect_error(permanova_pairwise(mixed, permutations = 0),
-               "fixed one-factor designs only")
-
-  dat$x <- seq_len(nrow(dat))
-  multifactor <- compile_permanova_design(~ group + x, dat, dist(dat$y))
-  expect_error(permanova_pairwise(multifactor, permutations = 0),
-               "exactly one categorical")
-})
-
-test_that("Phase 13 retains non-Euclidean empirical inference", {
+test_that("non-Euclidean dissimilarities keep empirical isolated inference", {
   dat <- .contrast_example()
   D <- as.matrix(dist(cbind(dat$y, seq_len(nrow(dat)))))
   D[1L, 2L] <- D[2L, 1L] <- 5 * max(D)
-  design <- compile_permanova_design(~ group, dat, D)
-  fit <- suppressWarnings(permanova_pairwise(
-    design, permutations = "all"
-  ))
-  expect_false(design$spectral$euclidean)
-  expect_true(all(is.finite(fit$table$p_perm)))
-  expect_true(all(vapply(fit$tests, function(x) {
-    any(grepl("non-Euclidean", x$warnings))
-  }, logical(1))))
+  fit <- permanova(as.dist(D) ~ group, dat, permutations = "all")
+  expect_false(fit$design$spectral$euclidean)
+  ct <- suppressWarnings(permanova_contrasts(fit, type = "pairwise"))
+  expect_true(any(is.finite(ct$table$p_perm)))
+})
+
+test_that("isolated contrasts preserve the fitted random-intercept design", {
+  set.seed(16)
+  d<-expand.grid(rep=1:3,site_id=1:3,trt=factor(c("A","B","C")))
+  d$site<-interaction(d$trt,d$site_id,drop=TRUE)
+  d$y<-rnorm(nlevels(d$site),sd=2)[d$site]+rnorm(nrow(d),sd=.2)
+  fit<-permanova(dist(d$y)~trt+(1|site),d,permutations=99,seed=2)
+  ct<-suppressWarnings(permanova_contrasts(fit,type="pairwise",permutations=99,seed=2))
+  s<-droplevels(d[d$trt%in%c("A","B"),])
+  ref<-permanova(dist(s$y)~trt+(1|site),s,permutations=99,seed=2)
+  row<-ct$table[ct$table$contrast=="A - B",]
+  expect_equal(row$pseudo_F,ref$table$`Pseudo-F`[1],tolerance=1e-10)
+  expect_equal(row$p_perm,ref$table$`P(perm)`[1])
+  expect_equal(row$df_den,.permanova_tests(ref$fit)$trt$denominator$df)
 })

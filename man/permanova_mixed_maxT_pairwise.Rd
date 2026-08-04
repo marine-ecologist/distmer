@@ -16,7 +16,7 @@ permanova_mixed_maxT_pairwise(
 \arguments{
 \item{design}{Canonical mixed Design Object containing a distance.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -27,7 +27,7 @@ permanova_mixed_maxT_pairwise(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_mixed_maxT`.
+An object of class \code{permanova_mixed_maxT}.
 }
 \description{
 Pairwise global-null max-F inference for supported mixed designs

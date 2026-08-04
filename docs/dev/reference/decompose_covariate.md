@@ -5,9 +5,10 @@ Separates one or more continuous covariates into a between-unit part
 mean). Entering both parts as predictors lets engines that support both
 strata adjust the between-unit and within-unit relationships separately.
 The within part is a genuine observation-level covariate suitable for
-\[permanova_nested_covariate()\]; the between part is a unit-level
-summary and must only be entered in an engine that assigns numeric terms
-to that level (for example \[permanova_mixed_covariate()\]).
+[`permanova_nested_covariate()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_nested_covariate.md);
+the between part is a unit-level summary and must only be entered in an
+engine that assigns numeric terms to that level (for example
+[`permanova_mixed_covariate()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_mixed_covariate.md)).
 
 ## Usage
 
@@ -38,7 +39,7 @@ decompose_covariate(
 
 - center:
 
-  Grand-centre the between-unit component (default \`TRUE\`) so it is a
+  Grand-centre the between-unit component (default `TRUE`) so it is a
   deviation from the overall mean. The within-unit component always has
   mean zero within every unit regardless of this setting.
 
@@ -49,8 +50,8 @@ decompose_covariate(
 
 ## Value
 
-\`data\` with two added columns per covariate. With \`center = FALSE\`
-the between and within columns sum to the original covariate.
+`data` with two added columns per covariate. With `center = FALSE` the
+between and within columns sum to the original covariate.
 
 ## Examples
 

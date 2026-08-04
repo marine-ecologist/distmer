@@ -19,25 +19,113 @@ library(kableExtra)
 theme_set(theme_minimal(base_size = 12))
 ```
 
-Random effects describe where independent ecological replication lives. A
-formula such as `(1 | site)` says that observations from the same site share a
-site-level community component; it does not turn repeated quadrats or dates
-into independent treatment replicates. Nested, blocked, and random-slope terms
+Random effects describe ecological replication:  `(1 | site)` says that observations from the same site share a
+site-level community component. Nested, blocked, and random-slope terms
 extend that idea to more structured sampling.
+
+- `(1 | site)` — repeated observations within sites; treatments assigned among
+  sites are tested with sites as the independent units.
+- `(1 | region/site)` — sites nested within regions; each predictor is tested
+  at the hierarchy level where it varies.
+- `(1 | block) + (1 | treatment:block)` — a treatment randomized within blocks;
+  the declared treatment-by-block variation supplies the treatment denominator.
+- `(1 | region/site) + (1 | treatment:region) + (1 | treatment:region:site)` — treatment crossed with a nested region/site
+  hierarchy.
+- `(1 + condition | subject)` or `(1 + x | group)` — correlated random
+  intercepts and slopes for complete repeated units.
 
 `distmer` deliberately borrows `lmer` formula notation because it is a familiar and concise
 way to state this hierarchy. `distmer`applies the declared fixed and random subspaces to a Gower-centred
 dissimilarity matrix and obtains inference from design-appropriate
 denominators and restricted permutations.
 
-## Repeated samples within experimental units
+## Simple random effects:
 
-The `vegan::pyrifos` data contain aquatic-invertebrate communities from 12
-ditches sampled repeatedly before and after insecticide application. Dose was
-assigned to ditches, so ditch is the experimental unit. We use four balanced
-post-treatment dates per ditch.
+Herbivory on coral reefs has a strong impact on macrobenthic community succession. This can be
+demonstrated by using tiles placed in herbivore exclusion cages, typically "open", "partial" and "caged" treatments
+(see [Evensen et al 2021](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.3536) for details).
 
-```{r pyrifos-data}
+Below is changes in [community succession](https://github.com/nickevensen/Palau-benthic-community-succession/) through time using the open surfaces of tiles ("crowns") across different caging treatments:
+
+```{r data, fig.height=4.5, fig.width=10, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(distmer)
+library(patchwork)
+library(ggrepel)
+
+
+coralsuccession <- read.csv("~/distmer/code/Macro_communities.csv") |>
+  filter(Nutrients == "Normal") |>
+  filter(Microhabitat == "Crown")
+
+env <- coralsuccession[,1:5]
+coral <- coralsuccession[,6:17]
+coral_bray <- vegdist(decostand(coral, method = "hellinger"), method = "bray")
+
+coral_pcoa <- cmdscale(coral_bray, k = 2, eig = TRUE, add = TRUE)
+
+coral_pcoa_scores <- as.data.frame(coral_pcoa$points) |>
+  setNames(c("PCoA1", "PCoA2")) |>
+  bind_cols(env) |>
+  group_by(Caging, Timepoint) |>
+  summarise(PCoA1=mean(PCoA1), PCoA2=mean(PCoA2))
+
+coral_scores <- wascores(coral_pcoa$points, coral) |>
+  as.data.frame() |>
+  rownames_to_column() |>
+  setNames(c("Taxa", "PCoA1", "PCoA2"))
+
+
+a <- ggplot() + theme_bw() +
+  geom_point(data = coral_pcoa_scores, aes(PCoA1, PCoA2, fill=Caging), shape=21) +
+  geom_text(data = coral_pcoa_scores, aes(PCoA1-0.01, PCoA2+0.01, label=Timepoint/7), size=2.5) +
+  geom_path(data = coral_pcoa_scores, aes(PCoA1, PCoA2, group=Caging),
+            colour = "grey70", linewidth = 0.4, alpha = 0.85) +
+  theme(legend.position = c(0.02, 0.98),
+        legend.justification = c(0, 1),
+        legend.key = element_blank()) +
+  guides(fill = guide_legend(title = NULL))
+
+b <- ggplot() + theme_bw() +
+  geom_segment(data = coral_scores, aes(x = 0, y = 0, xend = PCoA1, yend = PCoA2),
+      arrow = arrow( length = unit(0.18, "cm"), type = "closed"),
+      colour = "grey75", linewidth = 0.5, inherit.aes = FALSE) +
+  geom_text_repel(data = coral_scores, aes(x = PCoA1, y = PCoA2, label=Taxa), size=2)
+
+a|b
+
+```
+
+There are 5 Timepoints, and 18 tiles in total (n=6 per treatment).
+
+The correct structure to explore the effect of caging over time is `Caging * Timepoint + (1 | Tile)`, where Timepoint as a fixed within-tile factor whose effect (and its interaction with Caging) we want to test, while Tile is a random intercept absorbing tile-to-tile variation.
+
+Using `distmer` with tile as a random effect, both `Timepoint` and `Caging` treatment have a significant effect on benthic community structure:
+
+```{r, message=FALSE, warning=FALSE}
+fm1 <- permanova(coral_bray ~ Caging + Timepoint + (1 | Tile), env, type="III", permutations=9999, seed=101)
+fm1$table |> tab()
+```
+With (1|Tile) as a random effect, pseudo-F (4.89) is (correctly) tested against MS 0.191 (tile-level), not against MS 0.076 (residual) as under `adonis2()`. Testing it against the residual would have inflated the apparent significance, so the correct stratification (1|tile) is more conservative.
+
+Exploring the pairwise contrasts, the `Caging` treatment operates exactly as expected: Open and Partial treatments show no difference, while Caged treatments differ from both Open and Partial:
+
+```{r}
+
+permanova_contrasts(fm1, type = "pairwise", factor="Caging") |> tab()
+
+```
+
+
+
+## Random slopes:
+
+For a more complex example:
+
+The `vegan::pyrifos` data contain aquatic-invertebrate communities from 12 ditches sampled repeatedly before and after insecticide application. Dose was assigned to ditches, so ditch is the experimental unit. We use four balanced post-treatment dates per ditch, where each trajectory is an individual ditch according to dose:
+
+```{r repeated-ordination, fig.alt="Post-treatment Pyrifos samples connected through time within each ditch", fig.height=5, fig.width=5}
+
 data(pyrifos, package = "vegan")
 ditch <- gl(12, 1, length = nrow(pyrifos))
 week <- rep(c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24), each = 12)
@@ -52,12 +140,7 @@ pyrifos_env <- data.frame(
   week = week[keep]
 )
 pyrifos_bray <- vegdist(community, method = "bray")
-with(pyrifos_env, table(ditch, dose)) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-```
 
-```{r repeated-ordination, fig.alt="Post-treatment Pyrifos samples connected through time within each ditch"}
 ditch_ord <- cmdscale(pyrifos_bray, k = 2)
 ditch_ord <- cbind(
   pyrifos_env,
@@ -68,42 +151,21 @@ ggplot() +
   geom_path(data = ditch_ord, aes(Axis1, Axis2, group = ditch, colour = dose, order = week), alpha = 0.65, linewidth = 0.6) +
   geom_point(data = ditch_ord, aes(Axis1, Axis2, group = ditch, fill = dose, order = week), shape=21, alpha = 0.85) +
   coord_fixed() +
-  theme_bw() + 
+  theme_bw() +
   scale_fill_brewer(palette="Set1") +
   scale_color_brewer(palette="Set1") +
   scale_size_continuous(range = c(1.8, 4), breaks = c(1, 4, 8)) +
-  labs(title = "Repeated community observations remain grouped by ditch",
-       x = "PCoA axis 1", y = "PCoA axis 2", colour = "Dose",
+  labs(x = "PCoA axis 1", y = "PCoA axis 2", colour = "Dose",
        size = "Week")
+
 ```
 
-The model is written in the same compact way as a random-intercept mixed model:
+For a balanced two-condition comparison, an early (1-2 weeks) and late (>3 week) period is defined for each ditch (balanced with two
+observations in each ditch-period cell).
 
-```{r random-intercept}
-library(kableExtra)
+Visualising the mean PCoA axis 1 within ditch and period indicates ditches need not share the same early-to-late change:
 
-ditch_fit <- permanova(
-  pyrifos_bray ~ dose + (1 | ditch),
-  pyrifos_env, permutations = 999, seed = 26
-)
-
-summary(ditch_fit) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-```
-
-The random term also determines the denominator. Consequently, `type = "II"`
-or `"III"` is not a substitute for specifying the sampling structure: when the
-random design supplies an exact stratum, `type` is not applicable.
-
-## Random slopes: each unit can change differently
-
-A random intercept allows ditches to have different average communities. A
-random slope additionally allows their within-ditch changes to differ. For a
-balanced two-condition comparison, define an early and late period with two
-observations in each ditch-period cell.
-
-```{r period-data}
+```{r period-plot, fig.alt="Early to late changes on PCoA axis 1 for each Pyrifos ditch", fig.height=5, fig.width=4}
 period_env <- transform(
   pyrifos_env,
   period = factor(
@@ -111,12 +173,7 @@ period_env <- transform(
     levels = c("early", "late")
   )
 )
-with(period_env, table(ditch, period)) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-```
 
-```{r period-plot, fig.alt="Early to late changes on PCoA axis 1 for each Pyrifos ditch"}
 period_ord <- transform(ditch_ord, period = period_env$period)
 period_centres <- aggregate(
   cbind(Axis1, Axis2) ~ ditch + period,
@@ -126,24 +183,24 @@ period_centres <- aggregate(
 ggplot() +
   geom_line(data = period_centres, aes(period, Axis1, group = ditch), colour = "grey65", linewidth = 0.7) +
   geom_point(data = period_centres, aes(period, Axis1, group = ditch, fill = ditch), shape=21, size = 2.4, show.legend = FALSE) +
-  theme_bw() + 
+  theme_bw() +
   scale_fill_brewer(palette="Set1") +
   scale_color_brewer(palette="Set1") +
-  labs(title = "Ditches need not share the same early-to-late change",
-       x = "Period", y = "Mean PCoA axis 1 within ditch and period")
+  labs(x = "Period", y = "Mean PCoA axis 1 within ditch and period")
 ```
+
+
+Using a random intercept allows ditches to have different average communities, while a
+random slope allows their within-ditch changes to differ.
 
 ```{r categorical-slope}
 period_fit <- permanova(
   pyrifos_bray ~ period + (1 + period | ditch),
   period_env, permutations = "all", seed = 26
 )
-summary(period_fit) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 
+summary(period_fit) |> tab()
 ```
-
 
 A numeric gradient can also vary by unit. With four post-treatment weeks,
 `(1 + week | ditch)` estimates one within-ditch community slope and tests the
@@ -155,30 +212,21 @@ continuous_fit <- permanova(
   pyrifos_env, permutations = 999, seed = 26
 )
 
-summary(continuous_fit) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+summary(continuous_fit) |> tab()
 
+```
+## Only random effects
+
+At current `distmer` does not run pure random effects models and instead throws an error:
+
+```{r eval=FALSE}
+period_fit <- permanova(pyrifos_bray ~ (1 + period), period_env)
 ```
 
 
-## Translating common field designs into formulas
+## Implementation
 
-- `(1 | site)` — repeated observations within sites; treatments assigned among
-  sites are tested with sites as the independent units.
-- `(1 | region/site)` — sites nested within regions; each predictor is tested
-  at the hierarchy level where it varies.
-- `(1 | block) + (1 | treatment:block)` — a treatment randomized within blocks;
-  the declared treatment-by-block variation supplies the treatment denominator.
-- `(1 | region/site) + (1 | treatment:region) + (1 | treatment:region:site)` — treatment crossed with a nested region/site
-  hierarchy.
-- `(1 + condition | subject)` or `(1 + x | group)` — correlated random
-  intercepts and slopes for complete repeated units.
-
-
-## What `permanova()` does with the formula
-
-For exact detail, the high-level call performs the following sequence:
+For exact detail, permanova() performs the following sequence:
 
 1. It validates the dissimilarity and computes
    `G = -0.5 J D^2 J`. The same centring applies to every distance matrix;
@@ -199,9 +247,7 @@ For exact detail, the high-level call performs the following sequence:
 If no validated method matches the declared design, the model stops. A formula
 that parses is not automatically a defensible permutation design.
 
-### Implementation reference
-
-Most users only need `permanova()`. The specialised functions below are useful
+Most users only need `permanova()`. The functions below are useful
 for inspecting, validating, extending a particular design, or understanding how `distmer` works:
 
 ```{r implementation-table, echo=FALSE, results='asis'}

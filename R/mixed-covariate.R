@@ -15,26 +15,36 @@
   setdiff(seq_along(term_labels), c(target_position, which(containing)))
 }
 
-#' Covariate-adjusted single-random-intercept PERMANOVA (split-plot / RCB ANCOVA)
+#' Split-plot / randomized-block / ANCOVA PERMANOVA for one random intercept
 #'
-#' Tests categorical factors and one or more continuous covariates in a balanced
-#' `(1 | group)` random-intercept design. Each fixed term is classified by
-#' whether it varies within the grouping unit. Between-unit (whole-plot) factors,
-#' constant within each unit, are tested over the between-unit random-intercept
-#' stratum, exactly as in [permanova_mixed()]. Within-unit terms -- sub-plot or
-#' randomized-block factors, observation-level covariates, and covariate-by-
-#' factor slope interactions -- are partitioned in the within-unit space and
-#' tested over the within-unit residual. This covers the distance-based
-#' split-plot and randomized-block analysis of covariance.
+#' Tests any number of categorical factors, and optionally continuous
+#' covariates, in a balanced `(1 | group)` random-intercept design. Each fixed
+#' term is classified relative to the grouping unit and tested over the matching
+#' stratum:
 #'
-#' A numeric term that is constant within groups is assigned to the between-unit
-#' stratum. A covariate that varies within groups is tested there while its
-#' between-unit component is retained as nuisance adjustment for whole-plot
-#' terms. [decompose_covariate()] may be used when separate between- and
-#' within-unit slopes are required.
+#' * **whole-plot** -- a factor constant within every unit is tested over the
+#'   between-unit random-intercept stratum, exactly as in [permanova_mixed()];
+#' * **within-unit** -- a sub-plot / randomized-block factor fully crossed within
+#'   every unit, a covariate, or a covariate-by-factor slope interaction is
+#'   tested over the within-unit residual;
+#' * **between-by-within** -- an interaction with any within-unit component is
+#'   routed to the within-unit residual;
+#' * **partial** -- a factor neither constant nor fully crossed within the unit
+#'   is genuinely confounded with the random unit and is refused, so no design
+#'   receives a silently wrong denominator.
+#'
+#' This is the distance-based split-plot analysis: whole-plot effects over the
+#' unit stratum, sub-plot effects and covariates over the residual, covering
+#' multi-factor split-plot, randomized-block, and analysis-of-covariance layouts.
+#' A covariate that varies within units is tested over the residual while its
+#' between-unit component is retained as nuisance adjustment for whole-plot terms
+#' ([decompose_covariate()] separates between- and within-unit slopes when
+#' required). The single-whole-plot-factor case without a covariate is handled by
+#' the exact-EMS [permanova_mixed()]; the `permanova()` front door dispatches
+#' automatically.
 #'
 #' @param design Canonical Design Object with one `(1 | group)` random term and
-#'   a fixed model containing at least one continuous covariate.
+#'   one or more fixed factors (a continuous covariate is optional).
 #' @param permutations A non-negative integer or `"all"`.
 #' @param seed Optional random seed.
 #' @param keep_permutations Retain permutation statistics on each test spec.
@@ -65,9 +75,6 @@ permanova_mixed_covariate <- function(design, permutations = 999L, seed = NULL,
     .validate_type3_contrasts(design, tol = tol)
   }
   split <- .nested_covariate_split(design)
-  if (!length(split$covariates)) {
-    stop("No continuous covariate found; use `permanova_mixed()`.", call. = FALSE)
-  }
 
   group_label <- design$random_terms[[1L]]$label
   group <- droplevels(factor(design$groups[[group_label]]))
@@ -96,17 +103,46 @@ permanova_mixed_covariate <- function(design, permutations = 999L, seed = NULL,
   term_variables <- lapply(labels, function(term) strsplit(term, ":", fixed = TRUE)[[1L]])
   term_has_covariate <- vapply(term_variables, function(v) any(v %in% split$covariates),
                                logical(1))
-  # Classify each fixed term as between-unit (constant within every grouping
-  # unit -> whole-plot, tested over the group stratum) or within-unit (varies
-  # within units -> sub-plot factor, covariate, or slope interaction, tested
-  # over the within-unit residual). Any covariate-involving term is within-unit.
-  within_term_projection <- lapply(seq_along(labels), function(j) {
-    cols <- which(assign == j)
-    .projection_in_subspace(H_within, X[, cols, drop = FALSE], tol = tol)
-  })
-  varies_within_term <- vapply(within_term_projection, function(x) x$rank > 0L,
-                               logical(1))
-  is_within <- varies_within_term
+  # Classify each fixed term relative to the random unit. A pure-factor term is
+  # WHOLE-PLOT (constant within every unit -> tested over the unit stratum),
+  # WITHIN-UNIT (fully crossed within every unit -> tested over the residual), or
+  # PARTIAL (neither -> genuinely confounded with the unit, refused so a design
+  # like B2/D2 cannot receive a wrong denominator). A covariate-involving term is
+  # observation-level and tested over the residual; an interaction with any
+  # within-unit component is a between-by-within effect, also over the residual.
+  unit_class <- function(values) {
+    key <- droplevels(factor(values))
+    counts <- tapply(as.character(key), group, function(v) length(unique(v)))
+    if (all(counts == 1L)) "whole_plot"
+    else if (all(counts == nlevels(key))) "within_unit"
+    else "partial"
+  }
+  factor_variables <- setdiff(unique(unlist(term_variables)), split$covariates)
+  variable_class <- vapply(factor_variables, function(v) unit_class(design$data[[v]]),
+                           character(1))
+  term_class <- vapply(seq_along(labels), function(j) {
+    if (term_has_covariate[[j]]) {
+      # A continuous term is within-unit when it has any within-unit variation,
+      # and otherwise a between-unit (whole-plot) covariate constant within every
+      # unit -- e.g. the between component from decompose_covariate().
+      cols <- which(assign == j)
+      varies <- .projection_in_subspace(H_within, X[, cols, drop = FALSE],
+                                        tol = tol)$rank > 0L
+      return(if (varies) "within_unit" else "whole_plot")
+    }
+    components <- variable_class[term_variables[[j]]]
+    if (any(components == "within_unit")) return("within_unit")
+    if (any(components == "partial")) return("partial")
+    unit_class(interaction(design$data[term_variables[[j]]], drop = TRUE))
+  }, character(1))
+  partial_terms <- labels[term_class == "partial"]
+  if (length(partial_terms)) {
+    stop("Fixed term(s) ", paste(partial_terms, collapse = ", "),
+         " are neither constant nor fully crossed within '", group_label,
+         "' (partial confounding with the random unit); the split-plot ",
+         "denominator is not identified.", call. = FALSE)
+  }
+  is_within <- term_class == "within_unit"
   between_terms <- labels[!is_within]
   within_terms <- labels[is_within]
   between_columns <- which(assign %in% which(!is_within))
@@ -288,23 +324,15 @@ permanova_mixed_covariate <- function(design, permutations = 999L, seed = NULL,
 .mixed_covariate_permutation <- function(tested, design, group, H_within,
                                          permutations, seed, max_exact,
                                          keep_permutations, tol) {
-  n <- design$n
-  group_index <- as.integer(group)
-  unit_blocks <- split(seq_len(n), group)
   stats::setNames(lapply(tested, function(item) {
-    resid <- diag(n) - item$reduced_H
     plan <- .mixed_covariate_plan(item$kind, group, permutations, max_exact)
-    permuted <- numeric(nrow(plan$orders))
-    if (nrow(plan$orders)) {
-      for (b in seq_len(nrow(plan$orders))) {
-        idx <- plan$index(plan$orders[b, ])
-        A <- item$reduced_H + resid[idx, , drop = FALSE]
-        G_perm <- A %*% design$G %*% t(A)
-        num <- trace_hgh(item$numerator_H, G_perm) / item$numerator_df
-        den <- trace_hgh(item$denominator_H, G_perm) / item$denominator_df
-        permuted[[b]] <- num / den
-      }
-    }
+    permuted <- .freedman_lane_statistics(
+      design$G, item$reduced_H,
+      item$numerator_H, item$numerator_df,
+      item$denominator_H, item$denominator_df,
+      plan$orders, index = plan$index,
+      label = paste0("Permuting term `", item$term, "`"), tol = tol
+    )
     p_value <- NA_real_
     if (length(permuted)) {
       extreme <- sum(permuted >= item$statistic - tol, na.rm = TRUE)

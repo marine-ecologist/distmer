@@ -317,7 +317,9 @@ permanova_mixed_contrasts <- function(
     )
     result <- .unit_freedman_lane(
       structure$aggregated$G, projector$H, 1L, projector$H_reduced,
-      units$H_denominator, units$denominator_df, plan, tol
+      units$H_denominator, units$denominator_df, plan, tol,
+      label = paste0("Permuting unit contrast `",
+                     rownames(contrast_matrix)[[index]], "`")
     )
     notes <- character()
     if (is.finite(plan$attainable) && plan$attainable < 100) {

@@ -1,4 +1,124 @@
-# distmer 0.9.1
+# distmer 0.9.2
+
+Version 0.9.2 consolidates the complete post-0.9.1 development tree: the
+low-rank Freedman--Lane refactor, progress reporting, asymmetric three-stratum
+mixed models, balanced and unbalanced multi-factor split-plots, and the
+fit-based contrasts API. The adversarial corrections below are part of the
+same reviewed source snapshot.
+
+## Adversarial inference hardening
+
+- Exact asymmetric-mixed and split-plot requests now enumerate their complete
+  restricted spaces instead of returning zero permutations and `NA` p-values.
+- Incomplete asymmetric units move only within identical subplot-count
+  topologies, and unequal split-plot units move only within exact-size strata.
+- Fit-based isolated contrasts retain the complete original formula, random
+  effects, nuisance terms, denominator, and permutation action.
+
+## Low-rank Freedman--Lane permutation
+
+- Every residual-permutation engine now shares one kernel
+  (`.freedman_lane_kernel()`) instead of forming the permuted Gower matrix
+  `A %*% G %*% t(A)` explicitly. Expanding that product leaves the reduced-model
+  projector and the cross terms as fixed matrices, so only `R G R` is re-indexed
+  by each permutation; factoring each hypothesis projector as `W diag(s) W'`
+  then reduces a permutation to one narrow matrix product with `r` columns,
+  where `r` is the hypothesis rank. Residual projectors, whose rank is close to
+  `n`, are carried through their complement using the fact that permutation
+  similarity leaves `tr(R G R)` unchanged. Cost per permutation falls from
+  `O(n^3)` to `O(n^2 r)`: roughly 11x faster at `n = 160`, 20x at `n = 320`, and
+  18x at `n = 1000`. Results are unchanged to machine precision (relative
+  difference below 1e-13) and the random-number stream is untouched, so seeded
+  p-values reproduce exactly. Engines covered: `permanova_mixed()`,
+  `permanova_nested()`, `permanova_unbalanced()`, `permanova_mixed_covariate()`,
+  `permanova_nested_covariate()`, `permanova_unequal_random_intercept()`,
+  `permanova_unbalanced_nested()`, `permanova_unbalanced_nested_lower()`,
+  `permanova_unbalanced_block()`, `permanova_unbalanced_splitplot()`,
+  `permanova_asymmetric_mixed()`, and every contrast family built on them.
+- `permanova_dispersion()` evaluates its rank-one permuted response as the
+  quadratic form `z'Hz` rather than building the `n`-by-`n` outer product.
+
+## Permutation progress reporting
+
+- Long permutation runs now draw a text progress bar labelled with the term or
+  contrast being permuted. Reporting is off outside an interactive session and
+  is suppressed below 200 permutations, so scripts, tests, vignettes, and
+  `R CMD check` are unaffected. Set `options(distmer.progress = TRUE)` to force
+  it on (or `FALSE` to silence it), and `options(distmer.progress_min = )` to
+  change the length at which a run is worth reporting.
+
+## Asymmetric nested mixed designs (three error strata)
+
+- `permanova(distance ~ fixed... + (1 | unit) + (1 | unit:subplot))` now routes
+  to a new engine, `permanova_asymmetric_mixed()`, reproducing PRIMER's
+  asymmetric nested mixed design with three observation-level error strata:
+  whole-plot fixed effects (not involving the sub-plot factor) tested over the
+  unit stratum `IS(unit)`; sub-plot fixed effects tested over the unit-by-sub-plot
+  interaction stratum `subplot x IS(unit)`; and both random strata tested over
+  the residual. Fixed-term sums of squares are standard full-model Type I/II/III;
+  the whole-plot vs sub-plot classification only selects the denominator. Degrees
+  of freedom are derived from the actual (possibly incomplete) design. For the
+  Caribbean benthos example this is
+  `bray ~ DEPTH * ECOREGION * POP_STATUS + (1 | ISLAND) + (1 | ISLAND:DEPTH)`,
+  giving `IS(EC x PS)` (whole-plot denominator) and `DE x IS(EC x PS)` (sub-plot
+  denominator) -- the ST5 structure. Validated to reproduce
+  `aov(y ~ DE*EC*PS + Error(ISLAND/DE))` exactly for every fixed term F, the
+  stratum degrees of freedom, and the residual. (The two-stratum
+  `permanova_unbalanced_splitplot()` remains for designs without a random
+  unit-by-sub-plot interaction.)
+
+## Unbalanced multi-factor split-plot designs
+
+- `permanova(distance ~ f1 + f2 + ... + (1 | unit))` now works when the units are
+  **unequally replicated**, via a new engine `permanova_unbalanced_splitplot()`.
+  Whole-plot factors (constant within each unit) are tested on **equally weighted
+  unit centroids** over the between-unit stratum -- the unit-weighted estimand of
+  `permanova_unequal_random_intercept()` generalised to any number of fixed
+  factors and Type I/II/III sums of squares -- with size-restricted whole-unit
+  permutation. Within-unit (sub-plot) factors and between-by-within interactions
+  are tested over the within-unit residual with within-unit residual permutation.
+  This is the distance-based analogue of PRIMER's asymmetric nested design (e.g.
+  `IS(EC x PS)` as the whole-plot stratum and `DE x IS(EC x PS)` as the sub-plot
+  residual) for unequally sampled units. The `permanova()` front door routes a
+  balanced design to `permanova_mixed_covariate()` and an unbalanced one here; a
+  lone whole-plot factor still uses `permanova_unequal_random_intercept()`.
+  Validated to reproduce, exactly, an `lm` on equal-weight unit centroids for the
+  whole-plot terms, a unit-blocked `lm` for the sub-plot terms, the balanced
+  split-plot engine when balanced, and the single-factor unit-centroid engine.
+
+## Multi-factor split-plot and randomized-block mixed designs (no covariate needed)
+
+- The single-random-intercept engine no longer requires exactly one fixed factor
+  or that the factor be constant within the unit. `permanova(distance ~ f1 + f2 +
+  ... (+ interactions) + (1 | unit))` now supports any number of fixed factors,
+  each classified relative to the random unit and tested over the matching
+  stratum: **whole-plot** factors (constant within every unit) over the
+  between-unit stratum; **within-unit** sub-plot / randomized-block factors
+  (fully crossed within every unit) and **between-by-within** interactions over
+  the within-unit residual. A **partially confounded** factor (neither constant
+  nor fully crossed within the unit) is refused rather than given a wrong
+  denominator. A continuous covariate remains optional and is handled as before,
+  including a between-unit covariate (constant within units), which is treated as
+  a whole-plot term.
+- `permanova_mixed_covariate()` (still the engine, now covariate-optional) is
+  documented as the general split-plot / randomized-block / ANCOVA engine.
+  `permanova()` routes the simple single-whole-plot-factor case to the exact-EMS
+  `permanova_mixed()` and everything richer to this engine. Validated to
+  reproduce `aov(y ~ ... + Error(unit))` and the blocked linear model exactly for
+  whole-plot factors, sub-plot factors, and between-by-within interactions. This
+  realises and validates an earlier internal split-plot design sketch, now
+  removed.
+
+## Fit-based contrasts API
+
+- `permanova_contrasts()` now operates on a fitted `permanova()` object (rather
+  than a compiled design), with contrast families via `contrast_matrix()` and
+  two testing methods: `"isolated"` (a validated two-group subset test) and
+  `"pooled"` (whose pseudo-F equals the classical constrained-scalar contrast F,
+  verified to machine precision). `permanova_pairwise()` is removed --
+  `permanova_contrasts(fit, type = "pairwise")` replaces it. The validation
+  suite and capability registry were updated to the new API. Shared internal
+  helpers (`%||%`, `.stopf`, `.warnf`) are consolidated in one `utils.R`.
 
 # distmer 0.9.0.9000
 

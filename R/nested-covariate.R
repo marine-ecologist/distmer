@@ -310,18 +310,14 @@ permanova_nested_covariate <- function(design, permutations = 999L, seed = NULL,
     }
     plan <- level_plans[[level_key]]
     blocks <- plan$unit_blocks
-    permuted <- numeric(nrow(plan$orders))
-    if (nrow(plan$orders)) {
-      resid <- diag(design$n) - item$reduced_H
-      for (b in seq_len(nrow(plan$orders))) {
-        idx <- .block_permutation_index(blocks, plan$orders[b, ])
-        A <- item$reduced_H + resid[idx, , drop = FALSE]
-        G_perm <- A %*% design$G %*% t(A)
-        num <- trace_hgh(item$numerator_H, G_perm) / item$numerator_df
-        den <- trace_hgh(item$denominator_H, G_perm) / item$denominator_df
-        permuted[[b]] <- num / den
-      }
-    }
+    permuted <- .freedman_lane_statistics(
+      design$G, item$reduced_H,
+      item$numerator_H, item$numerator_df,
+      item$denominator_H, item$denominator_df,
+      plan$orders,
+      index = function(order) .block_permutation_index(blocks, order),
+      label = paste0("Permuting term `", item$term, "`"), tol = tol
+    )
     p_value <- NA_real_
     if (length(permuted)) {
       extreme <- sum(permuted >= item$statistic - tol, na.rm = TRUE)

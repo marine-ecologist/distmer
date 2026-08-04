@@ -16,7 +16,7 @@ permanova_unbalanced_nested(
 \arguments{
 \item{design}{Canonical Design Object with one random intercept.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -27,7 +27,7 @@ permanova_unbalanced_nested(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_unbalanced_nested`.
+An object of class \code{permanova_unbalanced_nested}.
 }
 \description{
 Tests one treatment assigned to top-level units of one unbalanced nested

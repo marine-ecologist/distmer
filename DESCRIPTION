@@ -1,8 +1,12 @@
 Package: distmer
 Type: Package
 Title: Transparent Distance-Based Models for Ecological Communities
-Version: 0.9.1
+Version: 0.9.2
 Authors@R: person("Roff", "George", email = "groff@reefresearch.org", role = c("aut", "cre"))
+URL: https://marine-ecologist.github.io/distmer/, https://github.com/marine-ecologist/distmer
+BugReports: https://github.com/marine-ecologist/distmer/issues
+Depends:
+    R (>= 4.1.0)
 Description: Transparent distance algebra, canonical design compilation, and
     permutation inference for ecological community models. Initial scope is
     one-way and sequential fixed-effect PERMANOVA, canonical mixed-design
@@ -77,6 +81,9 @@ Description: Transparent distance algebra, canonical design compilation, and
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports:
+    kableExtra,
+    utils
 Suggests:
     testthat (>= 3.0.0),
     vegan,
@@ -84,8 +91,12 @@ Suggests:
     lme4,
     lmerTest,
     ggplot2,
+    ggrepel,
+    patchwork,
+    tidyverse,
     knitr,
     rmarkdown
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
+Roxygen: list(markdown = TRUE, roclets = c("rd", "collate", "namespace"))

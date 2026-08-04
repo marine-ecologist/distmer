@@ -20,6 +20,10 @@
     dimnames = list(NULL, rownames(contrast_matrix))
   )
   if (nrow(plan$orders)) {
+    progress <- .permutation_progress(
+      nrow(plan$orders), "Permuting observations under the complete null"
+    )
+    on.exit(progress$close(), add = TRUE)
     for (row in seq_len(nrow(plan$orders))) {
       order <- plan$orders[row, ]
       G <- design$G[order, order, drop = FALSE]
@@ -28,6 +32,7 @@
       statistics[row, ] <- vapply(projectors, function(projector) {
         (trace_hgh(projector$H, G)) / permuted_denominator
       }, numeric(1))
+      progress$tick(row)
     }
   }
   list(

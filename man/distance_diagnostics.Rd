@@ -7,13 +7,13 @@
 distance_diagnostics(distance, tol = 1e-10)
 }
 \arguments{
-\item{distance}{A `dist` object or full distance matrix.}
+\item{distance}{A \code{dist} object or full distance matrix.}
 
 \item{tol}{Eigenvalue tolerance.}
 }
 \value{
 A list containing the centred matrix, complete eigenvalue spectrum,
-  inertia summaries, and a Euclidean flag.
+inertia summaries, and a Euclidean flag.
 }
 \description{
 Negative eigenvalues are retained and summarized rather than silently

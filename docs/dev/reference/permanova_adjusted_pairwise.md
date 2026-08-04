@@ -36,7 +36,7 @@ permanova_adjusted_pairwise(
 
 - weights:
 
-  \`"equal"\` or \`"proportional"\` categorical nuisance weights.
+  `"equal"` or `"proportional"` categorical nuisance weights.
 
 - adjust:
 
@@ -44,7 +44,7 @@ permanova_adjusted_pairwise(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -64,4 +64,4 @@ permanova_adjusted_pairwise(
 
 ## Value
 
-An object of class \`permanova_adjusted_contrasts\`.
+An object of class `permanova_adjusted_contrasts`.

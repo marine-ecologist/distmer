@@ -8,17 +8,16 @@ structured_denominator(ems, mean_squares, dfs, leading, target, tol = 1e-08)
 }
 \arguments{
 \item{ems}{Numeric matrix of EMS coefficients, one row per source (named) and
-one column per variance component (named). Entry `ems[i, j]` is the
-coefficient of component `j` in the expected mean square of source `i`.}
+one column per variance component (named). Entry \code{ems[i, j]} is the
+coefficient of component \code{j} in the expected mean square of source \code{i}.}
 
 \item{mean_squares}{Named numeric vector of observed mean squares, one per
-source (names matching `rownames(ems)`).}
+source (names matching \code{rownames(ems)}).}
 
 \item{dfs}{Named numeric vector of degrees of freedom, one per source.}
 
-\item{leading}{Named character vector mapping each *random* source to the
-variance component it directly estimates (e.g. `c(Residual = "residual",
-Site = "site")`); fixed sources are omitted or `NA`.}
+\item{leading}{Named character vector mapping each \emph{random} source to the
+variance component it directly estimates (e.g. \code{c(Residual = "residual", Site = "site")}); fixed sources are omitted or \code{NA}.}
 
 \item{target}{The source to test: the denominator is built to match its EMS
 with its own leading component removed. May instead be a named numeric
@@ -27,13 +26,13 @@ target EMS vector.}
 \item{tol}{Numerical tolerance for treating coefficients as zero.}
 }
 \value{
-A list with the denominator `weights` (named), its value, and its
-  Satterthwaite `df`.
+A list with the denominator \code{weights} (named), its value, and its
+Satterthwaite \code{df}.
 }
 \description{
-Builds a pseudo-F denominator for a mixed-model term by *synthesising* mean
+Builds a pseudo-F denominator for a mixed-model term by \emph{synthesising} mean
 squares in containment-lattice order, rather than by the unconstrained
-minimum-norm match used in [quasi_denominator()]. Given the expected mean
+minimum-norm match used in \code{\link[=quasi_denominator]{quasi_denominator()}}. Given the expected mean
 squares (EMS) of a set of sources, each random source's variance component,
 and the observed mean squares, it peels the target EMS one variance component
 at a time from the top of the lattice down, using the source that directly

@@ -2,6 +2,8 @@
 
 ### All vignettes
 
+- [4. Atypical distance
+  matrices](https://marine-ecologist.github.io/distmer/dev/articles/atypical-distance-matrices.md):
 - [5. Pairwise contrasts and multiple
   comparisons](https://marine-ecologist.github.io/distmer/dev/articles/contrasts.md):
 - [6. Dispersion and distance
@@ -12,7 +14,5 @@
   distmer](https://marine-ecologist.github.io/distmer/dev/articles/getting-started.md):
 - [3. Random effects and ecological sampling
   designs](https://marine-ecologist.github.io/distmer/dev/articles/random-effects.md):
-- [4. Unbalanced
-  designs](https://marine-ecologist.github.io/distmer/dev/articles/unbalanced-mixed.md):
 - [7. Validation and
   reproducibility](https://marine-ecologist.github.io/distmer/dev/articles/validation.md):

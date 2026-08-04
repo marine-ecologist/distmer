@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixed-covariate.R
 \name{permanova_mixed_covariate}
 \alias{permanova_mixed_covariate}
-\title{Covariate-adjusted single-random-intercept PERMANOVA (split-plot / RCB ANCOVA)}
+\title{Split-plot / randomized-block / ANCOVA PERMANOVA for one random intercept}
 \usage{
 permanova_mixed_covariate(
   design,
@@ -15,18 +15,18 @@ permanova_mixed_covariate(
 )
 }
 \arguments{
-\item{design}{Canonical Design Object with one `(1 | group)` random term and
-a fixed model containing at least one continuous covariate.}
+\item{design}{Canonical Design Object with one \code{(1 | group)} random term and
+one or more fixed factors (a continuous covariate is optional).}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
-\item{hypothesis}{Sum-of-squares partition for the fixed terms: `"I"`
-(sequential), `"II"` (marginal, respecting containment), or `"III"`
+\item{hypothesis}{Sum-of-squares partition for the fixed terms: \code{"I"}
+(sequential), \code{"II"} (marginal, respecting containment), or \code{"III"}
 (partial). Types coincide for an orthogonal balanced fixed structure and
 differ only when fixed terms are non-orthogonal (interactions). Type III
-with interactions requires sum-to-zero contrasts, which the `permanova()`
+with interactions requires sum-to-zero contrasts, which the \code{permanova()}
 front door sets automatically.}
 
 \item{keep_permutations}{Retain permutation statistics on each test spec.}
@@ -36,23 +36,35 @@ front door sets automatically.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_nested` (shared table/summary shape).
+An object of class \code{permanova_nested} (shared table/summary shape).
 }
 \description{
-Tests categorical factors and one or more continuous covariates in a balanced
-`(1 | group)` random-intercept design. Each fixed term is classified by
-whether it varies within the grouping unit. Between-unit (whole-plot) factors,
-constant within each unit, are tested over the between-unit random-intercept
-stratum, exactly as in [permanova_mixed()]. Within-unit terms -- sub-plot or
-randomized-block factors, observation-level covariates, and covariate-by-
-factor slope interactions -- are partitioned in the within-unit space and
-tested over the within-unit residual. This covers the distance-based
-split-plot and randomized-block analysis of covariance.
+Tests any number of categorical factors, and optionally continuous
+covariates, in a balanced \code{(1 | group)} random-intercept design. Each fixed
+term is classified relative to the grouping unit and tested over the matching
+stratum:
 }
 \details{
-A numeric term that is constant within groups is assigned to the between-unit
-stratum. A covariate that varies within groups is tested there while its
-between-unit component is retained as nuisance adjustment for whole-plot
-terms. [decompose_covariate()] may be used when separate between- and
-within-unit slopes are required.
+\itemize{
+\item \strong{whole-plot} -- a factor constant within every unit is tested over the
+between-unit random-intercept stratum, exactly as in \code{\link[=permanova_mixed]{permanova_mixed()}};
+\item \strong{within-unit} -- a sub-plot / randomized-block factor fully crossed within
+every unit, a covariate, or a covariate-by-factor slope interaction is
+tested over the within-unit residual;
+\item \strong{between-by-within} -- an interaction with any within-unit component is
+routed to the within-unit residual;
+\item \strong{partial} -- a factor neither constant nor fully crossed within the unit
+is genuinely confounded with the random unit and is refused, so no design
+receives a silently wrong denominator.
+}
+
+This is the distance-based split-plot analysis: whole-plot effects over the
+unit stratum, sub-plot effects and covariates over the residual, covering
+multi-factor split-plot, randomized-block, and analysis-of-covariance layouts.
+A covariate that varies within units is tested over the residual while its
+between-unit component is retained as nuisance adjustment for whole-plot terms
+(\code{\link[=decompose_covariate]{decompose_covariate()}} separates between- and within-unit slopes when
+required). The single-whole-plot-factor case without a covariate is handled by
+the exact-EMS \code{\link[=permanova_mixed]{permanova_mixed()}}; the \code{permanova()} front door dispatches
+automatically.
 }

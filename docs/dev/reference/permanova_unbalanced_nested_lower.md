@@ -29,11 +29,11 @@ permanova_unbalanced_nested_lower(
 
 - level:
 
-  \`"auto"\`, \`"child"\`, or \`"observation"\`.
+  `"auto"`, `"child"`, or `"observation"`.
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -53,4 +53,4 @@ permanova_unbalanced_nested_lower(
 
 ## Value
 
-An object of class \`permanova_unbalanced_nested_lower\`.
+An object of class `permanova_unbalanced_nested_lower`.

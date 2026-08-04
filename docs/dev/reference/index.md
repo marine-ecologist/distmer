@@ -11,6 +11,8 @@
   : Benchmark balanced mixed inference
 - [`compile_permanova_design()`](https://marine-ecologist.github.io/distmer/dev/reference/compile_permanova_design.md)
   : Compile a canonical distance-model design object
+- [`contrast_matrix()`](https://marine-ecologist.github.io/distmer/dev/reference/contrast_matrix.md)
+  : Build a contrast (L) matrix from a named family
 - [`decompose_covariate()`](https://marine-ecologist.github.io/distmer/dev/reference/decompose_covariate.md)
   : Split a covariate into between-unit and within-unit components
 - [`derive_adjusted_means()`](https://marine-ecologist.github.io/distmer/dev/reference/derive_adjusted_means.md)
@@ -43,10 +45,13 @@
   : Explicitly covariate-adjusted distance contrasts
 - [`permanova_adjusted_pairwise()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_adjusted_pairwise.md)
   : Pairwise explicitly covariate-adjusted distance contrasts
+- [`permanova_asymmetric_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.md)
+  : Asymmetric nested mixed PERMANOVA (unit + unit-by-subplot random
+  strata)
 - [`permanova_capabilities()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_capabilities.md)
   : Report the validated inference support matrix
 - [`permanova_contrasts()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts.md)
-  : Planned one-factor distance contrasts
+  : Contrasts for a fitted PERMANOVA
 - [`permanova_crossed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed.md)
   : Balanced crossed distance-based mixed model
 - [`permanova_dispersion()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_dispersion.md)
@@ -68,8 +73,8 @@
 - [`permanova_mixed_contrasts()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_mixed_contrasts.md)
   : Contrasts for supported mixed PERMANOVA designs
 - [`permanova_mixed_covariate()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_mixed_covariate.md)
-  : Covariate-adjusted single-random-intercept PERMANOVA (split-plot /
-  RCB ANCOVA)
+  : Split-plot / randomized-block / ANCOVA PERMANOVA for one random
+  intercept
 - [`permanova_mixed_maxT()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_mixed_maxT.md)
   : Global-null max-F inference for supported mixed designs
 - [`permanova_mixed_maxT_pairwise()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_mixed_maxT_pairwise.md)
@@ -82,8 +87,6 @@
   : Covariate-adjusted balanced nested PERMANOVA
 - [`permanova_oneway()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_oneway.md)
   : One-way PERMANOVA
-- [`permanova_pairwise()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_pairwise.md)
-  : Pairwise one-factor distance comparisons
 - [`permanova_pairwise_strong()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_pairwise_strong.md)
   : Strong pairwise inference by intersection-specific closed
   permutation tests
@@ -101,6 +104,8 @@
   : Unbalanced nested top-unit PERMANOVA
 - [`permanova_unbalanced_nested_lower()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_lower.md)
   : Lower-level unbalanced nested PERMANOVA
+- [`permanova_unbalanced_splitplot()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.md)
+  : Unbalanced multi-factor split-plot PERMANOVA
 - [`permanova_unequal_random_intercept()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unequal_random_intercept.md)
   : Unequal-replication random-intercept PERMANOVA
 - [`projection_matrix()`](https://marine-ecologist.github.io/distmer/dev/reference/projection_matrix.md)
@@ -156,3 +161,5 @@
 - [`structured_denominator()`](https://marine-ecologist.github.io/distmer/dev/reference/structured_denominator.md)
   : Structured (Cornfield–Tukey / Satterthwaite) denominator
   construction
+- [`tab()`](https://marine-ecologist.github.io/distmer/dev/reference/tab.md)
+  : Render a table with kableExtra styling

@@ -305,16 +305,18 @@ derive_hybrid_ems <- function(design, tol = 1e-10) {
          call. = FALSE)
   }
   observed <- numerator$ms / denominator$ms
-  statistics <- numeric(nrow(plan$orders))
-  for (row in seq_len(nrow(plan$orders))) {
-    index <- .block_permutation_index(
-      structure$profile_blocks, plan$orders[row, ]
-    )
-    G_permuted <- design$G[index, index, drop = FALSE]
-    statistics[[row]] <-
+  statistics <- .permuted_statistics(
+    nrow(plan$orders),
+    function(row) {
+      index <- .block_permutation_index(
+        structure$profile_blocks, plan$orders[row, ]
+      )
+      G_permuted <- design$G[index, index, drop = FALSE]
       (trace_hgh(numerator$H, G_permuted) / numerator$df) /
-      (trace_hgh(denominator$H, G_permuted) / denominator$df)
-  }
+        (trace_hgh(denominator$H, G_permuted) / denominator$df)
+    },
+    label = "Permuting intact treatment profiles within regions"
+  )
   p_value <- NA_real_
   if (length(statistics)) {
     extreme <- sum(statistics >= observed - tol, na.rm = TRUE)

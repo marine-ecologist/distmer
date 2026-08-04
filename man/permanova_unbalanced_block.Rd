@@ -16,7 +16,7 @@ permanova_unbalanced_block(
 \arguments{
 \item{design}{Canonical Design Object with one random intercept.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -27,7 +27,7 @@ permanova_unbalanced_block(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_unbalanced_block`.
+An object of class \code{permanova_unbalanced_block}.
 }
 \description{
 Tests one treatment in a randomized block design with incomplete treatment

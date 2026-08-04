@@ -25,7 +25,7 @@ permanova_capabilities <- function() {
     ),
     companion = c(
       "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-      "permanova_pairwise", "permanova_marginal_pairwise",
+      "", "permanova_marginal_pairwise",
       "permanova_adjusted_pairwise", "permanova_mixed_pairwise",
       "permanova_maxT_pairwise", "",
       "permanova_mixed_maxT_pairwise"

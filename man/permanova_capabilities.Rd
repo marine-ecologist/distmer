@@ -8,7 +8,7 @@ permanova_capabilities()
 }
 \value{
 A data frame containing design envelopes, inferential scales,
-  denominators, permutation contracts, error-control claims, and exclusions.
+denominators, permutation contracts, error-control claims, and exclusions.
 }
 \description{
 Returns one row for every primary inferential engine in the validated support

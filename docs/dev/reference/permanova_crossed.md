@@ -28,7 +28,7 @@ permanova_crossed(
 
 - p_method:
 
-  \`"none"\` or opt-in \`"satterthwaite"\` F approximation.
+  `"none"` or opt-in `"satterthwaite"` F approximation.
 
 - truncate:
 
@@ -45,7 +45,7 @@ permanova_crossed(
 
 - permutations:
 
-  A non-negative integer or \`"all"\` when \`p_method = "permutation"\`.
+  A non-negative integer or `"all"` when `p_method = "permutation"`.
 
 - seed:
 
@@ -61,4 +61,4 @@ permanova_crossed(
 
 ## Value
 
-An object of class \`permanova_crossed\`.
+An object of class `permanova_crossed`.

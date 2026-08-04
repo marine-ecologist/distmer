@@ -14,12 +14,11 @@ derive_ems(design, hypothesis = "I", tol = 1e-10)
 
 - design:
 
-  A canonical \`permanova_design\` containing a distance matrix.
+  A canonical `permanova_design` containing a distance matrix.
 
 - hypothesis:
 
-  Fixed-effect sum-of-squares partition: \`"I"\`, \`"II"\`, or
-  \`"III"\`.
+  Fixed-effect sum-of-squares partition: `"I"`, `"II"`, or `"III"`.
 
 - tol:
 

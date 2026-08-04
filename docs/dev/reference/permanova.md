@@ -29,44 +29,45 @@ permanova(
 
 - formula:
 
-  A model formula, or a compiled \`permanova_design\` object. The
-  dissimilarity may be given on the left-hand side, as in \`bray ~
-  treatment + (1 \| site)\` (the idiom used by \`vegan::adonis2()\`), or
-  the formula may be one-sided (\`~ treatment + (1 \| site)\`) with the
-  dissimilarity passed through \`distance\`.
+  A model formula, or a compiled `permanova_design` object. The
+  dissimilarity may be given on the left-hand side, as in
+  `bray ~ treatment + (1 | site)` (the idiom used by
+  [`vegan::adonis2()`](https://vegandevs.github.io/vegan/reference/adonis.html)),
+  or the formula may be one-sided (`~ treatment + (1 | site)`) with the
+  dissimilarity passed through `distance`.
 
 - data:
 
-  A data frame with one row per observation. Ignored when \`formula\` is
+  A data frame with one row per observation. Ignored when `formula` is
   already a Design Object.
 
 - distance:
 
-  A \`dist\` object or distance matrix. Needed only when the
-  dissimilarity is not given on the formula's left-hand side.
+  A `dist` object or distance matrix. Needed only when the dissimilarity
+  is not given on the formula's left-hand side.
 
 - type:
 
-  Sum-of-squares partition for the fixed-effect terms: \`"I"\`
-  (sequential), \`"II"\` (conditional), or \`"III"\` (partial). Applies
-  to fixed-effect designs; for designs whose denominator is fixed by the
+  Sum-of-squares partition for the fixed-effect terms: `"I"`
+  (sequential), `"II"` (conditional), or `"III"` (partial). Applies to
+  fixed-effect designs; for designs whose denominator is fixed by the
   random structure it is reported as not applicable.
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - mc_permutations:
 
-  Number of Monte-Carlo draws for the asymptotic \`P(MC)\` p-value,
-  reported alongside \`P(perm)\` for designs tested in the full
-  observation space. \`P(MC)\` stays smooth when the true permutation
+  Number of Monte-Carlo draws for the asymptotic `P(MC)` p-value,
+  reported alongside `P(perm)` for designs tested in the full
+  observation space. `P(MC)` stays smooth when the true permutation
   space is small (the usual case for the upper strata of a mixed
-  design). Set to \`0\` to disable. Reproducible from \`seed\`.
+  design). Set to `0` to disable. Reproducible from `seed`.
 
 - seed:
 
-  Optional random seed. Also seeds the \`P(MC)\` draws.
+  Optional random seed. Also seeds the `P(MC)` draws.
 
 - keep_permutations:
 
@@ -87,8 +88,9 @@ permanova(
 
 ## Value
 
-An object of class \`permanova\` wrapping the engine result. Use
-\`summary()\` for the full table with variance components.
+An object of class `permanova` wrapping the engine result. Use
+[`summary()`](https://rdrr.io/r/base/summary.html) for the full table
+with variance components.
 
 ## Examples
 

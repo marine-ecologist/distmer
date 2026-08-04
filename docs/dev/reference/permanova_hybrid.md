@@ -28,7 +28,7 @@ permanova_hybrid(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -52,4 +52,4 @@ permanova_hybrid(
 
 ## Value
 
-An object of class \`permanova_hybrid\`.
+An object of class `permanova_hybrid`.

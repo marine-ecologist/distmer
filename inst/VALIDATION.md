@@ -704,6 +704,22 @@ The reproducible source artifact is built as
 `/private/tmp/distmer_0.9.0.9000.tar.gz`; its checksum is recorded externally
 after the final build so the validation document does not contain a
 self-invalidating hash of its own artifact.
-The non-strict release audit passes every structural check; publication remains
-intentionally blocked until the repository owner supplies the canonical project
-URL and public BugReports URL.
+At that 0.9.0.9000 checkpoint, publication metadata remained unresolved. Those
+fields are present and validated in the current gate.
+
+## Version 0.9.2 consolidated Claude development and adversarial gate
+
+Version 0.9.2 incorporates the complete post-0.9.1 Claude development tree:
+the shared low-rank Freedman--Lane kernel, asymmetric three-stratum mixed
+inference, balanced and unbalanced multi-factor split-plots, fit-based
+contrasts, progress reporting, and their generated documentation.
+
+The independent adversarial gate adds direct anchors for 24 exact whole-unit
+and 576 exact within-unit asymmetric assignments; incomplete units restricted
+by subplot-count topology; 24 whole-unit and 16 within-unit split-plot
+assignments; exact-size conditioning for unequal unit centroids; and mixed
+isolated contrasts reproducing the complete subset model.
+
+The checked source passes 69/69 deterministic checks and 1079/1079 expectations
+across 239 tests, with no failures or skips. Both release audits pass, all seven
+vignettes build, and `R CMD check --no-manual` reports `Status: OK`.

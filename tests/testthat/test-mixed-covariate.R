@@ -53,14 +53,77 @@ test_that("covariate-by-factor interaction (slopes) is tested over the residual"
 test_that("permanova() routes a random intercept with a covariate here", {
   d <- .mixed_cov_example()
   fm <- permanova(dist(d$y) ~ Loc + Vol + (1 | Site), d, permutations = 99, seed = 1)
-  expect_identical(fm$engine, "balanced mixed with covariate")
+  expect_identical(fm$engine, "balanced split-plot mixed")
   expect_true("Residual" %in% fm$table$Source)
 })
 
-test_that("the engine requires a covariate", {
+test_that("multiple whole-plot factors (no covariate) match the split-plot aov", {
+  set.seed(1)
+  site <- factor(1:24)
+  A <- factor(rep(c("a1", "a2"), each = 12))[site]
+  B <- factor(rep(c("b1", "b2", "b3"), 8))[site]
+  d <- data.frame(site = rep(site, each = 4))
+  d$A <- A[d$site]; d$B <- B[d$site]
+  d$y <- c(0, .6)[d$A] + c(0, .4, .9)[d$B] +
+    rnorm(24, 0, 1)[d$site] + rnorm(nrow(d))
+  fm <- permanova(dist(d$y) ~ A + B + (1 | site), d, permutations = 0)
+  expect_identical(fm$engine, "balanced split-plot mixed")
+  ref <- summary(aov(y ~ A + B + Error(site), d))[["Error: site"]][[1L]]
+  expect_equal(fm$table$`Pseudo-F`[fm$table$Source == "A"], ref["A", "F value"],
+               tolerance = 1e-6)
+  expect_equal(fm$table$`Pseudo-F`[fm$table$Source == "B"], ref["B", "F value"],
+               tolerance = 1e-6)
+  # the whole-plot factors are tested over the between-unit stratum
+  stratum <- fm$fit$table$ms[grepl("stratum", fm$fit$table$term)]
+  expect_equal(stratum, ref["Residuals", "Mean Sq"], tolerance = 1e-8)
+})
+
+test_that("a randomized-block factor with no covariate is tested over the residual", {
+  set.seed(4)
+  nb <- 8
+  d <- expand.grid(Treat = factor(c("c", "lo", "hi")), Block = factor(1:nb), rep = 1:3)
+  d$y <- c(0, .8, 1.6)[d$Treat] + rnorm(nb, 0, 1)[d$Block] + rnorm(nrow(d))
+  fm <- permanova(dist(d$y) ~ Treat + (1 | Block), d, permutations = 0)
+  expect_identical(fm$engine, "balanced split-plot mixed")
+  ref <- anova(lm(y ~ Block + Treat, d))
+  expect_equal(fm$table$`Pseudo-F`[fm$table$Source == "Treat"],
+               ref["Treat", "F value"], tolerance = 1e-6)
+  expect_equal(fm$fit$table$denominator[fm$fit$table$term == "Treat"], "MS[Residual]")
+})
+
+test_that("a between-by-within interaction is routed to the residual", {
+  set.seed(5)
+  nb <- 8
+  d <- expand.grid(T = factor(c("c", "t")), Block = factor(1:nb), rep = 1:3)
+  d$A <- factor(c("a1", "a2")[ceiling(as.integer(d$Block) / 4)])  # whole-plot
+  d$y <- c(0, .5)[d$A] + c(0, .7)[d$T] + .3 * (d$A == "a2" & d$T == "t") +
+    rnorm(nb, 0, .8)[d$Block] + rnorm(nrow(d))
+  fm <- permanova(dist(d$y) ~ A * T + (1 | Block), d, permutations = 0)
+  ref <- summary(aov(y ~ A * T + Error(Block), d))[["Error: Within"]][[1L]]
+  expect_equal(fm$table$`Pseudo-F`[fm$table$Source == "A:T"],
+               ref["A:T", "F value"], tolerance = 1e-6)
+  # A is whole-plot (unit stratum); T and A:T are within (residual)
+  denom <- fm$fit$table$denominator
+  expect_equal(denom[fm$fit$table$term == "A:T"], "MS[Residual]")
+  expect_equal(denom[fm$fit$table$term == "T"], "MS[Residual]")
+})
+
+test_that("a partially confounded factor is refused, not given a wrong denominator", {
+  set.seed(2)
+  d <- expand.grid(rep = 1:3, Site = factor(1:6))
+  # P varies within some sites but not others -> neither whole-plot nor crossed
+  d$P <- factor(ifelse(d$Site %in% c("1", "2", "3") & d$rep == 1, "y", "x"))
+  d$y <- rnorm(nrow(d))
+  expect_error(
+    permanova(dist(d$y) ~ P + (1 | Site), d, permutations = 0),
+    "partial confounding"
+  )
+})
+
+test_that("a single whole-plot factor without a covariate stays on permanova_mixed", {
   d <- .mixed_cov_example()
-  no_cov <- compile_permanova_design(~ Loc + (1 | Site), d, dist(d$y))
-  expect_error(permanova_mixed_covariate(no_cov), "No continuous covariate")
+  fm <- permanova(dist(d$y) ~ Loc + (1 | Site), d, permutations = 0)
+  expect_identical(fm$engine, "balanced random intercept")
 })
 
 test_that("Type I/II/III fixed-effect SS match car::Anova", {

@@ -28,7 +28,7 @@ permanova_mixed_pairwise(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -48,4 +48,4 @@ permanova_mixed_pairwise(
 
 ## Value
 
-An object of class \`permanova_mixed_contrasts\`.
+An object of class `permanova_mixed_contrasts`.

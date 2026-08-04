@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
   fig.align = "center"
 )
 library(distmer)
-library(vegan) 
+library(vegan)
 library(ggplot2)
 library(kableExtra)
 theme_set(theme_minimal(base_size = 12))
@@ -21,175 +21,211 @@ data(dune, dune.env, package = "vegan")
 bray <- vegdist(dune, method = "bray")
 ```
 
-An overall model can show that community composition differs among groups, but
-it does not say which ecological comparisons are responsible. This guide uses
-the four management classes in `vegan::dune` to move from one overall question
-to planned contrasts, all pairwise comparisons, and multiplicity control.
+## comparison methods
 
-```{r overview}
-management <- data.frame(Management = droplevels(dune.env$Management))
-m1 <- permanova(bray ~ Management, management, permutations = 499, seed = 41)
-summary(m1) |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
+When you compare specific groups — say treatment vs control — there are two
+reasonable questions, and `permanova_contrasts()` lets you choose which one
+you're asking with the method argument.
+
+`method = "isolated"` (the default) asks: "Do these two groups differ,
+considering just those two groups?" It pulls out only the samples from the
+levels being compared and runs a fresh two-group PERMANOVA on them — its own
+error term, its own permutations (the approach that `PRIMER` takes for
+pairwise comparisons). It makes no assumptions about the other groups in your design.
+
+`method = "pooled"` asks: "Do these two groups differ, using the error
+estimated from the whole experiment?" It tests the same difference but
+borrows the error term from the full model, which uses all your data and so
+can have more power. The trade-off is that it assumes the groups are similarly
+variable (homogeneous dispersion) — if one group is much more scattered than
+another, this assumption is questionable.
+
+Use `isolated` when you want a clean, assumption-light comparison that
+matches `PRIMER` (i.e. default). Use `pooled` when your groups
+are similarly variable and you want the extra power from the shared error
+term.
+
+## pairwise and multicomparisons:
+
+### i) one-way pairwise contrasts:
+
+Using the `dune` data: which management regimes differ in dune plant composition?
+
+all pairwise comparisons among the four management levels (6 contrasts), Holm-adjusted:
+
+```{r}
+
+data(dune, dune.env, package = "vegan")
+bray <- vegdist(dune, method = "bray")
+
+fit1 <- permanova(bray ~ Management, data = dune.env,
+                  permutations = 9999, seed = 101)
+summary(fit1)
+
+permanova_contrasts(fit1, type = "pairwise") |> tab()
 ```
 
-The ordination is a visual summary, not the test itself. The model uses the
-complete Bray--Curtis matrix, whereas the plot shows only two axes.
+same, but control the family-wise error differently (Benjamini-Hochberg):
 
-```{r ordination, fig.alt="Dune sites in a two-axis PCoA coloured by management class"}
-ord <- cmdscale(bray, k = 2)
-ord_plot <- data.frame(
-  Axis1 = ord[, 1], Axis2 = ord[, 2], Management = management$Management
+```{r}
+permanova_contrasts(fit1, type = "pairwise", adjust = "BH")  |> tab()
+
+```
+
+
+### ii) treatment vs control:
+
+Using the `pyrifos` dataset (12 ditches, 11 weeks, dose applied per ditch): does each pesticide dose differ from the untreated control?
+
+every dose vs control (dose = 0): 4 contrasts:
+```{r}
+data(pyrifos, package = "vegan")
+ditch <- gl(12, 1, length = 132)
+week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
+dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
+pyr.env  <- data.frame(ditch, week, dose)
+pyr.bray <- vegdist(pyrifos)
+
+fit2 <- permanova(pyr.bray ~ dose, data = pyr.env,
+                  permutations = 999, seed = 101)
+
+
+permanova_contrasts(fit2, type = "trt.vs.ctrl", ref = "0") |> tab()
+```
+
+### iii) polynomial contrasts
+
+is there a monotone (linear) compositional trend across dose, and any curvature?
+
+```{r}
+
+permanova_contrasts(fit2, type = "poly", scores = c(0, 0.1, 0.9, 6, 44))  |> tab()
+
+```
+
+if `dose` were an ordered factor with numeric labels, scores are inferred:
+
+```{r}
+pyr.env$dose_ord <- ordered(pyr.env$dose,
+                            levels = c("0", "0.1", "0.9", "6", "44"))
+fit2b <- permanova(pyr.bray ~ dose_ord, data = pyr.env,
+                   permutations = 999, seed = 101)
+permanova_contrasts(fit2b, type = "poly")    |> tab()
+
+```
+
+
+### iii) sum to zero (grand mean)
+
+```{r}
+
+permanova_contrasts(fit1, type = "contr.sum") |> tab()
+```
+
+### iv) helmert contrasts
+
+helmert (i.e. each level vs the mean of subsequent levels):
+
+```{r}
+
+permanova_contrasts(fit1, type = "helmert") |> tab()
+
+```
+
+### v) custom contrasts
+
+Test a specific ecological hypothesis: do the low doses (0, 0.1, 0.9) together differ from the high doses (6, 44)?
+Columns MUST be in the factor's level order; check with levels():
+
+```{r}
+
+Lm <- rbind(
+  "low vs high"   = c( 1/3,  1/3,  1/3, -1/2, -1/2),    # note level order!
+  "44 vs 6"       = c(   0,    0,    0,    1,   -1)
+)
+permanova_contrasts(fit2, type = "custom", custom = Lm) |> tab()
+```
+
+a named list works too, one vector per contrast:
+
+```{r}
+
+Llist <- list(
+  "any dose vs control" = c(-4, 1, 1, 1, 1),            # control vs the rest
+  "top dose vs control" = c(-1, 0, 0, 1, 0)             # 44 vs 0
+)
+permanova_contrasts(fit2, type = "custom", custom = Llist) |> tab()
+```
+
+
+### vi) contrasts with random effects:
+
+does treatment differ, tested at the correct level, with repeated samples per site?
+
+
+```{r}
+
+set.seed(7)
+site  <- factor(rep(paste0("S", 1:8), each = 4))
+treat <- factor(rep(c("ctrl", "trt"), each = 16))   # S1-S4 ctrl, S5-S8 trt
+comm  <- matrix(rpois(32 * 15, 5), 32, 15)
+d     <- vegdist(comm)
+env   <- data.frame(site, treat)
+
+fit3 <- permanova(d ~ treat + (1 | site), data = env,
+                  permutations = 999, seed = 202)
+
+
+permanova_contrasts(fit3, type = "pairwise") |> tab()
+
+```
+
+
+
+### contrast matrix
+
+`contrast_matrix()` is exported so you can see/verify the L matrix a family
+ produces — useful for checking custom coding or level order before you run
+ thousands of permutations.
+
+```{r}
+contrast_matrix("trt.vs.ctrl", levels = levels(pyr.env$dose), ref = "0")
+# contrast_matrix("poly", levels = levels(pyr.env$dose),
+#                 scores = c(0, 0.1, 0.9, 44, 6))          # matches level order
+# contrast_matrix("pairwise", levels = levels(dune.env$Management))
+```
+
+
+## programmatic use
+```{r eval=FALSE}
+
+library(distmer)
+library(vegan)
+
+data(pyrifos)
+
+ditch <- gl(12, 1, length = 132)
+week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
+dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
+
+pyr.env <- data.frame(ditch, week, dose)
+pyr.bray <- vegdist(pyrifos)
+
+fit <- permanova(
+  pyr.bray ~ dose,
+  data = pyr.env,
+  permutations = 999,
+  seed = 101
 )
 
-ggplot() +
-  theme_bw() + 
-  geom_point(data = ord_plot, aes(Axis1, Axis2, fill = Management), shape=21, size = 3) +
-  stat_ellipse(data = ord_plot, aes(Axis1, Axis2, colour = Management), linewidth = 0.6, type = "norm",
-               show.legend = FALSE) +
-  labs(title = "Dune communities by management",
-       x = "PCoA axis 1", y = "PCoA axis 2", colour = "Management")
+res <- permanova_contrasts(fit, type = "trt.vs.ctrl", ref = "0")
+as.data.frame(res) |> tab()                      # full numeric table
+summary(res)                             # same data.frame
+subset(as.data.frame(res), p_adj < 0.05) # significant contrasts only
+res$L
+
+
 ```
 
-## Start with ecological questions
 
-A planned contrast is most useful when it expresses a question chosen before
-looking at the pairwise results. Here we compare biological farming with hobby
-farming, and the average of the two more intensively managed classes with the
-average of the other two classes. Coefficients are applied to equally weighted
-group centroids and must sum to zero.
-
-```{r design}
-design <- compile_permanova_design(~ Management, management, bray)
-planned <- rbind(
-  `biological - hobby farming` = c(BF = 1, HF = -1, NM = 0, SF = 0),
-  `BF/HF mean - NM/SF mean` = c(BF = 0.5, HF = 0.5, NM = -0.5, SF = -0.5)
-)
-
-planned_fit <- permanova_contrasts(
-  design, planned, adjust = "holm", permutations = 499, seed = 41
-)
-planned_fit$table |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
-
-Each contrast keeps the remaining group structure in the model, then obtains a
-permutation p-value for that comparison. Holm adjustment protects the family
-of planned questions without assuming that the contrasts are independent.
-
-## All pairwise comparisons
-
-When there is no small set of pre-specified comparisons,
-`permanova_pairwise()` constructs every pair. The raw p-value describes one
-comparison; the adjusted value accounts for having examined the complete
-family.
-
-```{r pairwise}
-pw <- permanova_pairwise(
-  design, adjust = "holm", permutations = 499, seed = 41
-)
-pw$table[, c("contrast", "pseudo_f", "p_perm", "p_adjusted")] |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-```
-
-```{r pairwise-plot, fig.alt="Adjusted p-values for all pairwise management comparisons"}
-pw_plot <- pw$table
-pw_plot$contrast <- reorder(pw_plot$contrast, pw_plot$p_adjusted)
-
-ggplot(pw_plot, aes(p_adjusted, contrast)) +
-  geom_vline(xintercept = 0.05, linetype = 2, colour = "grey45") +
-  geom_segment(aes(x = 0, xend = p_adjusted, yend = contrast),
-               colour = "grey75") +
-  geom_point(size = 2.7, colour = "#0072B2") +
-  scale_x_continuous(limits = c(0, 1)) +
-  labs(title = "Pairwise management comparisons",
-       x = "Holm-adjusted permutation p-value", y = NULL)
-```
-
-Do not interpret a non-significant pair as proof that its communities are
-equivalent. It says only that this analysis did not resolve a difference at the
-chosen error rate and permutation depth.
-
-## Comparisons adjusted for other predictors
-
-In a multifactor model, a management contrast needs an explicit rule for
-averaging over other categorical predictors. `weights = "equal"` describes an
-equally represented ecological population; `weights = "proportional"`
-describes the observed sample composition.
-
-```{r marginal}
-factors <- data.frame(
-  Management = droplevels(dune.env$Management),
-  Use = droplevels(dune.env$Use)
-)
-multifactor <- compile_permanova_design(~ Management + Use, factors, bray)
-
-permanova_marginal_contrasts(
-  multifactor, factor = "Management", contrasts = planned,
-  weights = "equal", permutations = 199, seed = 41
-)$table |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-```
-
-If a factor interacts with a numeric environmental gradient, its comparison
-also depends on where that gradient is evaluated. The reference value is
-therefore supplied rather than silently chosen.
-
-```{r adjusted}
-env <- data.frame(
-  Management = droplevels(dune.env$Management),
-  Use = droplevels(dune.env$Use),
-  A1 = dune.env$A1
-)
-adjusted_design <- compile_permanova_design(
-  ~ Management * A1 + Use, env, bray
-)
-
-permanova_adjusted_contrasts(
-  adjusted_design, factor = "Management", contrasts = planned,
-  at = c(A1 = mean(env$A1)), weights = "equal",
-  permutations = 199, seed = 41
-)$table |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-```
-
-## Choosing familywise protection
-
-For most ecological reports, Holm-adjusted planned or pairwise comparisons are
-a clear default. `distmer` also provides two shared-permutation procedures:
-
-- `permanova_maxT_pairwise()` compares every statistic with the largest value
-  in each common-null permutation. Its familywise guarantee is for the
-  complete null in which all group centroids coincide.
-- `permanova_pairwise_strong()` uses closed testing and protects every pair
-  even when other pairs genuinely differ.
-
-```{r simultaneous}
-max_f <- permanova_maxT_pairwise(design, permutations = 199, seed = 41)
-closed <- permanova_pairwise_strong(design, permutations = 199, seed = 41)
-
-max_f$table[, c("contrast", "p_perm", "p_maxT")] |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-closed$table[, c("contrast", "p_perm", "p_closed")] |> 
-  kbl(digits=3) |> 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
-```
-
-The strong finite-sample guarantee has an important boundary. It applies to
-pairwise equality of **complete distributions** for independent one-factor
-observations. It is not a strong guarantee for centroid-only nulls when groups
-have different dispersion or shape. Use the distance and dispersion checks in
-`vignette("dispersion")` alongside these comparisons.
-
-## What to report
-
-Report the contrast coefficients or pair labels, their ecological rationale,
-the raw and adjusted p-values, the adjustment method, the dissimilarity, the
-number of permutations, and the seed. A pseudo-F is an effect-to-residual ratio,
-not an effect size; show an ordination or centroid-distance summary as well.

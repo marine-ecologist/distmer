@@ -37,7 +37,6 @@ data contain plant abundances from 20 dune meadows. We will ask whether
 community composition differs among management regimes.
 
 ``` r
-
 data(dune, dune.env, package = "vegan")
 bray <- vegdist(dune, method = "bray")
 table(dune.env$Management)
@@ -49,7 +48,6 @@ table(dune.env$Management)
 PCoA:
 
 ``` r
-
 points <- as.data.frame(cmdscale(bray, k = 2))
 names(points) <- c("Axis1", "Axis2")
 points$Management <- dune.env$Management
@@ -74,24 +72,13 @@ formula, just as the response would be in
 [`lm()`](https://rdrr.io/r/stats/lm.html) or `lmer()`:
 
 ``` r
-
 fit <- permanova(
   bray ~ Management,
   data = dune.env,
   permutations = 999,
   seed = 2026
 )
-fit$table |>
-  kbl(
-    digits    = 3,
-    caption   = "Model summary",
-    booktabs  = TRUE          # nice rules for LaTeX/PDF
-  ) |>
-  kable_styling(
-    full_width        = FALSE,
-    bootstrap_options = c("striped", "hover", "condensed"),  # HTML
-    latex_options     = c("hold_position")                   # PDF
-  )
+fit$table |> tab()
 ```
 
 | Source     |  df |    SS |    MS | Pseudo-F | P(perm) | P(MC) | Unique perms |
@@ -99,10 +86,6 @@ fit$table |>
 | Management |   3 | 1.469 | 0.490 |    2.767 |   0.004 | 0.004 |          999 |
 | Residual   |  16 | 2.830 | 0.177 |       NA |      NA |    NA |           NA |
 | Total      |  19 | 4.299 |    NA |       NA |      NA |    NA |           NA |
-
-Model summary {.table .table .table-striped .table-hover
-.table-condensed
-style="width: auto !important; margin-left: auto; margin-right: auto;"}
 
 `Pseudo-F` measures the separation attributable to management relative
 to the appropriate residual variation. `P(perm)` is the proportion of
@@ -115,7 +98,6 @@ For this fixed one-factor model, the observed statistic agrees with
 [`vegan::adonis2()`](https://vegandevs.github.io/vegan/reference/adonis.html):
 
 ``` r
-
 vegan_fit <- adonis2(bray ~ Management, data = dune.env, permutations = 0)
 c(
   distmer = fit$table$`Pseudo-F`[1],
@@ -130,7 +112,6 @@ c(
 Fixed terms use ordinary R formula notation:
 
 ``` r
-
 bray ~ management
 bray ~ management + moisture
 bray ~ management * season
@@ -140,7 +121,6 @@ bray ~ management + soil_pH
 Random terms describe follow lmer notation:
 
 ``` r
-
 bray ~ treatment + (1 | site)
 bray ~ treatment + (1 | region/site)
 bray ~ period + (1 + period | ditch)
@@ -154,8 +134,8 @@ bray ~ period + (1 + period | ditch)
     planned contrasts, pairwise comparisons, and multiplicity control.
 3.  [`vignette("dispersion")`](https://marine-ecologist.github.io/distmer/dev/articles/dispersion.md):
     distance diagnostics and multivariate dispersion.
-4.  [`vignette("unbalanced-mixed")`](https://marine-ecologist.github.io/distmer/dev/articles/unbalanced-mixed.md):
-    unequal cells and unequal replication.
+4.  `vignette("unbalanced-mixed")`: unequal cells and unequal
+    replication.
 5.  [`vignette("random-effects")`](https://marine-ecologist.github.io/distmer/dev/articles/random-effects.md):
     random intercepts, nesting, blocks, and random slopes, including how
     [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)

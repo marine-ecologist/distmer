@@ -27,7 +27,7 @@ permanova_unbalanced_block(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -47,4 +47,4 @@ permanova_unbalanced_block(
 
 ## Value
 
-An object of class \`permanova_unbalanced_block\`.
+An object of class `permanova_unbalanced_block`.

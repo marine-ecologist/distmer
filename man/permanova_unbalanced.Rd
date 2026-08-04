@@ -18,11 +18,11 @@ permanova_unbalanced(
 \arguments{
 \item{design}{Canonical fixed-effect Design Object.}
 
-\item{hypothesis}{One of `"I"`, `"II"`, or `"III"`.}
+\item{hypothesis}{One of \code{"I"}, \code{"II"}, or \code{"III"}.}
 
 \item{terms}{Optional fixed terms to test.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional permutation seed.}
 
@@ -33,7 +33,7 @@ permanova_unbalanced(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_unbalanced`.
+An object of class \code{permanova_unbalanced}.
 }
 \description{
 Tests explicit estimable Type I, II, or III hypotheses over the final
@@ -42,5 +42,5 @@ explicit sum-to-zero contrasts when interactions are present. Type II
 respects marginality: a term is adjusted for every term that does not
 contain it and the higher-order interactions containing it are excluded, so
 main effects remain estimable in the presence of an interaction (matching
-the SAS/`car` "Type II" hypothesis).
+the SAS/\code{car} "Type II" hypothesis).
 }

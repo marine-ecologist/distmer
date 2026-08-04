@@ -27,7 +27,7 @@ permanova_unequal_random_intercept(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -47,4 +47,4 @@ permanova_unequal_random_intercept(
 
 ## Value
 
-An object of class \`permanova_unequal_random_intercept\`.
+An object of class `permanova_unequal_random_intercept`.

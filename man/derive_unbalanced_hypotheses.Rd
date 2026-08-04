@@ -14,7 +14,7 @@ derive_unbalanced_hypotheses(
 \arguments{
 \item{design}{Canonical fixed-effect Design Object.}
 
-\item{hypothesis}{One of `"I"`, `"II"`, or `"III"`.}
+\item{hypothesis}{One of \code{"I"}, \code{"II"}, or \code{"III"}.}
 
 \item{terms}{Optional fixed terms to derive.}
 

@@ -25,7 +25,7 @@ permanova_unbalanced_nested(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -45,4 +45,4 @@ permanova_unbalanced_nested(
 
 ## Value
 
-An object of class \`permanova_unbalanced_nested\`.
+An object of class `permanova_unbalanced_nested`.

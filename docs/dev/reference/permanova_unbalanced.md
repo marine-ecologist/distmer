@@ -6,7 +6,7 @@ explicit sum-to-zero contrasts when interactions are present. Type II
 respects marginality: a term is adjusted for every term that does not
 contain it and the higher-order interactions containing it are excluded,
 so main effects remain estimable in the presence of an interaction
-(matching the SAS/\`car\` "Type II" hypothesis).
+(matching the SAS/`car` "Type II" hypothesis).
 
 ## Usage
 
@@ -31,7 +31,7 @@ permanova_unbalanced(
 
 - hypothesis:
 
-  One of \`"I"\`, \`"II"\`, or \`"III"\`.
+  One of `"I"`, `"II"`, or `"III"`.
 
 - terms:
 
@@ -39,7 +39,7 @@ permanova_unbalanced(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -59,4 +59,4 @@ permanova_unbalanced(
 
 ## Value
 
-An object of class \`permanova_unbalanced\`.
+An object of class `permanova_unbalanced`.

@@ -15,9 +15,9 @@ permanova_nested(
 )
 }
 \arguments{
-\item{design}{Canonical Design Object compiled with `distance`.}
+\item{design}{Canonical Design Object compiled with \code{distance}.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -30,7 +30,7 @@ permanova_nested(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_nested`.
+An object of class \code{permanova_nested}.
 }
 \description{
 Assigns each fixed term to one orthogonal hierarchy stratum, uses that

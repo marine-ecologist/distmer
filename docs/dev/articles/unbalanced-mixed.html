@@ -35,7 +35,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 
     <a class="navbar-brand me-2" href="../index.html">distmer</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -130,9 +130,7 @@ classes.</p>
 <span></span>
 <span><span class="va">cell_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">mite_env</span><span class="op">$</span><span class="va">Wetness</span>, <span class="va">mite_env</span><span class="op">$</span><span class="va">Topo</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cell_counts</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Wetness"</span>, <span class="st">"Topography"</span>, <span class="st">"sites"</span><span class="op">)</span></span>
-<span><span class="va">cell_counts</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">cell_counts</span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
 <thead><tr>
 <th style="text-align:left;">
@@ -231,9 +229,7 @@ depend on formula order.</p>
 <span>  <span class="va">mite_bray</span> <span class="op">~</span> <span class="va">Wetness</span> <span class="op">+</span> <span class="va">Topo</span>,</span>
 <span>  <span class="va">mite_env</span>, type <span class="op">=</span> <span class="st">"II"</span>, permutations <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">17</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">mite_fit</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">mite_fit</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
 <thead><tr>
 <th style="text-align:left;">
@@ -424,9 +420,7 @@ every replication size represented in both treatment groups.</p>
 <span>  <span class="va">pyrifos_bray</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">ditch</span><span class="op">)</span>,</span>
 <span>  <span class="va">pyrifos_env</span>, permutations <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">17</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">pyrifos_fit</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">pyrifos_fit</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
 <thead><tr>
 <th style="text-align:left;">
@@ -510,12 +504,9 @@ NA
 </tbody>
 </table>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">pyrifos_fit</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">test</span><span class="op">[</span></span>
+<code class="sourceCode R"><span><span class="va">pyrifos_fit</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">test</span><span class="op">[</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"estimand"</span>, <span class="st">"exchangeable_units"</span>, <span class="st">"permutation_strata"</span><span class="op">)</span></span>
-<span><span class="op">]</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table kable_wrapper table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;"><tbody><tr>
 <td>
 <table class="table">
@@ -621,9 +612,7 @@ estimand and restricted permutation structure as the overall model.</p>
 <span>  <span class="va">contrast_design</span>,</span>
 <span>  contrasts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`mean positive dose - control` <span class="op">=</span> <span class="va">positive_vs_control</span><span class="op">)</span>,</span>
 <span>  permutations <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">17</span></span>
-<span><span class="op">)</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="op">)</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
 <thead><tr>
 <th style="text-align:left;">

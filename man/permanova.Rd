@@ -19,32 +19,32 @@ permanova(
 )
 }
 \arguments{
-\item{formula}{A model formula, or a compiled `permanova_design` object. The
+\item{formula}{A model formula, or a compiled \code{permanova_design} object. The
 dissimilarity may be given on the left-hand side, as in
-`bray ~ treatment + (1 | site)` (the idiom used by `vegan::adonis2()`), or
-the formula may be one-sided (`~ treatment + (1 | site)`) with the
-dissimilarity passed through `distance`.}
+\code{bray ~ treatment + (1 | site)} (the idiom used by \code{vegan::adonis2()}), or
+the formula may be one-sided (\code{~ treatment + (1 | site)}) with the
+dissimilarity passed through \code{distance}.}
 
 \item{data}{A data frame with one row per observation. Ignored when
-`formula` is already a Design Object.}
+\code{formula} is already a Design Object.}
 
-\item{distance}{A `dist` object or distance matrix. Needed only when the
+\item{distance}{A \code{dist} object or distance matrix. Needed only when the
 dissimilarity is not given on the formula's left-hand side.}
 
-\item{type}{Sum-of-squares partition for the fixed-effect terms: `"I"`
-(sequential), `"II"` (conditional), or `"III"` (partial). Applies to
+\item{type}{Sum-of-squares partition for the fixed-effect terms: \code{"I"}
+(sequential), \code{"II"} (conditional), or \code{"III"} (partial). Applies to
 fixed-effect designs; for designs whose denominator is fixed by the random
 structure it is reported as not applicable.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{mc_permutations}{Number of Monte-Carlo draws for the asymptotic
-`P(MC)` p-value, reported alongside `P(perm)` for designs tested in the
-full observation space. `P(MC)` stays smooth when the true permutation
+\code{P(MC)} p-value, reported alongside \code{P(perm)} for designs tested in the
+full observation space. \code{P(MC)} stays smooth when the true permutation
 space is small (the usual case for the upper strata of a mixed design).
-Set to `0` to disable. Reproducible from `seed`.}
+Set to \code{0} to disable. Reproducible from \code{seed}.}
 
-\item{seed}{Optional random seed. Also seeds the `P(MC)` draws.}
+\item{seed}{Optional random seed. Also seeds the \code{P(MC)} draws.}
 
 \item{keep_permutations}{Retain permutation statistics on the fitted object.}
 
@@ -56,8 +56,8 @@ engine estimates them.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova` wrapping the engine result. Use
-  `summary()` for the full table with variance components.
+An object of class \code{permanova} wrapping the engine result. Use
+\code{summary()} for the full table with variance components.
 }
 \description{
 A single front door that compiles a formula into a canonical Design Object

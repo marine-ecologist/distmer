@@ -24,11 +24,11 @@ permanova_marginal_contrasts(
 
 \item{contrasts}{Numeric level contrast vector, row matrix, or named list.}
 
-\item{weights}{`"equal"` or `"proportional"` nuisance-cell weights.}
+\item{weights}{\code{"equal"} or \code{"proportional"} nuisance-cell weights.}
 
 \item{adjust}{Multiplicity adjustment.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -39,7 +39,7 @@ permanova_marginal_contrasts(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_marginal_contrasts`.
+An object of class \code{permanova_marginal_contrasts}.
 }
 \description{
 Tests contrasts among explicit marginal means from a full-rank categorical

@@ -45,8 +45,14 @@ test_that("registered S3 methods resolve", {
   lines <- namespace[startsWith(namespace, "S3method(")]
   contents <- substring(lines, 10L, nchar(lines) - 1L)
   entries <- strsplit(contents, ",", fixed = TRUE)
-  methods <- vapply(entries, function(entry) paste(entry, collapse = "."),
-                    character(1))
+  # A generic may be namespace-qualified (e.g. `base::print` for a method on a
+  # base generic); the method object itself is `generic.class`, so strip the
+  # `pkg::` qualifier before resolving.
+  methods <- vapply(entries, function(entry) {
+    entry <- trimws(entry)
+    entry[[1L]] <- sub("^.*::", "", entry[[1L]])
+    paste(entry, collapse = ".")
+  }, character(1))
   namespace_environment <- asNamespace("distmer")
   expect_true(all(vapply(
     methods, exists, logical(1), envir = namespace_environment,
@@ -72,7 +78,7 @@ test_that("release artifacts and platform metadata are excluded", {
   expect_length(list.files(doc_path, "[.]Rmd$"), 7)
 })
 
-test_that("unresolved publication metadata is explicit", {
+test_that("publication metadata is present", {
   root <- .package_root()
   readiness_path <- file.path(root, "inst", "RELEASE-READINESS.md")
   if (!file.exists(readiness_path)) {
@@ -81,7 +87,7 @@ test_that("unresolved publication metadata is explicit", {
   readiness <- paste(readLines(readiness_path, warn = FALSE), collapse = "\n")
   expect_match(readiness, "BugReports", fixed = TRUE)
   expect_match(readiness, "project `URL`", fixed = TRUE)
-  expect_match(readiness, "cannot be inferred safely", fixed = TRUE)
+  expect_match(readiness, "strict metadata audit", fixed = TRUE)
 })
 
 test_that("development handoff preserves the owner publication boundary", {

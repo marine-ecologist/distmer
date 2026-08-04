@@ -35,7 +35,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 
     <a class="navbar-brand me-2" href="../index.html">distmer</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,9 +51,9 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting started with distmer</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
     <li><a class="dropdown-item" href="../articles/random-effects.html">3. Random effects and ecological sampling designs</a></li>
-    <li><a class="dropdown-item" href="../articles/unbalanced-mixed.html">4. Unbalanced designs</a></li>
-    <li><a class="dropdown-item" href="../articles/contrasts.html">5. Pairwise contrasts and multiple comparisons</a></li>
-    <li><a class="dropdown-item" href="../articles/dispersion.html">6. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="../articles/contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
+    <li><a class="dropdown-item" href="../articles/dispersion.html">5. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="../articles/atypical-distance-matrices.html">6. Atypical distance matrices</a></li>
     <li><a class="dropdown-item" href="../articles/validation.html">7. Validation and reproducibility</a></li>
   </ul>
 </li>
@@ -63,6 +63,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/marine-ecologist/distmer/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -86,330 +87,112 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
       <img src="../logo.png" class="logo" alt=""><h1>3. Random effects and ecological sampling designs</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/marine-ecologist/distmer/blob/HEAD/vignettes/random-effects.Rmd" class="external-link"><code>vignettes/random-effects.Rmd</code></a></small>
       <div class="d-none name"><code>random-effects.Rmd</code></div>
     </div>
 
     
     
-<p>Random effects describe where independent ecological replication
-lives. A formula such as <code>(1 | site)</code> says that observations
-from the same site share a site-level community component; it does not
-turn repeated quadrats or dates into independent treatment replicates.
-Nested, blocked, and random-slope terms extend that idea to more
-structured sampling.</p>
+<p>Random effects describe ecological replication:
+<code>(1 | site)</code> says that observations from the same site share
+a site-level community component. Nested, blocked, and random-slope
+terms extend that idea to more structured sampling.</p>
+<ul>
+<li>
+<code>(1 | site)</code> — repeated observations within sites;
+treatments assigned among sites are tested with sites as the independent
+units.</li>
+<li>
+<code>(1 | region/site)</code> — sites nested within regions; each
+predictor is tested at the hierarchy level where it varies.</li>
+<li>
+<code>(1 | block) + (1 | treatment:block)</code> — a treatment
+randomized within blocks; the declared treatment-by-block variation
+supplies the treatment denominator.</li>
+<li>
+<code>(1 | region/site) + (1 | treatment:region) + (1 | treatment:region:site)</code>
+— treatment crossed with a nested region/site hierarchy.</li>
+<li>
+<code>(1 + condition | subject)</code> or
+<code>(1 + x | group)</code> — correlated random intercepts and slopes
+for complete repeated units.</li>
+</ul>
 <p><code>distmer</code> deliberately borrows <code>lmer</code> formula
 notation because it is a familiar and concise way to state this
 hierarchy. <code>distmer</code>applies the declared fixed and random
 subspaces to a Gower-centred dissimilarity matrix and obtains inference
 from design-appropriate denominators and restricted permutations.</p>
 <div class="section level2">
-<h2 id="repeated-samples-within-experimental-units">Repeated samples within experimental units<a class="anchor" aria-label="anchor" href="#repeated-samples-within-experimental-units"></a>
+<h2 id="simple-random-effects">Simple random effects:<a class="anchor" aria-label="anchor" href="#simple-random-effects"></a>
 </h2>
-<p>The <code><a href="https://vegandevs.github.io/vegan/reference/pyrifos.html" class="external-link">vegan::pyrifos</a></code> data contain aquatic-invertebrate
-communities from 12 ditches sampled repeatedly before and after
-insecticide application. Dose was assigned to ditches, so ditch is the
-experimental unit. We use four balanced post-treatment dates per
-ditch.</p>
+<p>Herbivory on coral reefs has a strong impact on macrobenthic
+community succession. This can be demonstrated by using tiles placed in
+herbivore exclusion cages, typically “open”, “partial” and “caged”
+treatments (see <a href="https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.3536" class="external-link">Evensen
+et al 2021</a> for details).</p>
+<p>Below is changes in <a href="https://github.com/nickevensen/Palau-benthic-community-succession/" class="external-link">community
+succession</a> through time using the open surfaces of tiles (“crowns”)
+across different caging treatments:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pyrifos</span>, package <span class="op">=</span> <span class="st">"vegan"</span><span class="op">)</span></span>
-<span><span class="va">ditch</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/gl.html" class="external-link">gl</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">1</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">pyrifos</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">week</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">0.1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">15</span>, <span class="fl">19</span>, <span class="fl">24</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
-<span><span class="va">dose_by_ditch</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0.9</span>, <span class="fl">0</span>, <span class="fl">44</span>, <span class="fl">6</span>, <span class="fl">0.1</span>, <span class="fl">44</span>, <span class="fl">0.9</span>, <span class="fl">0</span>, <span class="fl">6</span><span class="op">)</span></span>
-<span><span class="va">dose</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">dose_by_ditch</span>, <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">keep</span> <span class="op">&lt;-</span> <span class="va">week</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://marine-ecologist.github.io/distmer/">distmer</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggrepel.slowkow.com/" class="external-link">ggrepel</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">community</span> <span class="op">&lt;-</span> <span class="va">pyrifos</span><span class="op">[</span><span class="va">keep</span>, <span class="op">]</span></span>
-<span><span class="va">pyrifos_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  ditch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="va">ditch</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  dose <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="va">dose</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  week <span class="op">=</span> <span class="va">week</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">pyrifos_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">community</span>, method <span class="op">=</span> <span class="st">"bray"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">pyrifos_env</span>, <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">ditch</span>, <span class="va">dose</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kbl</span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">kable_styling</span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
-<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
-<thead><tr>
-<th style="text-align:right;">
-0
-</th>
-<th style="text-align:right;">
-0.1
-</th>
-<th style="text-align:right;">
-0.9
-</th>
-<th style="text-align:right;">
-6
-</th>
-<th style="text-align:right;">
-44
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-</tbody>
-</table>
+<span></span>
+<span><span class="va">coralsuccession</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"~/distmer/code/Macro_communities.csv"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Nutrients</span> <span class="op">==</span> <span class="st">"Normal"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Microhabitat</span> <span class="op">==</span> <span class="st">"Crown"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">env</span> <span class="op">&lt;-</span> <span class="va">coralsuccession</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
+<span><span class="va">coral</span> <span class="op">&lt;-</span> <span class="va">coralsuccession</span><span class="op">[</span>,<span class="fl">6</span><span class="op">:</span><span class="fl">17</span><span class="op">]</span></span>
+<span><span class="va">coral_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="fu"><a href="https://vegandevs.github.io/vegan/reference/decostand.html" class="external-link">decostand</a></span><span class="op">(</span><span class="va">coral</span>, method <span class="op">=</span> <span class="st">"hellinger"</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"bray"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">coral_pcoa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cmdscale.html" class="external-link">cmdscale</a></span><span class="op">(</span><span class="va">coral_bray</span>, k <span class="op">=</span> <span class="fl">2</span>, eig <span class="op">=</span> <span class="cn">TRUE</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">coral_pcoa_scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">coral_pcoa</span><span class="op">$</span><span class="va">points</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PCoA1"</span>, <span class="st">"PCoA2"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_cols.html" class="external-link">bind_cols</a></span><span class="op">(</span><span class="va">env</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Caging</span>, <span class="va">Timepoint</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>PCoA1<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">PCoA1</span><span class="op">)</span>, PCoA2<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">PCoA2</span><span class="op">)</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="va">coral_scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/wascores.html" class="external-link">wascores</a></span><span class="op">(</span><span class="va">coral_pcoa</span><span class="op">$</span><span class="va">points</span>, <span class="va">coral</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">rownames_to_column</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Taxa"</span>, <span class="st">"PCoA1"</span>, <span class="st">"PCoA2"</span><span class="op">)</span><span class="op">)</span> </span>
+<span></span>
+<span></span>
+<span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">coral_pcoa_scores</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">PCoA1</span>, <span class="va">PCoA2</span>, fill<span class="op">=</span><span class="va">Caging</span><span class="op">)</span>, shape<span class="op">=</span><span class="fl">21</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">coral_pcoa_scores</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">PCoA1</span><span class="op">-</span><span class="fl">0.01</span>, <span class="va">PCoA2</span><span class="op">+</span><span class="fl">0.01</span>, label<span class="op">=</span><span class="va">Timepoint</span><span class="op">/</span><span class="fl">7</span><span class="op">)</span>, size<span class="op">=</span><span class="fl">2.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">coral_pcoa_scores</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">PCoA1</span>, <span class="va">PCoA2</span>, group<span class="op">=</span><span class="va">Caging</span><span class="op">)</span>,</span>
+<span>            colour <span class="op">=</span> <span class="st">"grey70"</span>, linewidth <span class="op">=</span> <span class="fl">0.4</span>, alpha <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.02</span>, <span class="fl">0.98</span><span class="op">)</span>,      </span>
+<span>        legend.justification <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,       </span>
+<span>        legend.key <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>title <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span>  </span>
+<span></span>
+<span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">coral_scores</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0</span>, y <span class="op">=</span> <span class="fl">0</span>, xend <span class="op">=</span> <span class="va">PCoA1</span>, yend <span class="op">=</span> <span class="va">PCoA2</span><span class="op">)</span>,</span>
+<span>      arrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/arrow.html" class="external-link">arrow</a></span><span class="op">(</span> length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.18</span>, <span class="st">"cm"</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"closed"</span><span class="op">)</span>,</span>
+<span>      colour <span class="op">=</span> <span class="st">"grey75"</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span>, inherit.aes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">geom_text_repel</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">coral_scores</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">PCoA1</span>, y <span class="op">=</span> <span class="va">PCoA2</span>, label<span class="op">=</span><span class="va">Taxa</span><span class="op">)</span>, size<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="va">a</span><span class="op">|</span><span class="va">b</span></span></code></pre></div>
+<p><img src="random-effects_files/figure-html/data-1.png" class="r-plt" alt="" width="960" style="display: block; margin: auto;"></p>
+<p>There are 5 Timepoints, and 18 tiles in total (n=6 per
+treatment).</p>
+<p>The correct structure to explore the effect of caging over time is
+<code>Caging * Timepoint + (1 | Tile)</code>, where Timepoint as a fixed
+within-tile factor whose effect (and its interaction with Caging) we
+want to test, while Tile is a random intercept absorbing tile-to-tile
+variation.</p>
+<p>Using <code>distmer</code> with tile as a random effect, both
+<code>Timepoint</code> and <code>Caging</code> treatment have a
+significant effect on benthic community structure:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ditch_ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cmdscale.html" class="external-link">cmdscale</a></span><span class="op">(</span><span class="va">pyrifos_bray</span>, k <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">ditch_ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span></span>
-<span>  <span class="va">pyrifos_env</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Axis1 <span class="op">=</span> <span class="va">ditch_ord</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, Axis2 <span class="op">=</span> <span class="va">ditch_ord</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_path</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ditch_ord</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span>, group <span class="op">=</span> <span class="va">ditch</span>, colour <span class="op">=</span> <span class="va">dose</span>, order <span class="op">=</span> <span class="va">week</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.65</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_point</span><span class="op">(</span>data <span class="op">=</span> <span class="va">ditch_ord</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span>, group <span class="op">=</span> <span class="va">ditch</span>, fill <span class="op">=</span> <span class="va">dose</span>, order <span class="op">=</span> <span class="va">week</span><span class="op">)</span>, shape<span class="op">=</span><span class="fl">21</span>, alpha <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">coord_fixed</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">scale_fill_brewer</span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">scale_color_brewer</span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">scale_size_continuous</span><span class="op">(</span>range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.8</span>, <span class="fl">4</span><span class="op">)</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">labs</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Repeated community observations remain grouped by ditch"</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"PCoA axis 1"</span>, y <span class="op">=</span> <span class="st">"PCoA axis 2"</span>, colour <span class="op">=</span> <span class="st">"Dose"</span>,</span>
-<span>       size <span class="op">=</span> <span class="st">"Week"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in geom_path(data = ditch_ord, aes(Axis1, Axis2, group = ditch, :</span></span>
-<span><span class="co">#&gt; Ignoring unknown aesthetics: <span style="color: #00BB00;">order</span></span></span>
-<span><span class="co">#&gt; Warning in geom_point(data = ditch_ord, aes(Axis1, Axis2, group = ditch, :</span></span>
-<span><span class="co">#&gt; Ignoring unknown aesthetics: <span style="color: #00BB00;">order</span></span></span>
-<span><span class="co">#&gt; Ignoring unknown labels:</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> <span style="color: #00BB00;">size</span> : <span style="color: #0000BB;">"Week"</span></span></span></code></pre></div>
-<p><img src="random-effects_files/figure-html/repeated-ordination-1.png" class="r-plt" alt="Post-treatment Pyrifos samples connected through time within each ditch" width="624" style="display: block; margin: auto;"></p>
-<p>The model is written in the same compact way as a random-intercept
-mixed model:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://haozhu233.github.io/kableExtra/" class="external-link">kableExtra</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">ditch_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova.html">permanova</a></span><span class="op">(</span></span>
-<span>  <span class="va">pyrifos_bray</span> <span class="op">~</span> <span class="va">dose</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">ditch</span><span class="op">)</span>,</span>
-<span>  <span class="va">pyrifos_env</span>, permutations <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">26</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ditch_fit</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span>
-<span><span class="co">#&gt; Distance-based PERMANOVA</span></span>
-<span><span class="co">#&gt; Engine: balanced random intercept  (Type I SS)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Factors</span></span>
-<span><span class="co">#&gt;  Name  Type         Levels</span></span>
-<span><span class="co">#&gt;  dose  Fixed         5    </span></span>
-<span><span class="co">#&gt;  ditch Random, main 12    </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; PERMANOVA table of results</span></span>
-<span><span class="co">#&gt;  Source                   df SS    MS    Pseudo-F P(perm) P(MC)  Unique perms</span></span>
-<span><span class="co">#&gt;  dose                     4  1.895 0.474 3.4676   0.0020  0.0035 999         </span></span>
-<span><span class="co">#&gt;  ditch within fixed model 7  0.956 0.137                                     </span></span>
-<span><span class="co">#&gt;  Within ditch             36 2.238 0.062                                     </span></span>
-<span><span class="co">#&gt;  Total                    47 5.089                                           </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Denominators</span></span>
-<span><span class="co">#&gt;  Source Denominator                 </span></span>
-<span><span class="co">#&gt;  dose   MS[ditch within fixed model]</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fm1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">coral_bray</span> <span class="op">~</span> <span class="va">Caging</span> <span class="op">+</span> <span class="va">Timepoint</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">Tile</span><span class="op">)</span>, <span class="va">env</span>, type<span class="op">=</span><span class="st">"III"</span>, permutations<span class="op">=</span><span class="fl">9999</span>, seed<span class="op">=</span><span class="fl">101</span><span class="op">)</span></span>
+<span><span class="va">fm1</span><span class="op">$</span><span class="va">table</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
 <thead><tr>
 <th style="text-align:left;">
@@ -440,42 +223,68 @@ Unique perms
 <tbody>
 <tr>
 <td style="text-align:left;">
-dose
+Caging
 </td>
 <td style="text-align:right;">
-4
+2
 </td>
 <td style="text-align:right;">
-1.895
+1.871
 </td>
 <td style="text-align:right;">
-0.474
+0.935
 </td>
 <td style="text-align:right;">
-3.468
+4.894
 </td>
 <td style="text-align:right;">
-0.002
+0.005
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+9999
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Timepoint
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.450
+</td>
+<td style="text-align:right;">
+0.450
+</td>
+<td style="text-align:right;">
+5.907
 </td>
 <td style="text-align:right;">
 0.004
 </td>
 <td style="text-align:right;">
-999
+0.005
+</td>
+<td style="text-align:right;">
+9999
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-ditch within fixed model
+Tile (between-group stratum)
 </td>
 <td style="text-align:right;">
-7
+15
 </td>
 <td style="text-align:right;">
-0.956
+2.867
 </td>
 <td style="text-align:right;">
-0.137
+0.191
 </td>
 <td style="text-align:right;">
 NA
@@ -492,16 +301,16 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-Within ditch
+Residual
 </td>
 <td style="text-align:right;">
-36
+71
 </td>
 <td style="text-align:right;">
-2.238
+5.412
 </td>
 <td style="text-align:right;">
-0.062
+0.076
 </td>
 <td style="text-align:right;">
 NA
@@ -521,10 +330,10 @@ NA
 Total
 </td>
 <td style="text-align:right;">
-47
+89
 </td>
 <td style="text-align:right;">
-5.089
+10.601
 </td>
 <td style="text-align:right;">
 NA
@@ -544,20 +353,194 @@ NA
 </tr>
 </tbody>
 </table>
-<p>The random term also determines the denominator. Consequently,
-<code>type = "II"</code> or <code>"III"</code> is not a substitute for
-specifying the sampling structure: when the random design supplies an
-exact stratum, <code>type</code> is not applicable.</p>
+<p>With (1|Tile) as a random effect, pseudo-F (4.89) is (correctly)
+tested against MS 0.191 (tile-level), not against MS 0.076 (residual) as
+under <code><a href="https://vegandevs.github.io/vegan/reference/adonis.html" class="external-link">adonis2()</a></code>. Testing it against the residual would have
+inflated the apparent significance, so the correct stratification
+(1|tile) is more conservative.</p>
+<p>Exploring the pairwise contrasts, the <code>Caging</code> treatment
+operates exactly as expected: Open and Partial treatments show no
+difference, while Caged treatments differ from both Open and
+Partial:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="../reference/permanova_contrasts.html">permanova_contrasts</a></span><span class="op">(</span><span class="va">fm1</span>, type <span class="op">=</span> <span class="st">"pairwise"</span>, factor<span class="op">=</span><span class="st">"Caging"</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+contrast
+</th>
+<th style="text-align:right;">
+pseudo_F
+</th>
+<th style="text-align:right;">
+df_num
+</th>
+<th style="text-align:right;">
+df_den
+</th>
+<th style="text-align:left;">
+denominator
+</th>
+<th style="text-align:right;">
+p_perm
+</th>
+<th style="text-align:right;">
+unique_perms
+</th>
+<th style="text-align:left;">
+estimable
+</th>
+<th style="text-align:right;">
+p_adj
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Caged - Open
+</td>
+<td style="text-align:right;">
+6.388
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:left;">
+MS[between-group stratum]
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+9999
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Caged - Partial
+</td>
+<td style="text-align:right;">
+5.045
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:left;">
+MS[between-group stratum]
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:right;">
+9999
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+<td style="text-align:right;">
+0.035
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Open - Partial
+</td>
+<td style="text-align:right;">
+0.510
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:left;">
+MS[between-group stratum]
+</td>
+<td style="text-align:right;">
+0.629
+</td>
+<td style="text-align:right;">
+9999
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+<td style="text-align:right;">
+0.629
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
-<h2 id="random-slopes-each-unit-can-change-differently">Random slopes: each unit can change differently<a class="anchor" aria-label="anchor" href="#random-slopes-each-unit-can-change-differently"></a>
+<h2 id="random-slopes">Random slopes:<a class="anchor" aria-label="anchor" href="#random-slopes"></a>
 </h2>
-<p>A random intercept allows ditches to have different average
-communities. A random slope additionally allows their within-ditch
-changes to differ. For a balanced two-condition comparison, define an
-early and late period with two observations in each ditch-period
-cell.</p>
+<p>For a more complex example:</p>
+<p>The <code><a href="https://vegandevs.github.io/vegan/reference/pyrifos.html" class="external-link">vegan::pyrifos</a></code> data contain aquatic-invertebrate
+communities from 12 ditches sampled repeatedly before and after
+insecticide application. Dose was assigned to ditches, so ditch is the
+experimental unit. We use four balanced post-treatment dates per ditch,
+where each trajectory is an individual ditch according to dose:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pyrifos</span>, package <span class="op">=</span> <span class="st">"vegan"</span><span class="op">)</span></span>
+<span><span class="va">ditch</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/gl.html" class="external-link">gl</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">1</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">pyrifos</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">week</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">0.1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">15</span>, <span class="fl">19</span>, <span class="fl">24</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="va">dose_by_ditch</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0.9</span>, <span class="fl">0</span>, <span class="fl">44</span>, <span class="fl">6</span>, <span class="fl">0.1</span>, <span class="fl">44</span>, <span class="fl">0.9</span>, <span class="fl">0</span>, <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="va">dose</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">dose_by_ditch</span>, <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">keep</span> <span class="op">&lt;-</span> <span class="va">week</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">community</span> <span class="op">&lt;-</span> <span class="va">pyrifos</span><span class="op">[</span><span class="va">keep</span>, <span class="op">]</span></span>
+<span><span class="va">pyrifos_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  ditch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="va">ditch</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  dose <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="va">dose</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  week <span class="op">=</span> <span class="va">week</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">pyrifos_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">community</span>, method <span class="op">=</span> <span class="st">"bray"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ditch_ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cmdscale.html" class="external-link">cmdscale</a></span><span class="op">(</span><span class="va">pyrifos_bray</span>, k <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">ditch_ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span></span>
+<span>  <span class="va">pyrifos_env</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Axis1 <span class="op">=</span> <span class="va">ditch_ord</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, Axis2 <span class="op">=</span> <span class="va">ditch_ord</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ditch_ord</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span>, group <span class="op">=</span> <span class="va">ditch</span>, colour <span class="op">=</span> <span class="va">dose</span>, order <span class="op">=</span> <span class="va">week</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.65</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ditch_ord</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span>, group <span class="op">=</span> <span class="va">ditch</span>, fill <span class="op">=</span> <span class="va">dose</span>, order <span class="op">=</span> <span class="va">week</span><span class="op">)</span>, shape<span class="op">=</span><span class="fl">21</span>, alpha <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_size.html" class="external-link">scale_size_continuous</a></span><span class="op">(</span>range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.8</span>, <span class="fl">4</span><span class="op">)</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"PCoA axis 1"</span>, y <span class="op">=</span> <span class="st">"PCoA axis 2"</span>, colour <span class="op">=</span> <span class="st">"Dose"</span>,</span>
+<span>       size <span class="op">=</span> <span class="st">"Week"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in geom_path(data = ditch_ord, aes(Axis1, Axis2, group = ditch, :</span></span>
+<span><span class="co">#&gt; Ignoring unknown aesthetics: <span style="color: #00BB00;">order</span></span></span>
+<span><span class="co">#&gt; Warning in geom_point(data = ditch_ord, aes(Axis1, Axis2, group = ditch, :</span></span>
+<span><span class="co">#&gt; Ignoring unknown aesthetics: <span style="color: #00BB00;">order</span></span></span>
+<span><span class="co">#&gt; Ignoring unknown labels:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> <span style="color: #00BB00;">size</span> : <span style="color: #0000BB;">"Week"</span></span></span></code></pre></div>
+<p><img src="random-effects_files/figure-html/repeated-ordination-1.png" class="r-plt" alt="Post-treatment Pyrifos samples connected through time within each ditch" width="480" style="display: block; margin: auto;"></p>
+<p>For a balanced two-condition comparison, an early (1-2 weeks) and
+late (&gt;3 week) period is defined for each ditch (balanced with two
+observations in each ditch-period cell).</p>
+<p>Visualising the mean PCoA axis 1 within ditch and period indicates
+ditches need not share the same early-to-late change:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">period_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span></span>
 <span>  <span class="va">pyrifos_env</span>,</span>
 <span>  period <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span></span>
@@ -565,143 +548,33 @@ cell.</p>
 <span>    levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"early"</span>, <span class="st">"late"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">period_env</span>, <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">ditch</span>, <span class="va">period</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
-<table class="table table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
-<thead><tr>
-<th style="text-align:right;">
-early
-</th>
-<th style="text-align:right;">
-late
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-</tbody>
-</table>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">period_ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">ditch_ord</span>, period <span class="op">=</span> <span class="va">period_env</span><span class="op">$</span><span class="va">period</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">period_ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">ditch_ord</span>, period <span class="op">=</span> <span class="va">period_env</span><span class="op">$</span><span class="va">period</span><span class="op">)</span></span>
 <span><span class="va">period_centres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">Axis1</span>, <span class="va">Axis2</span><span class="op">)</span> <span class="op">~</span> <span class="va">ditch</span> <span class="op">+</span> <span class="va">period</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">period_ord</span>, FUN <span class="op">=</span> <span class="va">mean</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_line</span><span class="op">(</span>data <span class="op">=</span> <span class="va">period_centres</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">period</span>, <span class="va">Axis1</span>, group <span class="op">=</span> <span class="va">ditch</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"grey65"</span>, linewidth <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_point</span><span class="op">(</span>data <span class="op">=</span> <span class="va">period_centres</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">period</span>, <span class="va">Axis1</span>, group <span class="op">=</span> <span class="va">ditch</span>, fill <span class="op">=</span> <span class="va">ditch</span><span class="op">)</span>, shape<span class="op">=</span><span class="fl">21</span>, size <span class="op">=</span> <span class="fl">2.4</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">scale_fill_brewer</span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">scale_color_brewer</span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">labs</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Ditches need not share the same early-to-late change"</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Period"</span>, y <span class="op">=</span> <span class="st">"Mean PCoA axis 1 within ditch and period"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">period_centres</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">period</span>, <span class="va">Axis1</span>, group <span class="op">=</span> <span class="va">ditch</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"grey65"</span>, linewidth <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">period_centres</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">period</span>, <span class="va">Axis1</span>, group <span class="op">=</span> <span class="va">ditch</span>, fill <span class="op">=</span> <span class="va">ditch</span><span class="op">)</span>, shape<span class="op">=</span><span class="fl">21</span>, size <span class="op">=</span> <span class="fl">2.4</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette<span class="op">=</span><span class="st">"Set1"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Period"</span>, y <span class="op">=</span> <span class="st">"Mean PCoA axis 1 within ditch and period"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in RColorBrewer::brewer.pal(n, pal): n too large, allowed maximum for palette Set1 is 9</span></span>
 <span><span class="co">#&gt; Returning the palette you asked for with that many colors</span></span></code></pre></div>
-<p><img src="random-effects_files/figure-html/period-plot-1.png" class="r-plt" alt="Early to late changes on PCoA axis 1 for each Pyrifos ditch" width="624" style="display: block; margin: auto;"></p>
+<p><img src="random-effects_files/figure-html/period-plot-1.png" class="r-plt" alt="Early to late changes on PCoA axis 1 for each Pyrifos ditch" width="384" style="display: block; margin: auto;"></p>
+<p>Using a random intercept allows ditches to have different average
+communities, while a random slope allows their within-ditch changes to
+differ.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">period_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova.html">permanova</a></span><span class="op">(</span></span>
 <span>  <span class="va">pyrifos_bray</span> <span class="op">~</span> <span class="va">period</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">period</span> <span class="op">|</span> <span class="va">ditch</span><span class="op">)</span>,</span>
 <span>  <span class="va">period_env</span>, permutations <span class="op">=</span> <span class="st">"all"</span>, seed <span class="op">=</span> <span class="fl">26</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">period_fit</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">period_fit</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Distance-based PERMANOVA</span></span>
 <span><span class="co">#&gt; Engine: random slope</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -815,9 +688,7 @@ variation among ditch slopes.</p>
 <span>  <span class="va">pyrifos_env</span>, permutations <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">26</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">continuous_fit</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html" class="external-link">kbl</a></span><span class="op">(</span>digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_styling.html" class="external-link">kable_styling</a></span><span class="op">(</span>bootstrap_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span><span class="op">)</span><span class="op">)</span> </span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">continuous_fit</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/tab.html">tab</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Distance-based PERMANOVA</span></span>
 <span><span class="co">#&gt; Engine: continuous random slope</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -950,34 +821,17 @@ NA
 </table>
 </div>
 <div class="section level2">
-<h2 id="translating-common-field-designs-into-formulas">Translating common field designs into formulas<a class="anchor" aria-label="anchor" href="#translating-common-field-designs-into-formulas"></a>
+<h2 id="only-random-effects">Only random effects<a class="anchor" aria-label="anchor" href="#only-random-effects"></a>
 </h2>
-<ul>
-<li>
-<code>(1 | site)</code> — repeated observations within sites;
-treatments assigned among sites are tested with sites as the independent
-units.</li>
-<li>
-<code>(1 | region/site)</code> — sites nested within regions; each
-predictor is tested at the hierarchy level where it varies.</li>
-<li>
-<code>(1 | block) + (1 | treatment:block)</code> — a treatment
-randomized within blocks; the declared treatment-by-block variation
-supplies the treatment denominator.</li>
-<li>
-<code>(1 | region/site) + (1 | treatment:region) + (1 | treatment:region:site)</code>
-— treatment crossed with a nested region/site hierarchy.</li>
-<li>
-<code>(1 + condition | subject)</code> or
-<code>(1 + x | group)</code> — correlated random intercepts and slopes
-for complete repeated units.</li>
-</ul>
+<p>At current <code>distmer</code> does not run pure random effects
+models and instead throws an error:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">period_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/permanova.html">permanova</a></span><span class="op">(</span><span class="va">pyrifos_bray</span> <span class="op">~</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">period</span><span class="op">)</span>, <span class="va">period_env</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="what-permanova-does-with-the-formula">What <code>permanova()</code> does with the formula<a class="anchor" aria-label="anchor" href="#what-permanova-does-with-the-formula"></a>
+<h2 id="implementation">Implementation<a class="anchor" aria-label="anchor" href="#implementation"></a>
 </h2>
-<p>For exact detail, the high-level call performs the following
-sequence:</p>
+<p>For exact detail, permanova() performs the following sequence:</p>
 <ol style="list-style-type: decimal">
 <li>It validates the dissimilarity and computes
 <code>G = -0.5 J D^2 J</code>. The same centring applies to every
@@ -1001,12 +855,9 @@ assumptions.</li>
 <p>If no validated method matches the declared design, the model stops.
 A formula that parses is not automatically a defensible permutation
 design.</p>
-<div class="section level3">
-<h3 id="implementation-reference">Implementation reference<a class="anchor" aria-label="anchor" href="#implementation-reference"></a>
-</h3>
-<p>Most users only need <code><a href="../reference/permanova.html">permanova()</a></code>. The specialised
-functions below are useful for inspecting, validating, extending a
-particular design, or understanding how <code>distmer</code> works:</p>
+<p>Most users only need <code><a href="../reference/permanova.html">permanova()</a></code>. The functions below
+are useful for inspecting, validating, extending a particular design, or
+understanding how <code>distmer</code> works:</p>
 <table class="table">
 <colgroup>
 <col width="28%">
@@ -1077,7 +928,6 @@ permutations</td>
 <p><code><a href="../reference/permanova_capabilities.html">permanova_capabilities()</a></code> returns the complete
 machine-readable support table, including estimands, error-control
 claims, and explicit exclusions.</p>
-</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

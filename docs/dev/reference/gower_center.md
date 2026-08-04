@@ -1,6 +1,6 @@
 # Gower-centre a distance matrix
 
-Implements \`G = -0.5 \* J \`J = I - 11'/N\`.
+Implements `G = -0.5 * J %*% D^2 %*% J`, where `J = I - 11'/N`.
 
 ## Usage
 
@@ -12,8 +12,8 @@ gower_center(distance)
 
 - distance:
 
-  A \`dist\` object or full distance matrix.
+  A `dist` object or full distance matrix.
 
 ## Value
 
-The centred inner-product matrix \`G\`.
+The centred inner-product matrix `G`.

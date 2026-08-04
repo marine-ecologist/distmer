@@ -143,10 +143,11 @@ permanova_oneway <- function(
       set.seed(seed)
     }
 
-    for (b in seq_len(permutations)) {
-      permuted_group <- sample(group, replace = FALSE)
-      permutation_f[[b]] <- stat_fun(distance, permuted_group)[["pseudo_f"]]
-    }
+    permutation_f <- .permuted_statistics(
+      as.integer(permutations),
+      function(b) stat_fun(distance, sample(group, replace = FALSE))[["pseudo_f"]],
+      label = "Permuting group labels"
+    )
 
     p_value <- (1 + sum(permutation_f >= observed[["pseudo_f"]])) /
       (as.integer(permutations) + 1)

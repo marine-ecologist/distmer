@@ -29,22 +29,22 @@ permanova_dispersion(
 
 - formula:
 
-  A model formula, or a compiled \`permanova_design\` object. The
+  A model formula, or a compiled `permanova_design` object. The
   dissimilarity may be supplied on the left-hand side, for example
-  \`bray ~ treatment + (1 \| site)\`, or through \`distance\` with a
+  `bray ~ treatment + (1 | site)`, or through `distance` with a
   one-sided formula. A compiled design remains accepted for low-level
   workflows.
 
 - data:
 
   A data frame with one row per observation. Do not supply it when
-  \`formula\` is already a compiled design. For backward compatibility,
+  `formula` is already a compiled design. For backward compatibility,
   the second positional argument after a compiled design may be the
   target term name.
 
 - distance:
 
-  A \`dist\` object or full distance matrix, used with a one-sided
+  A `dist` object or full distance matrix, used with a one-sided
   formula.
 
 - term:
@@ -54,7 +54,7 @@ permanova_dispersion(
 
 - type:
 
-  Group spatial \`"median"\` or \`"centroid"\`.
+  Group spatial `"median"` or `"centroid"`.
 
 - bias_adjust:
 
@@ -62,7 +62,7 @@ permanova_dispersion(
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -83,11 +83,11 @@ permanova_dispersion(
 - design:
 
   Backward-compatible named alias for a compiled Design Object; use
-  \`formula = design\` or pass the object as the first argument.
+  `formula = design` or pass the object as the first argument.
 
 ## Value
 
-An object of class \`permanova_dispersion\`.
+An object of class `permanova_dispersion`.
 
 ## Examples
 

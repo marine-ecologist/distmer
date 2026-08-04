@@ -19,7 +19,7 @@ permanova_crossed(
 \arguments{
 \item{design}{Canonical complete balanced crossed-factor design.}
 
-\item{p_method}{`"none"` or opt-in `"satterthwaite"` F approximation.}
+\item{p_method}{\code{"none"} or opt-in \code{"satterthwaite"} F approximation.}
 
 \item{truncate}{Also report zero-truncated variance-component estimates.}
 
@@ -28,8 +28,8 @@ variances are zero. The default rejects such omissions.}
 
 \item{tol}{Numerical tolerance.}
 
-\item{permutations}{A non-negative integer or `"all"` when
-`p_method = "permutation"`.}
+\item{permutations}{A non-negative integer or \code{"all"} when
+\code{p_method = "permutation"}.}
 
 \item{seed}{Optional permutation seed.}
 
@@ -38,7 +38,7 @@ variances are zero. The default rejects such omissions.}
 \item{max_exact}{Maximum exact permutation space.}
 }
 \value{
-An object of class `permanova_crossed`.
+An object of class \code{permanova_crossed}.
 }
 \description{
 Derives numerical EMS coefficients from covariance and hypothesis

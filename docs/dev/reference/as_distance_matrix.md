@@ -12,7 +12,7 @@ as_distance_matrix(x, tol = sqrt(.Machine$double.eps))
 
 - x:
 
-  A \`dist\` object or a numeric square matrix.
+  A `dist` object or a numeric square matrix.
 
 - tol:
 

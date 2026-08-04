@@ -1,5 +1,21 @@
 .or <- function(a, b) if (is.null(a) || length(a) == 0L) b else a
 
+# TRUE for the simplest single-random-intercept design: exactly one fixed factor
+# (categorical, not a covariate) that is constant within every grouping unit --
+# the classic whole-plot test handled by the exact-EMS `permanova_mixed()`.
+# Anything richer (more fixed terms, a within-unit factor, or a covariate) is a
+# split-plot / RCB / ANCOVA and routes to `permanova_mixed_covariate()`.
+.is_simple_whole_plot <- function(design) {
+  labels <- attr(stats::terms(design$fixed_formula), "term.labels")
+  variables <- all.vars(design$fixed_formula)
+  if (length(labels) != 1L || length(variables) != 1L) return(FALSE)
+  values <- design$data[[variables[[1L]]]]
+  if (is.numeric(values) && !is.factor(values)) return(FALSE)
+  unit <- design$groups[[design$random_terms[[1L]]$label]]
+  all(tapply(as.character(values), unit,
+             function(v) length(unique(v))) == 1L)
+}
+
 # Route a compiled Design Object to the engine that matches its provenance.
 # Returns the engine label, the engine function, and any engine-specific fixed
 # arguments. Designs outside every supported envelope stop with guidance.
@@ -7,6 +23,31 @@
   origins <- if (length(design$random_terms)) {
     vapply(design$random_terms, `[[`, character(1), "origin")
   } else character(0)
+
+  # A variable used as both a fixed effect and a random *grouping* factor is a
+  # misspecification -- almost always `(1 | fixedfactor / unit)`, where the `/`
+  # was meant to nest `unit`, not to make the fixed factor random. (The random
+  # slope's own covariate is fine: it is not a grouping variable.)
+  if (length(origins)) {
+    # Only `/`-style main/nesting groupings are flagged: a fixed factor that is a
+    # component of a random *interaction* (e.g. `(1 | unit:fixedfactor)`) is a
+    # legitimate random interaction, not a misdeclared grouping.
+    grouping_vars <- unique(unlist(lapply(design$random_terms, function(t) {
+      if (isTRUE(t$origin %in% c("main", "nesting"))) t$variables else NULL
+    })))
+    conflict <- intersect(all.vars(design$fixed_formula), grouping_vars)
+    if (length(conflict)) {
+      stop(
+        "The factor(s) ", paste(conflict, collapse = ", "), " are declared as ",
+        "both fixed effects and random grouping factors. In an `lmer`-style ",
+        "formula `(1 | a / b)` makes BOTH `a` and `b` random. If these are fixed ",
+        "factors and only the innermost unit is a random effect nested within ",
+        "their combination, drop the `/` and use one `(1 | unit)` term with unit ",
+        "labels unique to each factor combination, e.g. `d ~ a * b + (1 | unit)`.",
+        call. = FALSE
+      )
+    }
+  }
 
   if (!length(origins)) {
     return(list(engine = "fixed effects", fn = permanova_unbalanced,
@@ -22,21 +63,29 @@
                 fixed_args = list()))
   }
   if (length(origins) == 1L && origins == "main") {
-    has_covariate <- any(vapply(all.vars(design$fixed_formula), function(variable) {
-      value <- design$data[[variable]]
-      is.numeric(value) && !is.factor(value)
-    }, logical(1)))
     if (all(design$balance$random_balanced)) {
-      if (has_covariate) {
-        return(list(engine = "balanced mixed with covariate",
-                    fn = permanova_mixed_covariate,
-                    fixed_args = list(hypothesis = .or(type, "I"))))
+      # The exact single-whole-plot random-intercept engine keeps its richer
+      # symbolic-EMS output; any other balanced single-random-intercept design
+      # (extra fixed factors, a within-unit/sub-plot factor, or a covariate) goes
+      # to the general split-plot / RCB / ANCOVA engine.
+      if (.is_simple_whole_plot(design)) {
+        return(list(engine = "balanced random intercept", fn = permanova_mixed,
+                    fixed_args = list()))
       }
-      return(list(engine = "balanced random intercept", fn = permanova_mixed,
+      return(list(engine = "balanced split-plot mixed",
+                  fn = permanova_mixed_covariate,
                   fixed_args = list(hypothesis = .or(type, "I"))))
     }
-    return(list(engine = "unequal random intercept",
-                fn = permanova_unequal_random_intercept, fixed_args = list()))
+    # Unbalanced single random intercept: a lone whole-plot factor keeps the
+    # unit-centroid engine; anything richer (extra fixed factors, a within-unit
+    # sub-plot factor, or a covariate) goes to the unbalanced split-plot engine.
+    if (.is_simple_whole_plot(design)) {
+      return(list(engine = "unequal random intercept",
+                  fn = permanova_unequal_random_intercept, fixed_args = list()))
+    }
+    return(list(engine = "unbalanced split-plot mixed",
+                fn = permanova_unbalanced_splitplot,
+                fixed_args = list(hypothesis = .or(type, "I"))))
   }
   if (all(origins %in% c("main", "nesting")) && sum(origins == "main") == 1L) {
     has_covariate <- any(vapply(all.vars(design$fixed_formula), function(variable) {
@@ -70,6 +119,19 @@
     }
     return(list(engine = "unbalanced crossed-nested hybrid",
                 fn = permanova_unbalanced_hybrid, fixed_args = list()))
+  }
+  # `(1 | unit) + (1 | unit:subplot)`: a unit random effect plus its interaction
+  # with a sub-plot factor -- the asymmetric nested mixed design (three strata).
+  if (length(origins) == 2L && sum(origins == "main") == 1L &&
+      sum(origins == "interaction") == 1L) {
+    main_var <- design$random_terms[[which(origins == "main")]]$variables
+    inter_vars <- design$random_terms[[which(origins == "interaction")]]$variables
+    if (length(main_var) == 1L && length(inter_vars) > 1L &&
+        main_var %in% inter_vars) {
+      return(list(engine = "asymmetric nested mixed",
+                  fn = permanova_asymmetric_mixed,
+                  fixed_args = list(hypothesis = .or(type, "I"))))
+    }
   }
   if (any(origins == "interaction") || sum(origins == "main") >= 2L) {
     return(list(engine = "crossed / randomized block", fn = permanova_crossed,
@@ -201,7 +263,9 @@ permanova <- function(formula, data = NULL, distance = NULL, type = NULL,
   out <- list(
     call = match.call(), design = design, engine = route$engine,
     type = if (applies_type) .or(type, "I") else NA_character_,
-    fit = fit, seed = seed, mc_permutations = mc_permutations
+    fit = fit, seed = seed, permutations = permutations,
+    mc_permutations = mc_permutations, keep_permutations = keep_permutations,
+    max_exact = max_exact, tol = tol
   )
   class(out) <- "permanova"
   # Convenience: `$table` is the assembled PERMANOVA table (Source/df/SS/MS/

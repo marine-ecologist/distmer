@@ -102,7 +102,8 @@
 }
 
 .unit_freedman_lane <- function(G, H_numerator, numerator_df, H_reduced,
-                                H_denominator, denominator_df, plan, tol) {
+                                H_denominator, denominator_df, plan, tol,
+                                label = NULL) {
   numerator_ss <- trace_hgh(H_numerator, G)
   denominator_ss <- trace_hgh(H_denominator, G)
   numerator_ms <- numerator_ss / numerator_df
@@ -111,16 +112,10 @@
     stop("The unit-level residual mean square is numerically zero.", call. = FALSE)
   }
   observed <- numerator_ms / denominator_ms
-  statistics <- numeric(nrow(plan$orders))
-  residual <- diag(nrow(G)) - H_reduced
-  for (row in seq_len(nrow(plan$orders))) {
-    P_residual <- residual[plan$orders[row, ], , drop = FALSE]
-    A <- H_reduced + P_residual
-    G_permuted <- A %*% G %*% t(A)
-    statistics[[row]] <-
-      (trace_hgh(H_numerator, G_permuted) / numerator_df) /
-      (trace_hgh(H_denominator, G_permuted) / denominator_df)
-  }
+  statistics <- .freedman_lane_statistics(
+    G, H_reduced, H_numerator, numerator_df, H_denominator, denominator_df,
+    plan$orders, label = label, tol = tol
+  )
   p_value <- NA_real_
   if (length(statistics)) {
     extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
@@ -239,7 +234,8 @@ permanova_unequal_random_intercept <- function(
   result <- .unit_freedman_lane(
     structure$aggregated$G, structure$H_numerator,
     structure$numerator_df, structure$H_reduced,
-    structure$H_denominator, structure$denominator_df, plan, tol
+    structure$H_denominator, structure$denominator_df, plan, tol,
+    label = "Permuting whole random-intercept clusters"
   )
   notes <- character()
   if (!isTRUE(design$spectral$euclidean)) {
@@ -442,7 +438,8 @@ permanova_unbalanced_nested <- function(
   result <- .unit_freedman_lane(
     structure$aggregated$G, structure$H_numerator,
     structure$numerator_df, structure$H_reduced,
-    structure$H_denominator, structure$denominator_df, plan, tol
+    structure$H_denominator, structure$denominator_df, plan, tol,
+    label = "Permuting intact top-level hierarchy units"
   )
   warnings <- if (!isTRUE(design$spectral$euclidean)) {
     "Empirical inference retained the complete non-Euclidean Gower spectrum."

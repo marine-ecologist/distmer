@@ -39,7 +39,7 @@ simulate_dispersion_validation(
 
 - type:
 
-  Group spatial center: \`"median"\` or \`"centroid"\`.
+  Group spatial center: `"median"` or `"centroid"`.
 
 - keep_results:
 

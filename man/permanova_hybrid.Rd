@@ -17,7 +17,7 @@ permanova_hybrid(
 \arguments{
 \item{design}{Canonical Phase 9 hybrid Design Object.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional permutation seed.}
 
@@ -30,7 +30,7 @@ permanova_hybrid(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_hybrid`.
+An object of class \code{permanova_hybrid}.
 }
 \description{
 Tests one fixed treatment crossed with regions and with sites nested within

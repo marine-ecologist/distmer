@@ -64,11 +64,11 @@ navbar:
           href: articles/fixed-effects.html
         - text: "3. Random effects and ecological sampling designs"
           href: articles/random-effects.html
-        - text: "4. Unbalanced designs"
-          href: articles/unbalanced-mixed.html
-        - text: "5. Pairwise contrasts and multiple comparisons"
+        - text: "4. Pairwise contrasts and multiple comparisons"
           href: articles/contrasts.html
-        - text: "6. Dispersion and distance diagnostics"
+        - text: "5. Dispersion and distance diagnostics"
           href: articles/dispersion.html
+        - text: "6. Atypical distance matrices"
+          href: articles/atypical-distance-matrices.html
         - text: "7. Validation and reproducibility"
           href: articles/validation.html

@@ -20,7 +20,7 @@ derive_adjusted_means(
 \item{at}{Named numeric vector or list giving one finite scalar for every
 continuous nuisance variable.}
 
-\item{weights}{`"equal"` or `"proportional"` categorical nuisance weights.}
+\item{weights}{\code{"equal"} or \code{"proportional"} categorical nuisance weights.}
 
 \item{tol}{Numerical tolerance.}
 }

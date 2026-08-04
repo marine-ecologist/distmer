@@ -360,21 +360,14 @@ derive_nested_ems <- function(design, tol = 1e-10) {
     stop("The nested denominator mean square is numerically zero for term `", term, "`.", call. = FALSE)
   }
   observed <- numerator_ms / denominator_ms
-  permuted <- numeric(nrow(plan$orders))
-  if (nrow(plan$orders)) {
-    residual <- diag(design$n) - projection$H_reduced
-    for (b in seq_len(nrow(plan$orders))) {
-      index <- .block_permutation_index(
-        plan$unit_blocks, plan$orders[b, ]
-      )
-      A <- projection$H_reduced + residual[index, , drop = FALSE]
-      G_permuted <- A %*% design$G %*% t(A)
-      numerator <- trace_hgh(projection$H_term, G_permuted) / projection$df
-      denominator <- trace_hgh(denominator_stratum$H, G_permuted) /
-        denominator_stratum$df
-      permuted[[b]] <- numerator / denominator
-    }
-  }
+  permuted <- .freedman_lane_statistics(
+    design$G, projection$H_reduced,
+    projection$H_term, projection$df,
+    denominator_stratum$H, denominator_stratum$df,
+    plan$orders,
+    index = function(order) .block_permutation_index(plan$unit_blocks, order),
+    label = paste0("Permuting term `", term, "`"), tol = tol
+  )
   p_value <- NA_real_
   if (length(permuted)) {
     extreme <- sum(permuted >= observed - tol, na.rm = TRUE)

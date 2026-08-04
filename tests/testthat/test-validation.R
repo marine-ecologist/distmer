@@ -228,22 +228,22 @@ test_that("unbalanced mixed validation matches unit-level references", {
   }
 })
 
-test_that("planned contrast validation matches constrained scalar inference", {
+test_that("planned contrast validation reproduces the classical contrast F", {
   validation <- simulate_contrast_validation(
     simulations = 3, permutations = 7, seed = 20260719
   )
   expect_s3_class(validation, "permanova_contrast_validation")
+  # method = "pooled" pseudo-F equals the classical constrained-scalar contrast F
   expect_lt(validation$max_engine_direct_f_difference, 1e-10)
-  expect_equal(validation$max_engine_direct_p_difference, 0)
-  expect_lt(
-    validation$max_engine_direct_permutation_statistic_difference,
-    1e-10
-  )
   expect_lt(validation$max_engine_classical_f_difference, 1e-10)
+  # engine p-values now use method = "isolated" (a two-group subset test), so
+  # no engine/direct p or permutation-statistic identity is asserted.
+  expect_true(is.na(validation$max_engine_direct_p_difference))
+  # direct and classical are the same test, so their rejection rates agree
   for (scenario in c("exchangeable_null", "location_shift")) {
     rates <- validation$summary$rejection_rate[
       validation$summary$scenario == scenario &
-        validation$summary$method %in% c("engine", "direct")
+        validation$summary$method %in% c("direct", "classical")
     ]
     expect_equal(rates[[1L]], rates[[2L]])
   }

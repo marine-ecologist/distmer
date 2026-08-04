@@ -38,7 +38,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 
     <a class="navbar-brand me-2" href="index.html">distmer</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,9 +54,9 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li><a class="dropdown-item" href="articles/getting-started.html">1. Getting started with distmer</a></li>
     <li><a class="dropdown-item" href="articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
     <li><a class="dropdown-item" href="articles/random-effects.html">3. Random effects and ecological sampling designs</a></li>
-    <li><a class="dropdown-item" href="articles/unbalanced-mixed.html">4. Unbalanced designs</a></li>
-    <li><a class="dropdown-item" href="articles/contrasts.html">5. Pairwise contrasts and multiple comparisons</a></li>
-    <li><a class="dropdown-item" href="articles/dispersion.html">6. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="articles/contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
+    <li><a class="dropdown-item" href="articles/dispersion.html">5. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="articles/atypical-distance-matrices.html">6. Atypical distance matrices</a></li>
     <li><a class="dropdown-item" href="articles/validation.html">7. Validation and reproducibility</a></li>
   </ul>
 </li>
@@ -66,6 +66,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/marine-ecologist/distmer/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -89,18 +90,30 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <!-- badges: start -->
 
 <div class="section level3">
-<h3 id="distance-based-mixed-effects-models-with-permutational-inference">distance-based mixed-effects models with permutational inference<a class="anchor" aria-label="anchor" href="#distance-based-mixed-effects-models-with-permutational-inference"></a>
+<h3 id="distmer-distance-based-mixed-effects-models-with-permutational-inference">distmer: distance-based mixed-effects models with permutational inference<a class="anchor" aria-label="anchor" href="#distmer-distance-based-mixed-effects-models-with-permutational-inference"></a>
 </h3>
-<p><code>distmer</code> extends the logic of PERMANOVA into a mixed-model workflow. It uses familiar <code>lmer</code>-style formulas for fixed effects, experimental units, nesting, blocks, repeated observations, and random slopes:</p>
+<p><code>distmer</code> extends the PERMANOVA (<strong>Perm</strong>utational <strong>M</strong>ultivariate <strong>An</strong>alysis <strong>O</strong>f <strong>Va</strong>riance, <a href="https://ecoevol.ufg.br/adrimelo/div/Anderson-2001-AustEcol_non-parametric_manova.pdf" class="external-link">Anderson 2001</a>) approach of <code><a href="https://vegandevs.github.io/vegan/reference/adonis.html" class="external-link">vegan::adonis2()</a></code> to include hierarchical mixed-effects structures common in ecology. <code>distmer</code> uses familiar <code>lmer</code>-style formulas for fixed effects, experimental units, nesting, blocks, repeated observations, and random slopes:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">community_distance</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span></span></code></pre></div>
-<p>The response is a dissimilarity matrix from <code><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist()</a></code> rather than a single variable. <code>distmer</code> applies a common projection and mixed-design framework to the Gower-centred matrix induced by the user’s chosen dissimilarity (see <a href="https://ecoevol.ufg.br/adrimelo/div/Anderson-2001-AustEcol_non-parametric_manova.pdf" class="external-link">Anderson 2001</a>). With no random effects, <code>distmer</code> reduces to ordinary PERMANOVA identical to <code><a href="https://vegandevs.github.io/vegan/reference/adonis.html" class="external-link">vegan::adonis2()</a></code>. With a univariate Euclidean response, supported models reduce to their classical <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">stats::anova()</a></code> or mixed-model counterparts (e.g. <code><a href="https://rdrr.io/pkg/lme4/man/lmer.html" class="external-link">lme4::lmer()</a></code>)</p>
-<div class="section level4">
-<h4 id="fixed-effects">fixed effects<a class="anchor" aria-label="anchor" href="#fixed-effects"></a>
-</h4>
-<p>The <code>distmer</code> package works directly with distances produced by <a href="https://vegandevs.github.io/vegan/" class="external-link"><code>vegan</code></a>. The below example uses the <code>pyrifos</code> data to test whether an insecticide (chlorpyrifos) treatment altered aquatic invertebrate community composition:</p>
+<code class="sourceCode R"><span><span class="va">distance</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">site</span><span class="op">)</span></span></code></pre></div>
+<p>where the response (<code>distance</code>) is a dissimilarity matrix from <code><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist()</a></code> rather than a single variable. <code>distmer</code> applies a common projection and mixed-design framework to the Gower-centred matrix induced by the user’s chosen dissimilarity (see <a href="https://ecoevol.ufg.br/adrimelo/div/Anderson-2001-AustEcol_non-parametric_manova.pdf" class="external-link">Anderson 2001</a>). With no random effects, <code>distmer</code> reduces to ordinary PERMANOVA identical to <code><a href="https://vegandevs.github.io/vegan/reference/adonis.html" class="external-link">vegan::adonis2()</a></code>. With a univariate Euclidean response, supported models reduce to their classical <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">stats::anova()</a></code> or mixed-model counterparts (e.g. <code><a href="https://rdrr.io/pkg/lme4/man/lmer.html" class="external-link">lme4::lmer()</a></code>)</p>
+</div>
+<div class="section level3">
+<h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h3>
+<p>Install the development version from GitHub:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">distmer</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"marine-ecologist/distmer"</span><span class="op">)</span></span></code></pre></div>
+<p><code>distmer</code> is currently on the <code>0.9.2</code> pre-release line leading to a stable <code>1.0.0</code> release.</p>
+</div>
+<div class="section level3">
+<h3 id="usage">Usage:<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h3>
+<div class="section level4">
+<h4 id="i-fixed-effects">i) fixed effects<a class="anchor" aria-label="anchor" href="#i-fixed-effects"></a>
+</h4>
+<p>The <code>distmer</code> package works directly with distances produced by <a href="https://vegandevs.github.io/vegan/" class="external-link"><code>vegan</code></a>. The below example uses the <code>pyrifos</code> data (<a href="https://onlinelibrary.wiley.com/doi/full/10.1002/etc.5620180207" class="external-link">Van den Brink and Ter Braak 1999</a>) to test whether an insecticide (chlorpyrifos) treatment altered aquatic invertebrate community composition:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://marine-ecologist.github.io/distmer/">distmer</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://vegandevs.github.io/vegan/" class="external-link">vegan</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pyrifos</span><span class="op">)</span></span>
@@ -123,12 +136,11 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <p>The result reports the ecological effect being tested, its pseudo-(F), permutation p-value, attainable permutation space, and the exchangeability assumptions used for inference.</p>
 </div>
 <div class="section level4">
-<h4 id="random-effects">random effects<a class="anchor" aria-label="anchor" href="#random-effects"></a>
+<h4 id="ii-random-effects">ii) random effects<a class="anchor" aria-label="anchor" href="#ii-random-effects"></a>
 </h4>
 <p>For a repeated or grouped field design, add the independent sampling unit in the same way as a mixed-effects model:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
 <span>  <span class="va">pyr.bray</span> <span class="op">~</span> <span class="va">dose</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">ditch</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">pyr.env</span>,</span>
 <span>  permutations <span class="op">=</span> <span class="fl">999</span>,</span>
@@ -138,21 +150,28 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
-<h4 id="dispersion">dispersion<a class="anchor" aria-label="anchor" href="#dispersion"></a>
+<h4 id="iii-pairwise-contrasts">iii) pairwise contrasts<a class="anchor" aria-label="anchor" href="#iii-pairwise-contrasts"></a>
+</h4>
+<p>Pairwise contrasts (treatments and custom contrasts) can also be tested:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/permanova_contrasts.html">permanova_contrasts</a></span><span class="op">(</span><span class="va">fit1</span>, type <span class="op">=</span> <span class="st">"pairwise"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="iv-dispersion">iv) dispersion<a class="anchor" aria-label="anchor" href="#iv-dispersion"></a>
 </h4>
 <p>A location result should be considered alongside multivariate dispersion. The dispersion companion uses the same formula-and-data style:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/permanova_dispersion.html">permanova_dispersion</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/permanova_dispersion.html">permanova_dispersion</a></span><span class="op">(</span></span>
 <span>   <span class="va">pyr.bray</span> <span class="op">~</span> <span class="va">ditch</span> ,</span>
 <span>  data <span class="op">=</span> <span class="va">pyr.env</span>,</span>
 <span>  permutations <span class="op">=</span> <span class="fl">9999</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">101</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="formula">Formula:<a class="anchor" aria-label="anchor" href="#formula"></a>
-</h4>
+</div>
+<div class="section level3">
+<h3 id="available-formula">Available formula:<a class="anchor" aria-label="anchor" href="#available-formula"></a>
+</h3>
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -173,36 +192,25 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 </tr>
 <tr>
 <td>What is the treatment effect with repeated samples per site?</td>
-<td><code>d ~ treatment + (1 \| site)</code></td>
+<td><code>d ~ treatment + (1 | site)</code></td>
 </tr>
 <tr>
 <td>At which level of a nested survey does an effect occur?</td>
-<td><code>d ~ treatment + (1 \| region/site)</code></td>
+<td><code>d ~ treatment + (1 | region/site)</code></td>
 </tr>
 <tr>
 <td>Was treatment randomized within blocks?</td>
-<td><code>d ~ treatment + (1 \| block) + (1 \| treatment:block)</code></td>
+<td><code>d ~ treatment + (1 | block) + (1 | treatment:block)</code></td>
 </tr>
 <tr>
 <td>Do sites differ in their temporal response?</td>
-<td><code>d ~ time + (1 + time \| site)</code></td>
+<td><code>d ~ time + (1 + time | site)</code></td>
 </tr>
 </tbody>
 </table>
 <p><code><a href="reference/permanova.html">permanova()</a></code> checks whether the declared design falls inside a validated inference envelope. Unsupported or confounded structures stop with an explanation instead of receiving a convenient but unjustified denominator.</p>
 <p>The package also supports planned and pairwise contrasts, multiplicity adjustment, Type I/II/III fixed-effect hypotheses, unbalanced sampling, nested and crossed designs, and validated random-slope models. The guides introduce these in ecological language before exposing implementation details.</p>
 </div>
-</div>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
-<p>Install the development version from GitHub:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span></span>
-<span>  <span class="st">"marine-ecologist/distmer"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><code>distmer</code> is currently on the <code>0.9.0.9000</code> development line leading to the first stable <code>1.0.0</code> release.</p>
 <div class="section level3">
 <h3 id="vignettes">vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
 </h3>
@@ -218,20 +226,27 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li>
 <code><a href="articles/fixed-effects.html">vignette("fixed-effects", package = "distmer")</a></code> — Type I, II, and III fixed-effect questions.</li>
 <li>
-<code><a href="articles/unbalanced-mixed.html">vignette("unbalanced-mixed", package = "distmer")</a></code> — unequal cells, missing visits, and unit weighting.</li>
+<code><a href="articles/atypical-distance-matrices.html">vignette("atypical-distance-matrices", package = "distmer")</a></code> — Atypical distance matrices.</li>
 <li>
 <code><a href="articles/validation.html">vignette("validation", package = "distmer")</a></code> — reference agreement, simulations, and reproducible reporting.</li>
 </ol>
 </div>
-</div>
-<div class="section level2">
-<h2 id="checks">Checks:<a class="anchor" aria-label="anchor" href="#checks"></a>
-</h2>
+<div class="section level3">
+<h3 id="checks">Checks:<a class="anchor" aria-label="anchor" href="#checks"></a>
+</h3>
 <p>Supported analyses are tested against <code>vegan</code>, classical scalar analogues, direct matrix calculations, exact permutation enumeration, and adversarial simulation. Distance diagnostics retain and report non-Euclidean geometry rather than silently changing it.</p>
 <p>For the detailed evidence and current support boundary, see <a href="inst/VALIDATION.html"><code>inst/VALIDATION.md</code></a> and <code><a href="reference/permanova_capabilities.html">permanova_capabilities()</a></code>.</p>
 </div>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/marine-ecologist/distmer/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/marine-ecologist/distmer/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>

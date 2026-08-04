@@ -23,7 +23,7 @@ named list.}
 
 \item{adjust}{Multiplicity adjustment.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -34,7 +34,7 @@ named list.}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_mixed_contrasts`.
+An object of class \code{permanova_mixed_contrasts}.
 }
 \description{
 Tests planned contrasts among a single categorical treatment's experimental-

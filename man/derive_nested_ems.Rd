@@ -7,7 +7,7 @@
 derive_nested_ems(design, tol = 1e-10)
 }
 \arguments{
-\item{design}{Canonical Design Object with a `/`-generated hierarchy.}
+\item{design}{Canonical Design Object with a \code{/}-generated hierarchy.}
 
 \item{tol}{Numerical tolerance.}
 }

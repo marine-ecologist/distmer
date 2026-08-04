@@ -172,20 +172,23 @@
 
 .strong_pairwise_statistics <- function(
     design, structure, projectors, observed, subset, plan, tol) {
-  statistics <- numeric(nrow(plan$orders))
-  for (row in seq_len(nrow(plan$orders))) {
-    order <- plan$orders[row, ]
-    G <- design$G[order, order, drop = FALSE]
-    denominator <- trace_hgh(structure$H_denominator, G) /
-      structure$denominator_df
-    numerators <- vapply(subset, function(index) {
-      trace_hgh(projectors[[index]]$H, G)
-    }, numeric(1))
-    values <- if (!is.finite(denominator) || abs(denominator) <= tol) {
-      ifelse(abs(numerators) <= tol, 0, Inf)
-    } else numerators / denominator
-    statistics[[row]] <- max(values)
-  }
+  statistics <- .permuted_statistics(
+    nrow(plan$orders),
+    function(row) {
+      order <- plan$orders[row, ]
+      G <- design$G[order, order, drop = FALSE]
+      denominator <- trace_hgh(structure$H_denominator, G) /
+        structure$denominator_df
+      numerators <- vapply(subset, function(index) {
+        trace_hgh(projectors[[index]]$H, G)
+      }, numeric(1))
+      values <- if (!is.finite(denominator) || abs(denominator) <= tol) {
+        ifelse(abs(numerators) <= tol, 0, Inf)
+      } else numerators / denominator
+      max(values)
+    },
+    label = "Permuting labels within connected components"
+  )
   observed_maximum <- max(observed[subset])
   p_value <- NA_real_
   if (length(statistics)) {

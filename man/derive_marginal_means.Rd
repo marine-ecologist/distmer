@@ -16,7 +16,7 @@ derive_marginal_means(
 
 \item{factor}{Target categorical predictor.}
 
-\item{weights}{`"equal"` or `"proportional"` nuisance-cell weights.}
+\item{weights}{\code{"equal"} or \code{"proportional"} nuisance-cell weights.}
 
 \item{tol}{Numerical tolerance.}
 }

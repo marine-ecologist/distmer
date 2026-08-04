@@ -10,16 +10,16 @@ grouping-unit mean) and a within-unit part (the deviation from that mean).
 Entering both parts as predictors lets engines that support both strata
 adjust the between-unit and within-unit relationships separately. The within
 part is a genuine observation-level covariate suitable for
-[permanova_nested_covariate()]; the between part is a unit-level summary and
+permanova_nested_covariate(); the between part is a unit-level summary and
 must only be entered in an engine that assigns numeric terms to that level
-(for example [permanova_mixed_covariate()])."><meta property="og:description" content="Separates one or more continuous covariates into a between-unit part (the
+(for example permanova_mixed_covariate())."><meta property="og:description" content="Separates one or more continuous covariates into a between-unit part (the
 grouping-unit mean) and a within-unit part (the deviation from that mean).
 Entering both parts as predictors lets engines that support both strata
 adjust the between-unit and within-unit relationships separately. The within
 part is a genuine observation-level covariate suitable for
-[permanova_nested_covariate()]; the between part is a unit-level summary and
+permanova_nested_covariate(); the between part is a unit-level summary and
 must only be entered in an engine that assigns numeric terms to that level
-(for example [permanova_mixed_covariate()])."><meta property="og:image" content="https://marine-ecologist.github.io/distmer/logo.png"><meta name="robots" content="noindex"><script>
+(for example permanova_mixed_covariate())."><meta property="og:image" content="https://marine-ecologist.github.io/distmer/logo.png"><meta name="robots" content="noindex"><script>
 document.documentElement.setAttribute('data-bs-theme', 'light');
 </script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,7 +29,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 
     <a class="navbar-brand me-2" href="../index.html">distmer</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,14 +43,15 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting started with distmer</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
     <li><a class="dropdown-item" href="../articles/random-effects.html">3. Random effects and ecological sampling designs</a></li>
-    <li><a class="dropdown-item" href="../articles/unbalanced-mixed.html">4. Unbalanced designs</a></li>
-    <li><a class="dropdown-item" href="../articles/contrasts.html">5. Pairwise contrasts and multiple comparisons</a></li>
-    <li><a class="dropdown-item" href="../articles/dispersion.html">6. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="../articles/contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
+    <li><a class="dropdown-item" href="../articles/dispersion.html">5. Dispersion and distance diagnostics</a></li>
+    <li><a class="dropdown-item" href="../articles/atypical-distance-matrices.html">6. Atypical distance matrices</a></li>
     <li><a class="dropdown-item" href="../articles/validation.html">7. Validation and reproducibility</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/marine-ecologist/distmer/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -65,7 +66,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Split a covariate into between-unit and within-unit components</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/marine-ecologist/distmer/blob/HEAD/R/nested-covariate.R" class="external-link"><code>R/nested-covariate.R</code></a></small>
       <div class="d-none name"><code>decompose_covariate.Rd</code></div>
     </div>
 
@@ -75,9 +76,9 @@ grouping-unit mean) and a within-unit part (the deviation from that mean).
 Entering both parts as predictors lets engines that support both strata
 adjust the between-unit and within-unit relationships separately. The within
 part is a genuine observation-level covariate suitable for
-[permanova_nested_covariate()]; the between part is a unit-level summary and
+<code><a href="permanova_nested_covariate.html">permanova_nested_covariate()</a></code>; the between part is a unit-level summary and
 must only be entered in an engine that assigns numeric terms to that level
-(for example [permanova_mixed_covariate()]).</p>
+(for example <code><a href="permanova_mixed_covariate.html">permanova_mixed_covariate()</a></code>).</p>
     </div>
 
     <div class="section level2">
@@ -109,7 +110,7 @@ between/within split is taken with respect to their combination.</p></dd>
 
 
 <dt id="arg-center">center<a class="anchor" aria-label="anchor" href="#arg-center"></a></dt>
-<dd><p>Grand-centre the between-unit component (default `TRUE`) so it
+<dd><p>Grand-centre the between-unit component (default <code>TRUE</code>) so it
 is a deviation from the overall mean. The within-unit component always has
 mean zero within every unit regardless of this setting.</p></dd>
 
@@ -121,8 +122,8 @@ between and within parts.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>`data` with two added columns per covariate. With `center = FALSE`
-  the between and within columns sum to the original covariate.</p>
+    <p><code>data</code> with two added columns per covariate. With <code>center = FALSE</code>
+the between and within columns sum to the original covariate.</p>
     </div>
 
     <div class="section level2">

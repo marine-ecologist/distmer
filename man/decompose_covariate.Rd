@@ -20,7 +20,7 @@ decompose_covariate(
 \item{by}{Character vector of grouping column name(s) defining the units; the
 between/within split is taken with respect to their combination.}
 
-\item{center}{Grand-centre the between-unit component (default `TRUE`) so it
+\item{center}{Grand-centre the between-unit component (default \code{TRUE}) so it
 is a deviation from the overall mean. The within-unit component always has
 mean zero within every unit regardless of this setting.}
 
@@ -28,8 +28,8 @@ mean zero within every unit regardless of this setting.}
 between and within parts.}
 }
 \value{
-`data` with two added columns per covariate. With `center = FALSE`
-  the between and within columns sum to the original covariate.
+\code{data} with two added columns per covariate. With \code{center = FALSE}
+the between and within columns sum to the original covariate.
 }
 \description{
 Separates one or more continuous covariates into a between-unit part (the
@@ -37,9 +37,9 @@ grouping-unit mean) and a within-unit part (the deviation from that mean).
 Entering both parts as predictors lets engines that support both strata
 adjust the between-unit and within-unit relationships separately. The within
 part is a genuine observation-level covariate suitable for
-[permanova_nested_covariate()]; the between part is a unit-level summary and
+\code{\link[=permanova_nested_covariate]{permanova_nested_covariate()}}; the between part is a unit-level summary and
 must only be entered in an engine that assigns numeric terms to that level
-(for example [permanova_mixed_covariate()]).
+(for example \code{\link[=permanova_mixed_covariate]{permanova_mixed_covariate()}}).
 }
 \examples{
 df <- data.frame(site = factor(rep(1:3, each = 4)), x = rnorm(12))

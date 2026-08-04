@@ -1,13 +1,13 @@
 # Covariate-adjusted balanced nested PERMANOVA
 
-Tests categorical factors in a balanced \`/\`-generated nested hierarchy
+Tests categorical factors in a balanced `/`-generated nested hierarchy
 while adjusting for one or more continuous covariates. Each factor is
-tested for an effect \*beyond\* the covariate relationship: its
-numerator is the sum of squares added over the covariate(s), and its
-denominator is the same exact nested expected-mean-square stratum used
-by \[permanova_nested()\]. The covariate is treated as an
-observation-level nuisance (charged to the residual) and is itself
-tested over that residual.
+tested for an effect *beyond* the covariate relationship: its numerator
+is the sum of squares added over the covariate(s), and its denominator
+is the same exact nested expected-mean-square stratum used by
+[`permanova_nested()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_nested.md).
+The covariate is treated as an observation-level nuisance (charged to
+the residual) and is itself tested over that residual.
 
 ## Usage
 
@@ -29,11 +29,11 @@ permanova_nested_covariate(
 
   Canonical Design Object whose fixed model contains at least one
   categorical factor and at least one continuous covariate, with one
-  balanced \`/\`-generated random hierarchy.
+  balanced `/`-generated random hierarchy.
 
 - permutations:
 
-  A non-negative integer or \`"all"\`.
+  A non-negative integer or `"all"`.
 
 - seed:
 
@@ -41,11 +41,12 @@ permanova_nested_covariate(
 
 - hypothesis:
 
-  Sum-of-squares partition for the fixed factors: \`"I"\` (sequential),
-  \`"II"\` (marginal), or \`"III"\` (partial). Types coincide for an
+  Sum-of-squares partition for the fixed factors: `"I"` (sequential),
+  `"II"` (marginal), or `"III"` (partial). Types coincide for an
   orthogonal balanced fixed structure; Type III with interactions
   requires sum-to-zero contrasts, set automatically by the
-  \`permanova()\` front door.
+  [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)
+  front door.
 
 - keep_permutations:
 
@@ -61,7 +62,7 @@ permanova_nested_covariate(
 
 ## Value
 
-An object of class \`permanova_nested\`.
+An object of class `permanova_nested`.
 
 ## Details
 

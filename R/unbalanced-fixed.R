@@ -1,3 +1,7 @@
+
+# `%||%`, .warnf, and .stopf are defined once in R/utils.R.
+
+
 .unbalanced_term_variables <- function(term) {
   variables <- strsplit(term, ":", fixed = TRUE)[[1L]]
   if (!length(variables) || any(!nzchar(variables))) {
@@ -202,19 +206,13 @@ derive_unbalanced_hypotheses <- function(
          call. = FALSE)
   }
   observed <- numerator_ms / denominator_ms
-  statistics <- numeric(nrow(plan$orders))
-  residual <- diag(design$n) - specification$H_reduced
-  unit_blocks <- lapply(seq_len(design$n), function(index) index)
-  for (row in seq_len(nrow(plan$orders))) {
-    index <- .block_permutation_index(unit_blocks, plan$orders[row, ])
-    A <- specification$H_reduced + residual[index, , drop = FALSE]
-    G_permuted <- A %*% design$G %*% t(A)
-    numerator_permuted <-
-      trace_hgh(specification$H, G_permuted) / specification$df
-    denominator_permuted <-
-      trace_hgh(denominator$H, G_permuted) / denominator$df
-    statistics[[row]] <- numerator_permuted / denominator_permuted
-  }
+  statistics <- .freedman_lane_statistics(
+    design$G, specification$H_reduced,
+    specification$H, specification$df,
+    denominator$H, denominator$df,
+    plan$orders,
+    label = paste0("Permuting term `", term, "`"), tol = tol
+  )
   p_value <- NA_real_
   if (length(statistics)) {
     extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
@@ -391,4 +389,28 @@ print.permanova_unbalanced <- function(x, ...) {
   cat("Supported design:", x$supported_design, "\n")
   print(x$table, row.names = FALSE)
   invisible(x)
+}
+
+
+.fix1_partial_term <- function(X_term, H_reduced, tol = 1e-8) {
+  # residualise the term columns against everything below it
+  n  <- nrow(X_term)
+  Xr <- X_term - H_reduced %*% X_term
+  # estimable rank via SVD of the residualised term columns
+  sv <- svd(Xr, nu = ncol(Xr), nv = 0)
+  keep <- sv$d > (tol * sv$d[1])            # columns with non-trivial variation
+  rank_est     <- sum(keep)
+  rank_nominal <- ncol(X_term)
+  # projection onto the estimable subspace (rank_est-dimensional)
+  U  <- sv$u[, keep, drop = FALSE]
+  H_term_est <- U %*% t(U)                  # hat matrix for the estimable part
+  list(
+    H_term    = H_term_est,
+    df        = rank_est,                   # REDUCED df (e.g. 1 not 2)
+    df_nominal= rank_nominal,
+    flagged   = rank_est < rank_nominal,    # TRUE -> mark with ** in output
+    note      = if (rank_est < rank_nominal)
+      sprintf("%d of %d df estimable (empty cell present)",
+              rank_est, rank_nominal) else NA_character_
+  )
 }

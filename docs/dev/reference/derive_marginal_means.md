@@ -28,7 +28,7 @@ derive_marginal_means(
 
 - weights:
 
-  \`"equal"\` or \`"proportional"\` nuisance-cell weights.
+  `"equal"` or `"proportional"` nuisance-cell weights.
 
 - tol:
 

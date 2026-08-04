@@ -7,9 +7,9 @@
 compile_permanova_design(formula, data, distance = NULL, tol = 1e-10)
 }
 \arguments{
-\item{formula}{An `lme4`-style formula. Random effects support
-`(1 | group)`, nesting with `/`, explicit grouping interactions with `:`,
-and one correlated `(1 + slope | group)` declaration.}
+\item{formula}{An \code{lme4}-style formula. Random effects support
+\code{(1 | group)}, nesting with \code{/}, explicit grouping interactions with \code{:},
+and one correlated \code{(1 + slope | group)} declaration.}
 
 \item{data}{A data frame with one row per observation.}
 
@@ -19,7 +19,7 @@ diagnostics.}
 \item{tol}{Numerical rank and eigenvalue tolerance.}
 }
 \value{
-An object of class `permanova_design`.
+An object of class \code{permanova_design}.
 }
 \description{
 Parses fixed effects, random-intercept terms, and the narrow correlated

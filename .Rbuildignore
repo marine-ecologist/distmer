@@ -1,5 +1,7 @@
 ^\.claude$
 ^\.DS_Store$
+^.*\.bak$
+^dispersion_figure.*\.(png|pdf)$
 ^.*\.Rcheck$
 ^.*\.tar\.gz$
 ^CODEX_TASK_distance_mixed_PERMANOVA\.md$

@@ -214,7 +214,9 @@ permanova_adjusted_contrasts <- function(
     )
     result <- .unit_freedman_lane(
       design$G, projector$H, 1L, projector$H_reduced,
-      structure$H_denominator, structure$denominator_df, plan, tol
+      structure$H_denominator, structure$denominator_df, plan, tol,
+      label = paste0("Permuting adjusted contrast `",
+                     rownames(contrast_matrix)[[index]], "`")
     )
     notes <- if (!isTRUE(design$spectral$euclidean)) {
       "Empirical inference retained the complete non-Euclidean Gower spectrum."

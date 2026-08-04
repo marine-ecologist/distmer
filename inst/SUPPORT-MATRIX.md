@@ -10,6 +10,9 @@ and reject unsupported or confounded structures before inference.
 | `permanova_oneway` | One-factor centroids over within-group residual | Unrestricted raw observations; single-hypothesis p-value |
 | `permanova_fixed` | Sequential fixed terms over full-model residual | Term-specific residual permutations |
 | `permanova_mixed` | Balanced whole-plot centroids over whole-plot residual EMS | Whole-plot residual permutations |
+| `permanova_mixed_covariate` | Balanced whole-plot, subplot, interaction, and supported covariate hypotheses over their identified unit or within-unit stratum | Whole-unit or within-unit Freedman--Lane residual permutation according to the estimand |
+| `permanova_unbalanced_splitplot` | Equal-weight unit-centroid whole-plot hypotheses and observation-scale within-unit hypotheses | Whole units move within exact-size strata; observations move within units; hypotheses not spanned by the restricted action reject |
+| `permanova_asymmetric_mixed` | Whole-plot terms over the unit stratum and subplot terms over the unit-by-subplot stratum | Whole units move within identical subplot-count topologies; observations move within units |
 | `permanova_crossed` | Declared crossed fixed terms over exact or EMS-matched strata | Canonical within-block permutation where validated; other p-values require explicit parametric opt-in |
 | `permanova_nested` | Fixed term wholly in one balanced hierarchy stratum | Intact descendants move within the matching parent level |
 | `permanova_dispersion` | Mean distance to a spatial median or centroid over a design-selected denominator | Full-model residual permutation under the location design's restrictions |
@@ -21,7 +24,7 @@ and reject unsupported or confounded structures before inference.
 | `permanova_unbalanced_nested_lower` | Equally weighted child centroids adjusted for parent, or observations adjusted for child | Child centroids move within parent-by-size strata; observations move within child |
 | `permanova_unbalanced_block` | Equally weighted observed cells after block adjustment | Cell centroids move within block-by-size strata |
 | `permanova_random_slope` | Population mean complete-subject difference over between-subject random-slope variation | Whole-subject sign flips under an explicit central-symmetry assumption |
-| `permanova_contrasts` | One-factor planned or pairwise centroid contrast | Contrast-specific residual permutations; Holm/Bonferroni/BH/BY/none |
+| `permanova_contrasts` | Fit-based pairwise or planned contrasts; isolated two-level contrasts retain the complete fitted design, while pooled multi-level statistics remain descriptive | Isolated tests refit the complete formula on selected levels and inherit its denominator and permutation action; pooled p-values remain `NA` |
 | `permanova_marginal_contrasts` | Equal- or frequency-weighted categorical marginal contrast | Contrast-specific residual permutations and explicit multiplicity adjustment |
 | `permanova_adjusted_contrasts` | Fixed contrast at explicitly supplied numeric covariate values in a numerically stable full-rank model | Contrast-specific residual permutations and explicit multiplicity adjustment; aliased or ill-conditioned fixed models reject |
 | `permanova_mixed_contrasts` | Planned or pairwise experimental-unit contrast over its design-selected denominator | Contrast-specific unit residual permutations within declared strata |

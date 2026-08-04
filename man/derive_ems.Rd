@@ -7,10 +7,10 @@
 derive_ems(design, hypothesis = "I", tol = 1e-10)
 }
 \arguments{
-\item{design}{A canonical `permanova_design` containing a distance matrix.}
+\item{design}{A canonical \code{permanova_design} containing a distance matrix.}
 
-\item{hypothesis}{Fixed-effect sum-of-squares partition: `"I"`, `"II"`, or
-`"III"`.}
+\item{hypothesis}{Fixed-effect sum-of-squares partition: \code{"I"}, \code{"II"}, or
+\code{"III"}.}
 
 \item{tol}{Numerical tolerance.}
 }

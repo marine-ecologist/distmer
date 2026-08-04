@@ -12,7 +12,7 @@ derive_nested_ems(design, tol = 1e-10)
 
 - design:
 
-  Canonical Design Object with a \`/\`-generated hierarchy.
+  Canonical Design Object with a `/`-generated hierarchy.
 
 - tol:
 

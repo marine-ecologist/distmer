@@ -88,17 +88,7 @@ fit <- permanova(
   permutations = 999,
   seed = 2026
 )
-fit$table |>
-  kbl(
-    digits    = 3,
-    caption   = "Model summary",
-    booktabs  = TRUE          # nice rules for LaTeX/PDF
-  ) |>
-  kable_styling(
-    full_width        = FALSE,
-    bootstrap_options = c("striped", "hover", "condensed"),  # HTML
-    latex_options     = c("hold_position")                   # PDF
-  )
+fit$table |> tab()
 ```
 
 `Pseudo-F` measures the separation attributable to management relative to the

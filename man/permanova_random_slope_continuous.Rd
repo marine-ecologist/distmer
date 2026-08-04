@@ -14,10 +14,10 @@ permanova_random_slope_continuous(
 )
 }
 \arguments{
-\item{design}{A compiled Design Object with exactly one `(1 + x | group)`
+\item{design}{A compiled Design Object with exactly one \code{(1 + x | group)}
 random term whose slope variable is numeric.}
 
-\item{permutations}{A non-negative integer or `"all"` (whole-group sign
+\item{permutations}{A non-negative integer or \code{"all"} (whole-group sign
 flips).}
 
 \item{seed}{Optional sign-flip seed.}
@@ -29,11 +29,11 @@ flips).}
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_random_slope_continuous`.
+An object of class \code{permanova_random_slope_continuous}.
 }
 \description{
 Tests the population slope of a continuous covariate that also carries a
-random slope across groups, i.e. `distance ~ x + (1 + x | group)` with `x`
+random slope across groups, i.e. \code{distance ~ x + (1 + x | group)} with \code{x}
 numeric -- the covariate-by-random model of Anderson, Gorley & Clarke (2008,
 Fig. 1.48b).
 }
@@ -47,13 +47,13 @@ group (in the distance embedding), then tests whether the equally weighted
 mean slope vector differs from zero against the between-group variation of
 those slope vectors. Inference is by whole-group sign flips of the slope
 vectors, valid under central symmetry of the group slopes under the null. A
-parametric `F(1, ng - 1)` reference is added only for rank-one Euclidean
-slope geometry with equal within-group covariate information (`SSx`), where
+parametric \code{F(1, ng - 1)} reference is added only for rank-one Euclidean
+slope geometry with equal within-group covariate information (\code{SSx}), where
 the statistic is the classical one-sample squared t statistic under normal,
 identically distributed group slopes. Euclidean geometry alone is not enough
 to justify that reference for multivariate or heteroscedastic slopes.
 
-The within-group slope is invariant to centring `x` within a group, so the
-raw or a within-centred covariate ([decompose_covariate()]) give the same
+The within-group slope is invariant to centring \code{x} within a group, so the
+raw or a within-centred covariate (\code{\link[=decompose_covariate]{decompose_covariate()}}) give the same
 test; the covariate need only vary inside each group.
 }

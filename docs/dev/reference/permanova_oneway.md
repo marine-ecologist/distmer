@@ -1,10 +1,10 @@
 # One-way PERMANOVA
 
-Reconstructs the one-way algorithm in Anderson (2001). The \`pairwise\`
+Reconstructs the one-way algorithm in Anderson (2001). The `pairwise`
 engine directly evaluates the published squared-distance equations and
-therefore requires equal replication. The \`projection\` engine
-evaluates the equivalent Gower-centred projection-matrix formulation and
-also works with unequal group sizes.
+therefore requires equal replication. The `projection` engine evaluates
+the equivalent Gower-centred projection-matrix formulation and also
+works with unequal group sizes.
 
 ## Usage
 
@@ -23,7 +23,7 @@ permanova_oneway(
 
 - distance:
 
-  A \`dist\` object or full distance matrix.
+  A `dist` object or full distance matrix.
 
 - group:
 
@@ -31,7 +31,7 @@ permanova_oneway(
 
 - permutations:
 
-  Number of random permutations. Use \`0\` for no test.
+  Number of random permutations. Use `0` for no test.
 
 - seed:
 
@@ -39,7 +39,7 @@ permanova_oneway(
 
 - engine:
 
-  Either \`"pairwise"\` or \`"projection"\`.
+  Either `"pairwise"` or `"projection"`.
 
 - keep_permutations:
 
@@ -47,4 +47,4 @@ permanova_oneway(
 
 ## Value
 
-An object of class \`permanova_oneway\`.
+An object of class `permanova_oneway`.

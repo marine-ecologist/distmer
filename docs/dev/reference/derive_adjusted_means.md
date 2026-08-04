@@ -35,7 +35,7 @@ derive_adjusted_means(
 
 - weights:
 
-  \`"equal"\` or \`"proportional"\` categorical nuisance weights.
+  `"equal"` or `"proportional"` categorical nuisance weights.
 
 - tol:
 

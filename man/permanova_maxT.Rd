@@ -19,7 +19,7 @@ permanova_maxT(
 
 \item{contrasts}{Numeric contrast vector, row matrix, or named list.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional random seed.}
 
@@ -30,7 +30,7 @@ permanova_maxT(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_maxT`.
+An object of class \code{permanova_maxT}.
 }
 \description{
 Uses one shared raw-observation permutation distribution for every planned

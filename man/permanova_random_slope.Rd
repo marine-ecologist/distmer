@@ -17,7 +17,7 @@ permanova_random_slope(
 \arguments{
 \item{design}{Canonical Phase 27 random-slope Design Object.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional sign-flip seed.}
 
@@ -30,11 +30,11 @@ permanova_random_slope(
 \item{tol}{Numerical tolerance.}
 }
 \value{
-An object of class `permanova_random_slope`.
+An object of class \code{permanova_random_slope}.
 }
 \description{
 Tests the population mean within-subject condition difference for a
-correlated `(1 + condition | subject)` model. Complete difference vectors
+correlated \code{(1 + condition | subject)} model. Complete difference vectors
 are sign-flipped by subject. Exactness is conditional on central symmetry of
 subject difference vectors under the fixed-effect null; this is stated in
 every result and is not presented as unrestricted label exchangeability.

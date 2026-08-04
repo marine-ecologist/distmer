@@ -20,26 +20,26 @@ permanova_dispersion(
 )
 }
 \arguments{
-\item{formula}{A model formula, or a compiled `permanova_design` object. The
+\item{formula}{A model formula, or a compiled \code{permanova_design} object. The
 dissimilarity may be supplied on the left-hand side, for example
-`bray ~ treatment + (1 | site)`, or through `distance` with a one-sided
+\code{bray ~ treatment + (1 | site)}, or through \code{distance} with a one-sided
 formula. A compiled design remains accepted for low-level workflows.}
 
 \item{data}{A data frame with one row per observation. Do not supply it when
-`formula` is already a compiled design. For backward compatibility, the second
+\code{formula} is already a compiled design. For backward compatibility, the second
 positional argument after a compiled design may be the target term name.}
 
-\item{distance}{A `dist` object or full distance matrix, used with a
+\item{distance}{A \code{dist} object or full distance matrix, used with a
 one-sided formula.}
 
 \item{term}{Optional name of the sole categorical fixed main-effect term.
 It is inferred when the model contains exactly one fixed term.}
 
-\item{type}{Group spatial `"median"` or `"centroid"`.}
+\item{type}{Group spatial \code{"median"} or \code{"centroid"}.}
 
 \item{bias_adjust}{Apply the small-sample group-size adjustment.}
 
-\item{permutations}{A non-negative integer or `"all"`.}
+\item{permutations}{A non-negative integer or \code{"all"}.}
 
 \item{seed}{Optional permutation seed.}
 
@@ -50,10 +50,10 @@ It is inferred when the model contains exactly one fixed term.}
 \item{tol}{Numerical tolerance.}
 
 \item{design}{Backward-compatible named alias for a compiled Design Object;
-use `formula = design` or pass the object as the first argument.}
+use \code{formula = design} or pass the object as the first argument.}
 }
 \value{
-An object of class `permanova_dispersion`.
+An object of class \code{permanova_dispersion}.
 }
 \description{
 Converts the original dissimilarity to distances from each observation to

@@ -1,9 +1,10 @@
 # Structured (Cornfield–Tukey / Satterthwaite) denominator construction
 
-Builds a pseudo-F denominator for a mixed-model term by \*synthesising\*
+Builds a pseudo-F denominator for a mixed-model term by *synthesising*
 mean squares in containment-lattice order, rather than by the
-unconstrained minimum-norm match used in \[quasi_denominator()\]. Given
-the expected mean squares (EMS) of a set of sources, each random
+unconstrained minimum-norm match used in
+[`quasi_denominator()`](https://marine-ecologist.github.io/distmer/dev/reference/quasi_denominator.md).
+Given the expected mean squares (EMS) of a set of sources, each random
 source's variance component, and the observed mean squares, it peels the
 target EMS one variance component at a time from the top of the lattice
 down, using the source that directly estimates each component. On a
@@ -24,14 +25,14 @@ structured_denominator(ems, mean_squares, dfs, leading, target, tol = 1e-08)
 - ems:
 
   Numeric matrix of EMS coefficients, one row per source (named) and one
-  column per variance component (named). Entry \`ems\[i, j\]\` is the
-  coefficient of component \`j\` in the expected mean square of source
-  \`i\`.
+  column per variance component (named). Entry `ems[i, j]` is the
+  coefficient of component `j` in the expected mean square of source
+  `i`.
 
 - mean_squares:
 
   Named numeric vector of observed mean squares, one per source (names
-  matching \`rownames(ems)\`).
+  matching `rownames(ems)`).
 
 - dfs:
 
@@ -39,9 +40,10 @@ structured_denominator(ems, mean_squares, dfs, leading, target, tol = 1e-08)
 
 - leading:
 
-  Named character vector mapping each \*random\* source to the variance
-  component it directly estimates (e.g. \`c(Residual = "residual", Site
-  = "site")\`); fixed sources are omitted or \`NA\`.
+  Named character vector mapping each *random* source to the variance
+  component it directly estimates (e.g.
+  `c(Residual = "residual", Site = "site")`); fixed sources are omitted
+  or `NA`.
 
 - target:
 
@@ -55,8 +57,8 @@ structured_denominator(ems, mean_squares, dfs, leading, target, tol = 1e-08)
 
 ## Value
 
-A list with the denominator \`weights\` (named), its value, and its
-Satterthwaite \`df\`.
+A list with the denominator `weights` (named), its value, and its
+Satterthwaite `df`.
 
 ## Examples
 
