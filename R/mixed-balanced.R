@@ -186,7 +186,7 @@ derive_ems <- function(design, hypothesis = "I", tol = 1e-10) {
   denominator_ss <- trace_hgh(structure$H_denominator, G)
   numerator_ms <- numerator_ss / projection$df
   denominator_ms <- denominator_ss / structure$denominator_df
-  if (abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, G, tol)) {
     stop("The exact denominator mean square is numerically zero for term `", term, "`.", call. = FALSE)
   }
   observed <- numerator_ms / denominator_ms
@@ -200,11 +200,8 @@ derive_ems <- function(design, hypothesis = "I", tol = 1e-10) {
     label = paste0("Permuting whole plots for term `", term, "`"), tol = tol
   )
 
-  p_value <- NA_real_
-  if (length(permuted)) {
-    extreme <- sum(permuted >= observed - tol, na.rm = TRUE)
-    p_value <- if (exact) extreme / length(permuted) else (extreme + 1) / (length(permuted) + 1)
-  }
+  inference <- .permutation_inference(permuted, observed, exact, tol)
+  p_value <- inference$p_value
   notes <- character()
   if (is.finite(attainable) && attainable < 100) {
     notes <- c(notes, paste0("Only ", attainable, " whole-plot permutations are attainable."))

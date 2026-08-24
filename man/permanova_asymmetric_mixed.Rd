@@ -9,6 +9,8 @@ permanova_asymmetric_mixed(
   permutations = 999L,
   seed = NULL,
   hypothesis = "I",
+  denominator = c("ems", "stratum"),
+  whole_plot = c("auto", "observation", "centroid"),
   keep_permutations = FALSE,
   max_exact = 100000L,
   tol = 1e-10
@@ -24,6 +26,24 @@ main term and one \code{(1 | unit:subplot)} interaction term.}
 
 \item{hypothesis}{Sum-of-squares partition for the fixed terms (\code{"I"}, \code{"II"},
 \code{"III"}).}
+
+\item{denominator}{How each fixed term's denominator is chosen. \code{"ems"}
+(default) derives the expected mean squares of the numerator and of every
+candidate stratum from the actual design, by the trace method, and matches
+them with \code{\link[=quasi_denominator]{quasi_denominator()}}. When the design is balanced this returns a
+single stratum and reproduces \code{"stratum"} exactly; when it is not, the
+correct denominator can be a combination of strata with Satterthwaite
+degrees of freedom, and the balanced rule is then wrong. \code{"stratum"} forces
+the balanced rule: whole-plot terms over the unit stratum, sub-plot terms
+over the unit-by-sub-plot stratum.}
+
+\item{whole_plot}{How whole-plot terms are permuted when units are unequally
+replicated. \code{"auto"} (default) keeps the intact-unit action at the
+observation level whenever any two units are exchangeable, and otherwise
+falls back to equally weighted unit centroids so a p-value exists at all.
+\code{"observation"} and \code{"centroid"} force either. The two agree exactly for
+equally replicated units and target different estimands otherwise; the
+choice made is reported on the fit.}
 
 \item{keep_permutations}{Retain permutation statistics on each test spec.}
 

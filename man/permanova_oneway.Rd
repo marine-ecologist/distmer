@@ -10,7 +10,8 @@ permanova_oneway(
   permutations = 999L,
   seed = NULL,
   engine = c("pairwise", "projection"),
-  keep_permutations = FALSE
+  keep_permutations = FALSE,
+  tol = 1e-10
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ permanova_oneway(
 \item{engine}{Either \code{"pairwise"} or \code{"projection"}.}
 
 \item{keep_permutations}{Retain the permutation pseudo-F values.}
+
+\item{tol}{Numerical tolerance for the numerically-zero residual check.}
 }
 \value{
 An object of class \code{permanova_oneway}.

@@ -5,7 +5,10 @@ test_that("capability registry is complete and resolves public implementations",
     "permutation_contract", "error_control", "explicit_exclusions"
   )
   expect_equal(names(capabilities), required)
-  expect_equal(nrow(capabilities), 21)
+  # A lower bound catches accidental truncation without needing an edit
+  # every time a validated engine is added; completeness is enforced
+  # against the dispatcher in test-release-audit.R.
+  expect_gte(nrow(capabilities), 21L)
   expect_equal(anyDuplicated(capabilities$engine), 0L)
   expect_true(all(vapply(
     capabilities$engine, exists, logical(1), mode = "function",

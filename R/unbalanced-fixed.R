@@ -102,7 +102,6 @@ derive_unbalanced_hypotheses <- function(
          call. = FALSE)
   }
   intercept_columns <- which(assignment == 0L)
-  full <- design$projections$fixed
 
   all_specs <- setNames(lapply(seq_along(labels), function(index) {
     target <- labels[[index]]
@@ -201,7 +200,7 @@ derive_unbalanced_hypotheses <- function(
   numerator_ms <- numerator_ss / specification$df
   denominator_ss <- trace_hgh(denominator$H, design$G)
   denominator_ms <- denominator_ss / denominator$df
-  if (!is.finite(denominator_ms) || abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, design$G, tol)) {
     stop("The full-model residual mean square is numerically zero.",
          call. = FALSE)
   }
@@ -213,15 +212,8 @@ derive_unbalanced_hypotheses <- function(
     plan$orders,
     label = paste0("Permuting term `", term, "`"), tol = tol
   )
-  p_value <- NA_real_
-  if (length(statistics)) {
-    extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
-    p_value <- if (plan$exact) {
-      extreme / length(statistics)
-    } else {
-      (extreme + 1) / (length(statistics) + 1)
-    }
-  }
+  inference <- .permutation_inference(statistics, observed, plan$exact, tol)
+  p_value <- inference$p_value
   notes <- character()
   if (!isTRUE(design$spectral$euclidean)) {
     notes <- c(
@@ -389,28 +381,4 @@ print.permanova_unbalanced <- function(x, ...) {
   cat("Supported design:", x$supported_design, "\n")
   print(x$table, row.names = FALSE)
   invisible(x)
-}
-
-
-.fix1_partial_term <- function(X_term, H_reduced, tol = 1e-8) {
-  # residualise the term columns against everything below it
-  n  <- nrow(X_term)
-  Xr <- X_term - H_reduced %*% X_term
-  # estimable rank via SVD of the residualised term columns
-  sv <- svd(Xr, nu = ncol(Xr), nv = 0)
-  keep <- sv$d > (tol * sv$d[1])            # columns with non-trivial variation
-  rank_est     <- sum(keep)
-  rank_nominal <- ncol(X_term)
-  # projection onto the estimable subspace (rank_est-dimensional)
-  U  <- sv$u[, keep, drop = FALSE]
-  H_term_est <- U %*% t(U)                  # hat matrix for the estimable part
-  list(
-    H_term    = H_term_est,
-    df        = rank_est,                   # REDUCED df (e.g. 1 not 2)
-    df_nominal= rank_nominal,
-    flagged   = rank_est < rank_nominal,    # TRUE -> mark with ** in output
-    note      = if (rank_est < rank_nominal)
-      sprintf("%d of %d df estimable (empty cell present)",
-              rank_est, rank_nominal) else NA_character_
-  )
 }

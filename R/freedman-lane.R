@@ -231,3 +231,52 @@
   }
   statistics
 }
+
+# Freedman-Lane distribution for a statistic whose denominator is a linear
+# combination of strata rather than a single projector. The kernel already
+# returns one trace per projector, so the numerator and every candidate stratum
+# are evaluated together and recombined under each permutation with the same
+# coefficients used for the observed statistic.
+.freedman_lane_quasi_statistics <- function(G, H_reduced, H_numerator,
+                                            numerator_df, strata_H, strata_df,
+                                            coefficients, orders, index = NULL,
+                                            label = NULL, numerator_residual = 0,
+                                            residual_index = NULL, tol = 1e-10) {
+  total <- nrow(orders)
+  statistics <- numeric(total)
+  if (!total) {
+    return(statistics)
+  }
+  keep <- which(abs(coefficients) > 0)
+  # A construction that moved surplus residual onto the numerator leaves the
+  # residual stratum with no denominator weight, but the numerator still needs
+  # its mean square under every permutation, so keep it in the kernel.
+  carries_surplus <- numerator_residual > 0 && !is.null(residual_index)
+  if (carries_surplus) {
+    keep <- sort(unique(c(keep, residual_index)))
+  }
+  kernel <- .freedman_lane_kernel(
+    G, H_reduced, c(list(H_numerator), strata_H[keep]), tol = tol
+  )
+  weights <- coefficients[keep]
+  divisors <- strata_df[keep]
+  surplus_at <- if (carries_surplus) match(residual_index, keep) else NA_integer_
+  progress <- .permutation_progress(total, label)
+  on.exit(progress$close(), add = TRUE)
+  for (row in seq_len(total)) {
+    permutation <- orders[row, ]
+    if (!is.null(index)) {
+      permutation <- index(permutation)
+    }
+    traces <- kernel$evaluate(permutation)
+    strata_ms <- traces[-1L] / divisors
+    denominator <- sum(weights * strata_ms)
+    numerator <- traces[[1L]] / numerator_df
+    if (!is.na(surplus_at)) {
+      numerator <- numerator + numerator_residual * strata_ms[[surplus_at]]
+    }
+    statistics[[row]] <- numerator / denominator
+    progress$tick(row)
+  }
+  statistics
+}

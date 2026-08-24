@@ -213,7 +213,7 @@ permanova_unbalanced_nested_lower <- function(
     units$H_denominator, units$denominator_df, plan, tol,
     label = "Permuting lower-level unit centroids"
   )
-  notes <- character()
+  notes <- result$resolution_note
   if (is.finite(plan$attainable) && plan$attainable < 100) {
     notes <- c(notes, paste0(
       "Only ", plan$attainable,

@@ -1,8 +1,12 @@
 # Unbalanced nested top-unit PERMANOVA
 
 Tests one treatment assigned to top-level units of one unbalanced nested
-hierarchy. Equally weighted top-unit centroids are permuted only among
-hierarchies with the same sorted vector of child observation counts.
+hierarchy. Each top-unit centroid averages its child centroids with
+equal weight, so a child carrying more replicates does not pull its
+parent; this is the same cascaded convention
+[`permanova_unbalanced_nested_multi()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_multi.md)
+uses for deeper chains. Centroids are permuted only among hierarchies
+with the same sorted vector of child observation counts.
 
 ## Usage
 

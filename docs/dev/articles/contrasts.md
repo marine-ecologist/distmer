@@ -38,39 +38,40 @@ Holm-adjusted:
 
 ``` r
 
+
 data(dune, dune.env, package = "vegan")
 bray <- vegdist(dune, method = "bray")
-
+ 
 fit1 <- permanova(bray ~ Management, data = dune.env,
                   permutations = 9999, seed = 101)
 summary(fit1)
 #> Distance-based PERMANOVA
 #> Engine: fixed effects  (Type I SS)
-#>
+#> 
 #> Factors
 #>  Name       Type  Levels
-#>  Management Fixed 4
-#>
+#>  Management Fixed 4     
+#> 
 #> PERMANOVA table of results
 #>  Source     df SS    MS    Pseudo-F P(perm) P(MC)  Unique perms
-#>  Management 3  1.469 0.490 2.7672   0.0027  0.0054 9999
-#>  Residual   16 2.830 0.177
-#>  Total      19 4.299
-#>
+#>  Management 3  1.469 0.490 2.7672   0.0027  0.0054 9999        
+#>  Residual   16 2.830 0.177                                     
+#>  Total      19 4.299                                           
+#> 
 #> Details of the expected mean squares (EMS) for the model
-#>  Source     EMS
+#>  Source     EMS                           
 #>  Management 1*V(Res) + 4.900*S(Management)
-#>  Res        1*V(Res)
-#>
+#>  Res        1*V(Res)                      
+#> 
 #> Construction of Pseudo-F ratio(s) from mean squares
 #>  Source     Numerator    Denominator Num.df Den.df
-#>  Management 1*Management 1*Res       3      16
-#>
+#>  Management 1*Management 1*Res       3      16    
+#> 
 #> Estimates of components of variation
 #>  Source        Estimate Sq.root
-#>  S(Management) 0.064    0.253
+#>  S(Management) 0.064    0.253  
 #>  V(Res)        0.177    0.421
-
+ 
 permanova_contrasts(fit1, type = "pairwise") |> tab()
 ```
 
@@ -87,6 +88,7 @@ same, but control the family-wise error differently
 (Benjamini-Hochberg):
 
 ``` r
+
 permanova_contrasts(fit1, type = "pairwise", adjust = "BH")  |> tab()
 ```
 
@@ -107,16 +109,17 @@ ditch): does each pesticide dose differ from the untreated control?
 every dose vs control (dose = 0): 4 contrasts:
 
 ``` r
+
 data(pyrifos, package = "vegan")
 ditch <- gl(12, 1, length = 132)
 week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
 dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
 pyr.env  <- data.frame(ditch, week, dose)
 pyr.bray <- vegdist(pyrifos)
-
+ 
 fit2 <- permanova(pyr.bray ~ dose, data = pyr.env,
                   permutations = 999, seed = 101)
-
+ 
 
 permanova_contrasts(fit2, type = "trt.vs.ctrl", ref = "0") |> tab()
 ```
@@ -135,6 +138,7 @@ curvature?
 
 ``` r
 
+
 permanova_contrasts(fit2, type = "poly", scores = c(0, 0.1, 0.9, 6, 44))  |> tab()
 ```
 
@@ -149,6 +153,7 @@ if `dose` were an ordered factor with numeric labels, scores are
 inferred:
 
 ``` r
+
 pyr.env$dose_ord <- ordered(pyr.env$dose,
                             levels = c("0", "0.1", "0.9", "6", "44"))
 fit2b <- permanova(pyr.bray ~ dose_ord, data = pyr.env,
@@ -167,6 +172,7 @@ permanova_contrasts(fit2b, type = "poly")    |> tab()
 
 ``` r
 
+
 permanova_contrasts(fit1, type = "contr.sum") |> tab()
 ```
 
@@ -181,6 +187,7 @@ permanova_contrasts(fit1, type = "contr.sum") |> tab()
 helmert (i.e. each level vs the mean of subsequent levels):
 
 ``` r
+
 
 permanova_contrasts(fit1, type = "helmert") |> tab()
 ```
@@ -199,6 +206,7 @@ factor’s level order; check with levels():
 
 ``` r
 
+
 Lm <- rbind(
   "low vs high"   = c( 1/3,  1/3,  1/3, -1/2, -1/2),    # note level order!
   "44 vs 6"       = c(   0,    0,    0,    1,   -1)
@@ -214,6 +222,7 @@ permanova_contrasts(fit2, type = "custom", custom = Lm) |> tab()
 a named list works too, one vector per contrast:
 
 ``` r
+
 
 Llist <- list(
   "any dose vs control" = c(-4, 1, 1, 1, 1),            # control vs the rest
@@ -234,6 +243,7 @@ samples per site?
 
 ``` r
 
+
 set.seed(7)
 site  <- factor(rep(paste0("S", 1:8), each = 4))
 treat <- factor(rep(c("ctrl", "trt"), each = 16))   # S1-S4 ctrl, S5-S8 trt
@@ -243,7 +253,7 @@ env   <- data.frame(site, treat)
 
 fit3 <- permanova(d ~ treat + (1 | site), data = env,
                   permutations = 999, seed = 202)
-
+ 
 
 permanova_contrasts(fit3, type = "pairwise") |> tab()
 ```
@@ -260,7 +270,8 @@ useful for checking custom coding or level order before you run
 thousands of permutations.
 
 ``` r
-contrast_matrix("trt.vs.ctrl", levels = levels(pyr.env$dose), ref = "0")
+
+contrast_matrix("trt.vs.ctrl", levels = levels(pyr.env$dose), ref = "0") 
 #>          0 0.1 0.9 6 44
 #> 0.1 - 0 -1   1   0 0  0
 #> 0.9 - 0 -1   0   1 0  0
@@ -275,6 +286,7 @@ contrast_matrix("trt.vs.ctrl", levels = levels(pyr.env$dose), ref = "0")
 
 ``` r
 
+
 library(distmer)
 library(vegan)
 
@@ -285,7 +297,7 @@ week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
 dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
 
 pyr.env <- data.frame(ditch, week, dose)
-pyr.bray <- vegdist(pyrifos)
+pyr.bray <- vegdist(pyrifos)  
 
 fit <- permanova(
   pyr.bray ~ dose,
@@ -298,7 +310,7 @@ res <- permanova_contrasts(fit, type = "trt.vs.ctrl", ref = "0")
 as.data.frame(res) |> tab()                      # full numeric table
 summary(res)                             # same data.frame
 subset(as.data.frame(res), p_adj < 0.05) # significant contrasts only
-res$L
+res$L         
 ```
 
 \`\`\`

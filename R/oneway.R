@@ -108,6 +108,7 @@
 #' @param seed Optional integer seed.
 #' @param engine Either `"pairwise"` or `"projection"`.
 #' @param keep_permutations Retain the permutation pseudo-F values.
+#' @param tol Numerical tolerance for the numerically-zero residual check.
 #' @return An object of class `permanova_oneway`.
 #' @export
 permanova_oneway <- function(
@@ -116,7 +117,8 @@ permanova_oneway <- function(
     permutations = 999L,
     seed = NULL,
     engine = c("pairwise", "projection"),
-    keep_permutations = FALSE) {
+    keep_permutations = FALSE,
+    tol = 1e-10) {
   engine <- match.arg(engine)
   distance <- as_distance_matrix(distance)
   group <- droplevels(factor(group))
@@ -136,6 +138,16 @@ permanova_oneway <- function(
   )
 
   observed <- stat_fun(distance, group)
+  # Match the mixed and unbalanced engines, which refuse rather than divide by a
+  # numerically zero residual. Only the observed statistic is guarded: a single
+  # degenerate permutation must not abort an otherwise valid run.
+  if (.mean_square_is_zero(
+    observed[["ms_within"]], tol = tol,
+    reference = observed[["ss_total"]] / max(1L, nrow(distance) - 1L)
+  )) {
+    stop("The within-group residual mean square is numerically zero.",
+         call. = FALSE)
+  }
   permutation_f <- numeric(as.integer(permutations))
 
   if (permutations > 0L) {

@@ -98,3 +98,80 @@ test_that("isolated contrasts preserve the fitted random-intercept design", {
   expect_equal(row$p_perm,ref$table$`P(perm)`[1])
   expect_equal(row$df_den,.permanova_tests(ref$fit)$trt$denominator$df)
 })
+
+
+# ---------------------------------------------------------------------------
+# within-cell dispatch: permanova_contrasts(within = ) and the multi-name
+# `factor` shorthand both route to permanova_contrasts_within().
+# ---------------------------------------------------------------------------
+
+.within_example <- function(seed = 4) {
+  set.seed(seed)
+  dat <- expand.grid(
+    replicate = 1:3,
+    block = factor(1:4),
+    depth = factor(c("lo", "hi")),
+    region = factor(c("north", "south"))
+  )
+  dat$block <- factor(paste(dat$region, dat$block))
+  dat$y <- rnorm(nrow(dat)) + as.numeric(dat$depth) +
+    as.numeric(dat$block) / 4
+  dat
+}
+
+test_that("a multi-name `factor` is the shorthand for `within`", {
+  dat <- .within_example()
+  fit <- permanova(dist(dat$y) ~ depth * region + (1 | block), dat,
+                   permutations = 0)
+
+  expect_message(
+    shorthand <- permanova_contrasts(fit, type = "pairwise",
+                                     factor = c("depth", "region")),
+    "Contrasting 'depth' within region"
+  )
+  explicit <- permanova_contrasts(fit, type = "pairwise", factor = "depth",
+                                  within = "region")
+  expect_equal(as.data.frame(shorthand), as.data.frame(explicit))
+  expect_s3_class(shorthand, "permanova_contrasts_within")
+
+  # one row per pair per cell, and the cell columns are carried through
+  expect_true(all(c("region", "contrast", "t", "denominator_df") %in%
+                    names(shorthand)))
+  expect_equal(nrow(shorthand), nlevels(dat$region))
+  expect_setequal(as.character(shorthand$region), levels(dat$region))
+})
+
+test_that("the within path refuses families and denominators it cannot form", {
+  dat <- .within_example()
+  fit <- permanova(dist(dat$y) ~ depth * region + (1 | block), dat,
+                   permutations = 0)
+
+  expect_error(
+    permanova_contrasts(fit, type = "poly", factor = "depth",
+                        within = "region"),
+    'only defined for type = "pairwise"'
+  )
+  expect_error(
+    permanova_contrasts(fit, type = "pairwise", method = "pooled",
+                        factor = "depth", within = "region"),
+    "no pooled form"
+  )
+  # an unknown name is reported, not silently announced as a within-cell run
+  expect_error(
+    suppressMessages(
+      permanova_contrasts(fit, type = "pairwise", factor = c("depth", "nope"))
+    ),
+    "nope"
+  )
+})
+
+test_that("printing a within-cell table survives losing its cell columns", {
+  dat <- .within_example()
+  fit <- permanova(dist(dat$y) ~ depth * region + (1 | block), dat,
+                   permutations = 0)
+  ct <- permanova_contrasts(fit, type = "pairwise", factor = "depth",
+                            within = "region")
+  expect_output(print(ct), "Pairwise contrasts of 'depth' within region")
+  # subsetting away the grouping columns must fall back, not fail
+  expect_output(print(ct[, c("contrast", "t")]), "contrast")
+})

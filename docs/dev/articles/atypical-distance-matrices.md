@@ -15,17 +15,19 @@ summarises whether a dissimilarity is Euclidean and how much inertia
 sits on the negative axes.
 
 ``` r
+
 bray <- vegdist(dune, method = "bray")
 diag_bray <- distance_diagnostics(bray)
 unlist(diag_bray[c("euclidean", "positive_inertia", "negative_inertia",
                     "negative_count", "negative_ratio")])
-#>        euclidean positive_inertia negative_inertia   negative_count
-#>       0.00000000       4.59394690       0.29492503       5.00000000
-#>   negative_ratio
+#>        euclidean positive_inertia negative_inertia   negative_count 
+#>       0.00000000       4.59394690       0.29492503       5.00000000 
+#>   negative_ratio 
 #>       0.06419861
 ```
 
 ``` r
+
 eig <- diag_bray$eigenvalues
 barplot(
   eig, border = NA, names.arg = NULL,
@@ -52,6 +54,7 @@ same seed, never as a silent replacement. A square-root transform, for
 example, often makes Bray-Curtis closer to Euclidean:
 
 ``` r
+
 sqrt_bray <- sqrt(bray)
 raw  <- permanova(bray ~ Management, dune.env, permutations = 199, seed = 1)
 sqrt_fit <- permanova(sqrt_bray ~ Management, dune.env, permutations = 199, seed = 1)
@@ -65,10 +68,11 @@ rbind(
 ```
 
 ``` r
+
 distance_diagnostics(sqrt_bray)[c("euclidean", "negative_ratio")]
 #> $euclidean
 #> [1] TRUE
-#>
+#> 
 #> $negative_ratio
 #> [1] 0
 ```

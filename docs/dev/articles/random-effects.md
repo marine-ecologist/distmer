@@ -38,14 +38,15 @@ through time using the open surfaces of tiles (“crowns”) across
 different caging treatments:
 
 ``` r
+
 library(tidyverse)
 library(distmer)
 library(patchwork)
 library(ggrepel)
 
 
-coralsuccession <- read.csv("~/distmer/code/Macro_communities.csv") |>
-  filter(Nutrients == "Normal") |>
+coralsuccession <- read.csv("~/distmer/code/Macro_communities.csv") |> 
+  filter(Nutrients == "Normal") |> 
   filter(Microhabitat == "Crown")
 
 env <- coralsuccession[,1:5]
@@ -56,32 +57,32 @@ coral_pcoa <- cmdscale(coral_bray, k = 2, eig = TRUE, add = TRUE)
 
 coral_pcoa_scores <- as.data.frame(coral_pcoa$points) |>
   setNames(c("PCoA1", "PCoA2")) |>
-  bind_cols(env) |>
-  group_by(Caging, Timepoint) |>
-  summarise(PCoA1=mean(PCoA1), PCoA2=mean(PCoA2))
+  bind_cols(env) |> 
+  group_by(Caging, Timepoint) |> 
+  summarise(PCoA1=mean(PCoA1), PCoA2=mean(PCoA2)) 
 
-coral_scores <- wascores(coral_pcoa$points, coral) |>
-  as.data.frame() |>
-  rownames_to_column() |>
-  setNames(c("Taxa", "PCoA1", "PCoA2"))
+coral_scores <- wascores(coral_pcoa$points, coral) |> 
+  as.data.frame() |> 
+  rownames_to_column() |> 
+  setNames(c("Taxa", "PCoA1", "PCoA2")) 
 
 
-a <- ggplot() + theme_bw() +
+a <- ggplot() + theme_bw() + 
   geom_point(data = coral_pcoa_scores, aes(PCoA1, PCoA2, fill=Caging), shape=21) +
   geom_text(data = coral_pcoa_scores, aes(PCoA1-0.01, PCoA2+0.01, label=Timepoint/7), size=2.5) +
   geom_path(data = coral_pcoa_scores, aes(PCoA1, PCoA2, group=Caging),
             colour = "grey70", linewidth = 0.4, alpha = 0.85) +
-  theme(legend.position = c(0.02, 0.98),
-        legend.justification = c(0, 1),
+  theme(legend.position = c(0.02, 0.98),      
+        legend.justification = c(0, 1),       
         legend.key = element_blank()) +
-  guides(fill = guide_legend(title = NULL))
+  guides(fill = guide_legend(title = NULL))  
 
-b <- ggplot() + theme_bw() +
+b <- ggplot() + theme_bw() + 
   geom_segment(data = coral_scores, aes(x = 0, y = 0, xend = PCoA1, yend = PCoA2),
       arrow = arrow( length = unit(0.18, "cm"), type = "closed"),
       colour = "grey75", linewidth = 0.5, inherit.aes = FALSE) +
   geom_text_repel(data = coral_scores, aes(x = PCoA1, y = PCoA2, label=Taxa), size=2)
-
+  
 a|b
 ```
 
@@ -100,6 +101,7 @@ Using `distmer` with tile as a random effect, both `Timepoint` and
 structure:
 
 ``` r
+
 fm1 <- permanova(coral_bray ~ Caging + Timepoint + (1 | Tile), env, type="III", permutations=9999, seed=101)
 fm1$table |> tab()
 ```
@@ -125,6 +127,7 @@ while Caged treatments differ from both Open and Partial:
 
 ``` r
 
+
 permanova_contrasts(fm1, type = "pairwise", factor="Caging") |> tab()
 ```
 
@@ -147,6 +150,7 @@ post-treatment dates per ditch, where each trajectory is an individual
 ditch according to dose:
 
 ``` r
+
 
 data(pyrifos, package = "vegan")
 ditch <- gl(12, 1, length = nrow(pyrifos))
@@ -173,7 +177,7 @@ ggplot() +
   geom_path(data = ditch_ord, aes(Axis1, Axis2, group = ditch, colour = dose, order = week), alpha = 0.65, linewidth = 0.6) +
   geom_point(data = ditch_ord, aes(Axis1, Axis2, group = ditch, fill = dose, order = week), shape=21, alpha = 0.85) +
   coord_fixed() +
-  theme_bw() +
+  theme_bw() + 
   scale_fill_brewer(palette="Set1") +
   scale_color_brewer(palette="Set1") +
   scale_size_continuous(range = c(1.8, 4), breaks = c(1, 4, 8)) +
@@ -198,6 +202,7 @@ Visualising the mean PCoA axis 1 within ditch and period indicates
 ditches need not share the same early-to-late change:
 
 ``` r
+
 period_env <- transform(
   pyrifos_env,
   period = factor(
@@ -215,7 +220,7 @@ period_centres <- aggregate(
 ggplot() +
   geom_line(data = period_centres, aes(period, Axis1, group = ditch), colour = "grey65", linewidth = 0.7) +
   geom_point(data = period_centres, aes(period, Axis1, group = ditch, fill = ditch), shape=21, size = 2.4, show.legend = FALSE) +
-  theme_bw() +
+  theme_bw() + 
   scale_fill_brewer(palette="Set1") +
   scale_color_brewer(palette="Set1") +
   labs(x = "Period", y = "Mean PCoA axis 1 within ditch and period")
@@ -231,6 +236,7 @@ communities, while a random slope allows their within-ditch changes to
 differ.
 
 ``` r
+
 period_fit <- permanova(
   pyrifos_bray ~ period + (1 + period | ditch),
   period_env, permutations = "all", seed = 26
@@ -239,21 +245,21 @@ period_fit <- permanova(
 summary(period_fit) |> tab()
 #> Distance-based PERMANOVA
 #> Engine: random slope
-#>
+#> 
 #> Factors
 #>  Name           Type          Levels
-#>  period         Fixed          2
-#>  1+period|ditch Random, slope 12
-#>
+#>  period         Fixed          2    
+#>  1+period|ditch Random, slope 12    
+#> 
 #> PERMANOVA table of results
 #>  Source                       df SS    MS    Pseudo-F P(perm) Unique perms
-#>  period                       1  0.424 0.424 6.7905   0.0005  4096
-#>  Between-subject random slope 11 0.687 0.062
-#>
+#>  period                       1  0.424 0.424 6.7905   0.0005  4096        
+#>  Between-subject random slope 11 0.687 0.062                              
+#> 
 #> Denominators
-#>  Source Denominator
+#>  Source Denominator                                 
 #>  period MS[between-subject random-slope differences]
-#>
+#> 
 #> Estimates of components of variation
 #>                  random_intercept random_slope
 #> random_intercept          0.05305      0.00388
@@ -271,6 +277,7 @@ and tests the equally weighted average slope against the variation among
 ditch slopes.
 
 ``` r
+
 continuous_fit <- permanova(
   pyrifos_bray ~ week + (1 + week | ditch),
   pyrifos_env, permutations = 999, seed = 26
@@ -279,24 +286,24 @@ continuous_fit <- permanova(
 summary(continuous_fit) |> tab()
 #> Distance-based PERMANOVA
 #> Engine: continuous random slope
-#>
+#> 
 #> Factors
 #>  Name         Type          Levels
-#>  week         Fixed         NA
-#>  1+week|ditch Random, slope 12
-#>
+#>  week         Fixed         NA    
+#>  1+week|ditch Random, slope 12    
+#> 
 #> PERMANOVA table of results
 #>  Source                     df SS    MS    Pseudo-F P(perm) Unique perms
-#>  week                       1  0.016 0.016 6.8424   0.0010  999
-#>  Between-group random slope 11 0.025 0.002
-#>  Residual                   24 1.067 0.044
-#>
+#>  week                       1  0.016 0.016 6.8424   0.0010  999         
+#>  Between-group random slope 11 0.025 0.002                              
+#>  Residual                   24 1.067 0.044                              
+#> 
 #> Denominators
-#>  Source Denominator
+#>  Source Denominator                    
 #>  week   MS[between-group random slopes]
-#>
+#> 
 #> Estimates of components of variation
-#>  Source   Estimate     Sq.root
+#>  Source   Estimate     Sq.root   
 #>  slope    0.0007352657 0.02711578
 #>  residual 0.0444687561 0.21087616
 ```
@@ -313,6 +320,7 @@ At current `distmer` does not run pure random effects models and instead
 throws an error:
 
 ``` r
+
 period_fit <- permanova(pyrifos_bray ~ (1 + period), period_env)
 ```
 

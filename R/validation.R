@@ -1293,7 +1293,6 @@ simulate_unbalanced_validation <- function(
       response <- A_effect * (data$A == "a2") + B_effect[data$B] +
         rnorm(nrow(data), sd = residual_sd)
       additive_formula <- stats::reformulate(c("B", "A"))
-      reduced_formula <- stats::reformulate("B")
       design <- compile_permanova_design(
         additive_formula, data, dist(response)
       )
@@ -1657,10 +1656,17 @@ simulate_unbalanced_mixed_validation <- function(
         nested_design, permutations = permutations,
         seed = iteration_seed + 5000L, keep_permutations = TRUE
       )
-      nested_means <- aggregate(
+      # Parent centroids average their child centroids with equal weight,
+      # matching the engine's cascaded aggregation.
+      nested_site_means <- aggregate(
         nested_response,
-        list(region = nested_data$region,
+        list(site = nested_data$site, region = nested_data$region,
              treatment = nested_data$treatment), mean
+      )
+      nested_means <- aggregate(
+        nested_site_means$x,
+        list(region = nested_site_means$region,
+             treatment = nested_site_means$treatment), mean
       )
       nested_means <- nested_means[
         order(as.integer(nested_means$region)), , drop = FALSE
@@ -3186,10 +3192,18 @@ run_permanova_validation <- function(seed = 1L, include_vegan = TRUE) {
   phase12_nested_fit <- suppressWarnings(permanova_unbalanced_nested(
     phase12_nested_design, permutations = "all", keep_permutations = TRUE
   ))
-  phase12_top_means <- aggregate(
+  # Parent centroids average their child centroids with equal weight, matching
+  # the engine's cascaded aggregation.
+  phase12_site_means <- aggregate(
     phase12_nested_response,
-    list(region = phase12_nested_data$region,
+    list(site = phase12_nested_data$site,
+         region = phase12_nested_data$region,
          treatment = phase12_nested_data$treatment), mean
+  )
+  phase12_top_means <- aggregate(
+    phase12_site_means$x,
+    list(region = phase12_site_means$region,
+         treatment = phase12_site_means$treatment), mean
   )
   phase12_top_means <- phase12_top_means[
     order(as.integer(phase12_top_means$region)), , drop = FALSE
@@ -3603,16 +3617,51 @@ run_permanova_validation <- function(seed = 1L, include_vegan = TRUE) {
     "connected equality-component label reassignment"
   )
 
+  # Mixed engines added after the original support matrix: each is pinned to an
+  # independently computed classical reference.
+  mixed_engine_checks <- list(
+    list(check = "balanced split-plot F equals split-plot aov strata",
+         detail = "aov(y ~ tr * sub + Error(unit))",
+         value = simulate_mixed_covariate_validation(
+           simulations = 2L, permutations = 7L, seed = seed + 20260801L)),
+    list(check = "unbalanced split-plot F equals equal-weight unit-centroid lm",
+         detail = "lm on equally weighted unit centroids",
+         value = simulate_unbalanced_splitplot_validation(
+           simulations = 2L, permutations = 7L, seed = seed + 20260802L)),
+    list(check = "nested covariate F equals added-SS over nested stratum",
+         detail = "SS(factor | covariate) over factor-only nested stratum",
+         value = simulate_nested_covariate_validation(
+           simulations = 2L, permutations = 7L, seed = seed + 20260803L)),
+    list(check = "asymmetric mixed F equals three-stratum aov",
+         detail = "aov(y ~ EC * DE + Error(ISLAND / DE))",
+         value = simulate_asymmetric_mixed_validation(
+           simulations = 2L, permutations = 7L, seed = seed + 20260804L)),
+    list(check = "continuous random-slope F equals one-sample slope test",
+         detail = "t.test on per-group ordinary least squares slopes",
+         value = simulate_random_slope_continuous_validation(
+           simulations = 2L, permutations = 7L, seed = seed + 20260805L))
+  )
+  for (item in mixed_engine_checks) {
+    rows[[length(rows) + 1L]] <- .validation_row(
+      item$check,
+      item$value$max_engine_classical_f_difference < 1e-8,
+      item$value$max_engine_classical_f_difference, 1e-8,
+      item$detail
+    )
+  }
+
   capabilities <- permanova_capabilities()
-  capability_engines_resolve <- all(vapply(
+  # Count the registry entries that fail to resolve rather than pinning the
+  # registry size: a new validated engine must extend the registry, not break
+  # this check.
+  capability_unresolved <- sum(!vapply(
     capabilities$engine, exists, logical(1), mode = "function",
     envir = asNamespace("distmer"), inherits = FALSE
-  ))
+  )) + anyDuplicated(capabilities$engine)
   rows[[length(rows) + 1L]] <- .validation_row(
     "capability registry resolves every primary engine",
-    nrow(capabilities) == 21L && !anyDuplicated(capabilities$engine) &&
-      capability_engines_resolve,
-    nrow(capabilities), 21,
+    capability_unresolved == 0L,
+    capability_unresolved, 0,
     "unique public primary-engine registry"
   )
   capability_contracts_complete <- all(nzchar(capabilities$denominator)) &&

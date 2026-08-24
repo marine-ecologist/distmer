@@ -98,7 +98,7 @@ permanova_random_slope_continuous <- function(
   denominator_ss <- trace_hgh(H_between, K)
   denominator_df <- ng - 1L
   denominator_ms <- denominator_ss / denominator_df
-  if (!is.finite(denominator_ms) || abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, K, tol)) {
     stop("The between-group random-slope denominator is numerically zero.",
          call. = FALSE)
   }
@@ -118,7 +118,8 @@ permanova_random_slope_continuous <- function(
   }, numeric(1))
   p_value <- NA_real_
   if (length(statistics)) {
-    extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
+    extreme <- sum(statistics >= observed - max(100 * tol, sqrt(.Machine$double.eps)) * max(1, abs(observed)),
+                   na.rm = TRUE)
     p_value <- if (plan$exact) extreme / length(statistics) else
       (extreme + 1) / (length(statistics) + 1)
   }

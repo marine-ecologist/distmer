@@ -49,6 +49,28 @@
     }
   }
 
+  # distmer tests fixed effects against random strata. With no fixed term there
+  # is nothing to test, and the engines would otherwise return an SS table with
+  # no statistic -- which reads like a result. Refuse, and name the function
+  # that does decompose a pure random structure.
+  if (length(origins) && !length(design$fixed_effects)) {
+    nested <- length(origins) > 1L && all(origins %in% c("main", "nesting")) &&
+      sum(origins == "main") == 1L
+    estimator <- if (nested) {
+      "estimate_nested_variance_components()"
+    } else "estimate_variance_components()"
+    stop(
+      "No fixed term in the model. distmer tests fixed effects against random ",
+      "strata; it does not report a pure random-effects decomposition through ",
+      "`permanova()`. Either add the fixed factor of interest, for example ",
+      "`d ~ treatment + ",
+      paste0("(1 | ", design$random_terms[[1L]]$label, ")"),
+      "`, or call `", estimator, "` on the compiled design for the ",
+      "variance components themselves.",
+      call. = FALSE
+    )
+  }
+
   if (!length(origins)) {
     return(list(engine = "fixed effects", fn = permanova_unbalanced,
                 fixed_args = list(hypothesis = .or(type, "I"))))
@@ -101,6 +123,14 @@
       return(list(engine = "balanced nested", fn = permanova_nested,
                   fixed_args = list()))
     }
+    # Deeper than parent/child: cascaded equal-weight centroids at the
+    # treatment's own hierarchy level. The two-level engines keep their
+    # validated observation-weighted parent centroids.
+    if (length(design$random_terms) > 2L) {
+      return(list(engine = "unbalanced nested (multi-level)",
+                  fn = permanova_unbalanced_nested_multi,
+                  fixed_args = list(hypothesis = .or(type, "I"))))
+    }
     assignment <- .unbalanced_nested_assignment(design)
     if (assignment$level == "top") {
       return(list(engine = "unbalanced nested (top unit)",
@@ -133,15 +163,54 @@
                   fixed_args = list(hypothesis = .or(type, "I"))))
     }
   }
+  # A `/`-generated chain reaching this point carries crossed random terms that
+  # do not form a validated region/site hybrid. The crossed engine would take
+  # the route and then refuse from inside, so refuse here where the structure is
+  # still visible and can be named.
+  if (any(origins == "nesting")) {
+    stop(
+      "This design mixes a `/`-generated nesting chain (",
+      paste(design$random_terms[[which(origins == "nesting")[[1L]]]]$label,
+            collapse = ", "),
+      ") with crossed random terms. distmer does not infer a denominator for a ",
+      "nesting chain crossed with an unrelated random factor. Either drop the ",
+      "crossed term and use the nested engine, or declare the validated ",
+      "crossed-nested hybrid `(1 | region/site) + (1 | treatment:region)`.",
+      call. = FALSE
+    )
+  }
   if (any(origins == "interaction") || sum(origins == "main") >= 2L) {
-    return(list(engine = "crossed / randomized block", fn = permanova_crossed,
-                fixed_args = list(p_method = "permutation")))
+    # `permanova_crossed()` covers the complete, equally replicated case and
+    # refuses anything else. When a cell is missing or replication is uneven,
+    # route to the engine built for that instead of surfacing its refusal: the
+    # two agree exactly wherever both apply.
+    if (.crossed_is_regular(design)) {
+      return(list(engine = "crossed / randomized block", fn = permanova_crossed,
+                  fixed_args = list(p_method = "permutation")))
+    }
+    return(list(engine = "crossed mixed (incomplete / unequally replicated)",
+                fn = permanova_crossed_incomplete, fixed_args = list()))
   }
   stop(
     "permanova(): this random-effect structure is not auto-routed yet. ",
     "Compile the design and call a specific engine (see `?permanova`).",
     call. = FALSE
   )
+}
+
+# Is every cell of the crossed factorial present, with the same number of
+# observations in each? That is what `permanova_crossed()` requires, so it
+# decides which crossed engine a design is routed to.
+.crossed_is_regular <- function(design) {
+  fixed_variables <- all.vars(design$fixed_formula)
+  random_variables <- unique(unlist(lapply(design$random_terms, `[[`, "variables")))
+  names <- unique(c(fixed_variables, random_variables))
+  if (!length(names) || !all(names %in% names(design$data))) return(FALSE)
+  columns <- design$data[names]
+  if (!all(vapply(columns, is.factor, logical(1)))) return(FALSE)
+  counts <- table(interaction(lapply(columns, droplevels), drop = TRUE))
+  expected <- prod(vapply(columns, function(z) nlevels(droplevels(z)), integer(1)))
+  length(counts) == expected && length(unique(as.integer(counts))) == 1L
 }
 
 # Set sum-to-zero contrasts on the factors named in a formula, on a copy of the
@@ -306,7 +375,7 @@ permanova <- function(formula, data = NULL, distance = NULL, type = NULL,
   fmc <- num / den
   keep <- is.finite(fmc)
   if (!any(keep)) return(NA_real_)
-  (sum(fmc[keep] >= f_obs - tol) + 1) / (sum(keep) + 1)
+  (sum(fmc[keep] >= f_obs - max(100 * tol, sqrt(.Machine$double.eps)) * max(1, abs(f_obs))) + 1) / (sum(keep) + 1)
 }
 
 # P(MC) for every row of the assembled table, seeded reproducibly from the

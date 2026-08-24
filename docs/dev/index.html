@@ -38,7 +38,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 
     <a class="navbar-brand me-2" href="index.html">distmer</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.2</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,13 +51,13 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/getting-started.html">1. Getting started with distmer</a></li>
-    <li><a class="dropdown-item" href="articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
-    <li><a class="dropdown-item" href="articles/random-effects.html">3. Random effects and ecological sampling designs</a></li>
-    <li><a class="dropdown-item" href="articles/contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
-    <li><a class="dropdown-item" href="articles/dispersion.html">5. Dispersion and distance diagnostics</a></li>
+<li><a class="dropdown-item" href="articles/1-getting-started.html">1. Getting started with distmer</a></li>
+    <li><a class="dropdown-item" href="articles/2-fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
+    <li><a class="dropdown-item" href="articles/3-random-effects.html">3. Random effects and ecological sampling designs</a></li>
+    <li><a class="dropdown-item" href="articles/5-contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
+    <li><a class="dropdown-item" href="articles/6-dispersion.html">5. Dispersion and distance diagnostics</a></li>
     <li><a class="dropdown-item" href="articles/atypical-distance-matrices.html">6. Atypical distance matrices</a></li>
-    <li><a class="dropdown-item" href="articles/validation.html">7. Validation and reproducibility</a></li>
+    <li><a class="dropdown-item" href="articles/7-comparisons.html">7. distmer with published datasets</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -84,7 +84,8 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="distmer-">distmer <a class="anchor" aria-label="anchor" href="#distmer-"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="distmer-">distmer 
+<a class="anchor" aria-label="anchor" href="#distmer-"></a>
 </h1>
 </div>
 <!-- badges: start -->
@@ -123,7 +124,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 <span><span class="va">dose</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0.9</span>, <span class="fl">0</span>, <span class="fl">44</span>, <span class="fl">6</span>, <span class="fl">0.1</span>, <span class="fl">44</span>, <span class="fl">0.9</span>, <span class="fl">0</span>, <span class="fl">6</span><span class="op">)</span>, <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pyr.env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">ditch</span>, <span class="va">week</span>, <span class="va">dose</span><span class="op">)</span></span>
-<span><span class="va">pyr.bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">pyrifos</span><span class="op">)</span>  </span>
+<span><span class="va">pyr.bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vegandevs.github.io/vegan/reference/vegdist.html" class="external-link">vegdist</a></span><span class="op">(</span><span class="va">pyrifos</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/permanova.html">permanova</a></span><span class="op">(</span></span>
 <span>  <span class="va">pyr.bray</span> <span class="op">~</span> <span class="va">dose</span>,</span>
@@ -216,19 +217,19 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 </h3>
 <ol style="list-style-type: decimal">
 <li>
-<code><a href="articles/getting-started.html">vignette("getting-started", package = "distmer")</a></code> — the distance-based mixed-model idea and a first analysis.</li>
+<code><a href="https://marine-ecologist.github.io/distmer/articles/getting-started.html">vignette("getting-started", package = "distmer")</a></code> — the distance-based mixed-model idea and a first analysis.</li>
 <li>
-<code><a href="articles/random-effects.html">vignette("random-effects", package = "distmer")</a></code> — repeated sites, nested sampling, blocks, hybrids, and random slopes.</li>
+<code><a href="https://marine-ecologist.github.io/distmer/articles/random-effects.html">vignette("random-effects", package = "distmer")</a></code> — repeated sites, nested sampling, blocks, hybrids, and random slopes.</li>
 <li>
-<code><a href="articles/dispersion.html">vignette("dispersion", package = "distmer")</a></code> — distance geometry and multivariate dispersion.</li>
+<code><a href="https://marine-ecologist.github.io/distmer/articles/dispersion.html">vignette("dispersion", package = "distmer")</a></code> — distance geometry and multivariate dispersion.</li>
 <li>
-<code><a href="articles/contrasts.html">vignette("contrasts", package = "distmer")</a></code> — planned comparisons, pairwise tests, and multiplicity control.</li>
+<code><a href="https://marine-ecologist.github.io/distmer/articles/contrasts.html">vignette("contrasts", package = "distmer")</a></code> — planned comparisons, pairwise tests, and multiplicity control.</li>
 <li>
-<code><a href="articles/fixed-effects.html">vignette("fixed-effects", package = "distmer")</a></code> — Type I, II, and III fixed-effect questions.</li>
+<code><a href="https://marine-ecologist.github.io/distmer/articles/fixed-effects.html">vignette("fixed-effects", package = "distmer")</a></code> — Type I, II, and III fixed-effect questions.</li>
 <li>
-<code><a href="articles/atypical-distance-matrices.html">vignette("atypical-distance-matrices", package = "distmer")</a></code> — Atypical distance matrices.</li>
+<code>vignette("atypical-distance-matrices", package = "distmer")</code> — Atypical distance matrices.</li>
 <li>
-<code><a href="articles/validation.html">vignette("validation", package = "distmer")</a></code> — reference agreement, simulations, and reproducible reporting.</li>
+<code><a href="https://marine-ecologist.github.io/distmer/articles/validation.html">vignette("validation", package = "distmer")</a></code> — reference agreement, simulations, and reproducible reporting.</li>
 </ol>
 </div>
 <div class="section level3">

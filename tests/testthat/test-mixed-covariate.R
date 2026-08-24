@@ -228,3 +228,44 @@ test_that("mixed covariate exact requests enumerate each exchangeability action"
   expect_equal(fm$fit$tests$x$permutations_used, 16)
   expect_true(fm$fit$tests$x$exact_permutation)
 })
+
+test_that("a covariate-by-whole-plot interaction names the term that spans it", {
+  set.seed(3)
+  dat <- do.call(rbind, lapply(1:18, function(i)
+    data.frame(Tile = factor(i), Timepoint = c(1, 1, 1, 2, 2))))
+  dat$Caging <- factor(rep(c("A", "B", "C"), each = 30))
+  dat$y <- rnorm(90) + as.numeric(dat$Caging) + dat$Timepoint
+  D <- dist(dat$y)
+
+  # Every tile shares the same mean Timepoint, so the between-unit part of
+  # Caging:Timepoint is the Caging indicator scaled -- Caging has nothing left.
+  # The refusal is correct; the message has to say which term took the space.
+  expect_error(
+    permanova(~ Caging * Timepoint + (1 | Tile), dat, distance = D,
+              permutations = 0, type = "III"),
+    "Caging:Timepoint"
+  )
+  expect_error(
+    permanova(~ Caging * Timepoint + (1 | Tile), dat, distance = D,
+              permutations = 0, type = "III"),
+    "declare it as a factor"
+  )
+
+  # Occasions declared as a factor: the interaction is a within-unit term and
+  # the design is an ordinary split-plot.
+  dat$Timepoint <- factor(dat$Timepoint)
+  fit <- permanova(~ Caging * Timepoint + (1 | Tile), dat, distance = D,
+                   permutations = 0, type = "III")
+  expect_equal(fit$table$df[1:3], c(2L, 1L, 2L))
+
+  # A covariate that genuinely varies between units stays estimable.
+  gradient <- do.call(rbind, lapply(1:18, function(i)
+    data.frame(Tile = factor(i), Timepoint = c(1, 1, 1, 2, 2) + (i %% 3))))
+  gradient$Caging <- factor(rep(c("A", "B", "C"), each = 30))
+  gradient$y <- rnorm(90) + as.numeric(gradient$Caging) + gradient$Timepoint
+  expect_s3_class(
+    permanova(~ Caging * Timepoint + (1 | Tile), gradient,
+              distance = dist(gradient$y), permutations = 0, type = "III"),
+    "permanova"
+  )
+})

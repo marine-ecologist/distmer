@@ -152,6 +152,14 @@ contrast_matrix <- function(type, levels, ref = NULL, scores = NULL, custom = NU
 #'   homogeneous dispersion, and its permutation null requires the engine's own
 #'   generator (see Details).
 #' @param factor Name of the fixed factor. Defaults to the tested factor.
+#'   Naming several factors is shorthand for the within-cell family: the first
+#'   is contrasted inside combinations of the rest.
+#' @param within Optional character vector of factors whose combinations define
+#'   the cells. Contrasts the levels of `factor` separately inside each one,
+#'   rebuilding the random strata on that subset so every pair gets the
+#'   denominator its own cell supports - PRIMER's "pairwise within levels"
+#'   table. Dispatches to [permanova_contrasts_within()]; only defined for
+#'   `type = "pairwise"`.
 #' @param ref Reference level for "trt.vs.ctrl".
 #' @param scores Numeric spacing for "poly".
 #' @param custom Matrix / named list for type = "custom".
@@ -170,13 +178,15 @@ contrast_matrix <- function(type, levels, ref = NULL, scores = NULL, custom = NU
 #' p-value `NA` rather than computing it over the wrong (full-data) permutation
 #' space.
 #'
-#' @return An object of class `permanova_contrasts`.
-#' @seealso [permanova()], [contrast_matrix()]
+#' @return An object of class `permanova_contrasts`, or of class
+#'   `permanova_contrasts_within` when `within` is used.
+#' @seealso [permanova()], [contrast_matrix()], [permanova_contrasts_within()]
 #' @export
 permanova_contrasts <- function(fit,
                                 type         = "pairwise",
                                 method       = c("isolated", "pooled"),
                                 factor       = NULL,
+                                within       = NULL,
                                 ref          = NULL,
                                 scores       = NULL,
                                 custom       = NULL,
@@ -189,6 +199,39 @@ permanova_contrasts <- function(fit,
   adjust       <- match.arg(adjust, stats::p.adjust.methods)
   permutations <- permutations %||% fit$permutations %||% fit$mc_permutations %||% 999L
   seed         <- seed         %||% fit$seed
+
+  # `factor = c(A, B, C)` is the shorthand for the "pairwise within levels"
+  # family: contrast A separately inside every combination of the rest. Naming
+  # several factors cannot mean contrasting their crossed cells, because two
+  # cells of a crossed combination leave the design's lower strata with no
+  # degrees of freedom, so state the reading taken rather than guessing quietly.
+  if (is.null(within) && length(factor) > 1L) {
+    within <- factor[-1L]
+    factor <- factor[[1L]]
+    # only announce a reading that is actually going to be used
+    known <- names(fit$design$data %||% list())
+    if (all(c(factor, within) %in% known)) {
+      message(sprintf("Contrasting '%s' within %s.",
+                      factor, paste(within, collapse = " x ")))
+    }
+  }
+  if (!is.null(within)) {
+    if (!identical(type, "pairwise")) {
+      .stopf(paste0("`within` is only defined for type = \"pairwise\"; got ",
+                    "\"%s\". Other families need a contrast matrix over all ",
+                    "levels, which a single cell need not carry."), type)
+    }
+    if (!missing(method) && identical(method, "pooled")) {
+      .stopf(paste0("`within` rebuilds the random strata inside each cell, so ",
+                    "it has no pooled form -- the whole point is that each pair ",
+                    "gets its own denominator. Drop `method` or use ",
+                    "method = \"isolated\"."))
+    }
+    return(permanova_contrasts_within(
+      fit, factor = factor, within = within,
+      permutations = permutations, seed = seed, adjust = adjust
+    ))
+  }
 
   f <- .dm_fixed_factor(fit, factor)
   if (length(f$levels) < 2L) .stopf("factor '%s' has < 2 levels", f$name)
@@ -410,31 +453,31 @@ as.data.frame.permanova_contrasts <- function(x, row.names = NULL, optional = FA
              paste(fx, collapse = ", "), fx[[1L]])
     fx[[1L]]
   }
-  if (!nm %in% names(dat)) .stopf("factor '%s' not in fit$design$data", nm)
+  missing <- nm[!nm %in% names(dat)]
+  if (length(missing)) {
+    .stopf("factor(s) not in fit$design$data: %s", paste(missing, collapse = ", "))
+  }
+  if (length(nm) > 1L) {
+    # Reached only on a direct internal call: permanova_contrasts() rewrites a
+    # multi-name `factor` into the within-cell family before getting here.
+    # Contrasting the crossed cells of several factors is still not a thing the
+    # design identifies -- two cells of a crossed combination leave the parent
+    # design's lower strata with no degrees of freedom.
+    .stopf(paste0(
+      "`factor` must name one fixed factor; got %s. To contrast the levels of ",
+      "one factor inside combinations of the others, pass the others as ",
+      "`within =` (or name the contrasted factor first)."),
+      paste(nm, collapse = ", "))
+  }
   col <- dat[[nm]]; if (!is.factor(col)) col <- factor(col)
-  list(name = nm, levels = levels(col), values = col, is_ordered = is.ordered(col))
+  list(name = nm, levels = levels(col), values = col,
+       is_ordered = is.ordered(col), components = nm, synthetic = FALSE)
 }
 
 # isolated engine: subset to the involved levels and RE-RUN permanova().
 # This is the validated path - it calls the real engine, not a reconstruction.
 #' @keywords internal
 #' @noRd
-.dm_subset_permanova <- function(fit, factor_name, levels_keep, permutations, seed) {
-  # REAL implementation (uncomment/adapt to your call signature):
-  #
-  # design <- fit$design
-  # keep   <- design$data[[factor_name]] %in% levels_keep
-  # d_full <- as.dist(design$distance)                 # or stored resemblance
-  # d_sub  <- as.dist(as.matrix(d_full)[keep, keep])
-  # env    <- droplevels(design$data[keep, , drop = FALSE])
-  # form   <- stats::reformulate(factor_name, response = "d_sub")
-  # permanova(form, data = env, permutations = permutations, seed = seed)$table
-  #
-  .stopf(paste0(".dm_subset_permanova(): wire to a subset re-run of permanova() ",
-                "(subset the resemblance + data to `levels_keep`, refit). ",
-                "This reuses the validated engine directly."))
-}
-
 # pooled permutation: MUST be the engine's Freedman-Lane generator, restricted
 # to the contrast's exchangeable units and fed the rank-1 regressor `xc`.
 # Returns NA until wired, so pooled never fabricates a p over the wrong space.
@@ -455,19 +498,6 @@ as.data.frame.permanova_contrasts <- function(x, row.names = NULL, optional = FA
     "full-model residual"
 }
 
-
-# =============================================================================
-# .dm_subset_permanova()  -  wired to the validated permanova() engine
-# -----------------------------------------------------------------------------
-# Replaces the stub in permanova_contrasts.R section 5. For a two-level
-# contrast, subset the resemblance + design data to the involved levels and
-# re-run permanova() as a two-group test. This reuses the engine you have
-# already validated against PRIMER (A1/A2), so the contrast inherits the exact
-# statistic, denominator, and permutation scheme - no reconstruction.
-# =============================================================================
-
-#' @keywords internal
-#' @noRd
 .dm_subset_permanova <- function(fit, factor_name, levels_keep,
                                  permutations, seed) {
 

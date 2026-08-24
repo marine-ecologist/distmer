@@ -5,7 +5,7 @@ four-component `.9000` convention for development snapshots.
 
 ## Current path to the first stable release
 
-- `0.9.2` is the active, pre-release development tree.
+- `0.9.3` is the active, pre-release development tree.
 - `1.0.0` will be the first stable public release, after metadata, hosted
   platform checks, adversarial review, and the release gate are complete.
 - A `.9000` build is never tagged or submitted as a stable release.

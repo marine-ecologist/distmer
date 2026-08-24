@@ -250,7 +250,7 @@ permanova_random_slope <- function(
     structure$H_subject_residual, structure$K_difference
   )
   denominator_ms <- denominator_ss / structure$denominator_df
-  if (!is.finite(denominator_ms) || abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, structure$K_difference, tol)) {
     stop("The between-subject random-slope denominator is numerically zero.",
          call. = FALSE)
   }
@@ -265,7 +265,7 @@ permanova_random_slope <- function(
     denominator <- trace_hgh(
       structure$H_subject_residual, permuted
     ) / structure$denominator_df
-    if (!is.finite(denominator) || abs(denominator) <= tol) {
+    if (.mean_square_is_zero(denominator, permuted, tol)) {
       stop("A sign-flipped random-slope denominator is numerically zero.",
            call. = FALSE)
     }
@@ -273,7 +273,8 @@ permanova_random_slope <- function(
   }, numeric(1))
   p_value <- NA_real_
   if (length(statistics)) {
-    extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
+    extreme <- sum(statistics >= observed - max(100 * tol, sqrt(.Machine$double.eps)) * max(1, abs(observed)),
+                   na.rm = TRUE)
     p_value <- if (plan$exact) {
       extreme / length(statistics)
     } else (extreme + 1) / (length(statistics) + 1)

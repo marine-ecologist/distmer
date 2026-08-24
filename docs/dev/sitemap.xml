@@ -1,5 +1,13 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/LICENSE-text.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/1-getting-started.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/2-fixed-effects.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/3-random-effects.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/4-atypical-distance-matrices.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/4-contrasts.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/5-dispersion.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/6-atypical-distance-matrices.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/articles/7-comparisons.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/articles/atypical-distance-matrices.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/articles/contrasts.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/articles/dispersion.html</loc></url>
@@ -26,6 +34,7 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/derive_nested_ems.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/derive_unbalanced_hypotheses.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/distance_diagnostics.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/distmer-options.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/distmer-package.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/estimate_hybrid_variance_components.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/estimate_nested_variance_components.html</loc></url>
@@ -39,7 +48,9 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_capabilities.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts_within.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed_incomplete.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_dispersion.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_fixed.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_hybrid.html</loc></url>
@@ -65,6 +76,7 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_hybrid.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_lower.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_multi.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/permanova_unequal_random_intercept.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/print.permanova_contrasts.html</loc></url>
@@ -72,6 +84,7 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/quasi_denominator.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/run_permanova_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_adjusted_contrast_validation.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_asymmetric_mixed_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_balanced_mixed.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_contrast_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_crossed_interaction_validation.html</loc></url>
@@ -81,16 +94,20 @@
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_marginal_contrast_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_maxT_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_contrast_validation.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_covariate_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_maxT_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_validation.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_covariate_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_level_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_validation.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_random_slope_continuous_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_random_slope_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_strong_pairwise_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_hybrid_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_mixed_contrast_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_mixed_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_nested_lower_validation.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_splitplot_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/simulate_unequal_random_intercept_validation.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/distmer/dev/reference/structured_denominator.html</loc></url>

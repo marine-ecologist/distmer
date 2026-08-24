@@ -75,7 +75,25 @@ test_that("release artifacts and platform metadata are excluded", {
   source_vignettes <- file.path(root, "vignettes")
   doc_path <- if (dir.exists(source_vignettes)) source_vignettes else
     .package_file("doc")
-  expect_length(list.files(doc_path, "[.]Rmd$"), 7)
+  # The numbered vignettes are the user-facing sequence; `validation.Rmd` sits
+  # outside it. Assert the sequence is complete and contiguous rather than
+  # pinning a count that has to be edited whenever one is added.
+  vignettes <- list.files(doc_path, "[.]Rmd$")
+  expect_gt(length(vignettes), 0L)
+  # If the vignettes are numbered, the sequence must be complete: a gap means
+  # one was renamed or dropped without the rest being renumbered.
+  numbered <- sort(grep("^[0-9]+-", vignettes, value = TRUE))
+  if (length(numbered)) {
+    expect_equal(as.integer(sub("-.*", "", numbered)), seq_along(numbered))
+  }
+  # Every vignette needs its own index entry; duplicates make one unreachable.
+  entries <- vapply(file.path(doc_path, vignettes), function(path) {
+    line <- grep("VignetteIndexEntry", readLines(path, warn = FALSE), value = TRUE)[[1L]]
+    sub(".*VignetteIndexEntry\\{([^}]*)\\}.*", "\\1", line)
+  }, character(1))
+  expect_equal(anyDuplicated(entries), 0L,
+               info = paste("duplicated:", paste(unique(entries[duplicated(entries)]),
+                                                 collapse = "; ")))
 })
 
 test_that("publication metadata is present", {
@@ -111,4 +129,37 @@ test_that("bounded benchmark smoke completes", {
   expect_equal(timing$observations, 8)
   expect_true(is.finite(timing$elapsed_seconds))
   expect_lt(timing$elapsed_seconds, 30)
+})
+
+test_that("every engine permanova() can route to is in the capability registry", {
+  # The registry is the package's public scope contract, so an engine the front
+  # door can dispatch to must appear in it. Engine names are read out of the
+  # dispatcher itself, so adding a route without a registry row fails here.
+  dispatch <- paste(deparse(body(.permanova_dispatch)), collapse = " ")
+  routed <- unique(unlist(regmatches(
+    dispatch, gregexpr("fn = (permanova_[A-Za-z0-9_]+)", dispatch)
+  )))
+  routed <- sub("^fn = ", "", routed)
+  expect_gt(length(routed), 10L)
+
+  registry <- permanova_capabilities()
+  expect_setequal(setdiff(routed, registry$engine), character())
+})
+
+test_that("the capability registry is well formed", {
+  registry <- permanova_capabilities()
+  expect_equal(anyDuplicated(registry$engine), 0L)
+
+  # every registered engine and companion must actually exist and be exported
+  exports <- getNamespaceExports("distmer")
+  named <- c(registry$engine, registry$companion[nzchar(registry$companion)])
+  expect_setequal(setdiff(named, exports), character())
+
+  # no row may be silently blank in a contract column
+  for (column in c("design_envelope", "estimand", "denominator",
+                   "permutation_contract", "error_control",
+                   "explicit_exclusions")) {
+    expect_true(all(nzchar(registry[[column]])),
+                info = paste("blank entry in", column))
+  }
 })

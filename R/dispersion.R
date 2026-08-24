@@ -272,7 +272,7 @@
   denominator_ss <- trace_hgh(denominator$H, response_design$G)
   numerator_ms <- numerator_ss / numerator$df
   denominator_ms <- denominator_ss / denominator$df
-  if (!is.finite(denominator_ms) || abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, response_design$G, tol)) {
     stop("The dispersion-test denominator mean square is numerically zero.",
          call. = FALSE)
   }
@@ -298,15 +298,8 @@
     },
     label = "Permuting dispersion residuals"
   )
-  p_value <- NA_real_
-  if (length(permuted)) {
-    extreme <- sum(permuted >= observed - tol, na.rm = TRUE)
-    p_value <- if (setup$plan$exact) {
-      extreme / length(permuted)
-    } else {
-      (extreme + 1) / (length(permuted) + 1)
-    }
-  }
+  inference <- .permutation_inference(permuted, observed, setup$plan$exact, tol)
+  p_value <- inference$p_value
   list(
     observed = observed, p_value = p_value, statistics = permuted,
     numerator_ss = numerator_ss, numerator_ms = numerator_ms,

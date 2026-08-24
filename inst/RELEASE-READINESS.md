@@ -2,7 +2,7 @@
 
 ## Technical candidate
 
-The source tree is on the 0.9.2 pre-release development line; see
+The source tree is on the 0.9.3 pre-release development line; see
 `RELEASE-HANDOFF.md`. The intended first stable release is 1.0.0. No release tag
 or publication is created from development. Its local technical gate is:
 
@@ -10,8 +10,8 @@ or publication is created from development. Its local technical gate is:
 Rscript tools/release-audit.R
 Rscript -e 'testthat::test_local(reporter = "progress")'
 R CMD build .
-R CMD check --no-manual distmer_0.9.2.tar.gz
-R CMD check --as-cran --no-manual -o /tmp/distmer-cran distmer_0.9.2.tar.gz
+R CMD check --no-manual distmer_0.9.3.tar.gz
+R CMD check --as-cran --no-manual -o /tmp/distmer-cran distmer_0.9.3.tar.gz
 ```
 
 The first four commands must have no failures or warnings. An offline

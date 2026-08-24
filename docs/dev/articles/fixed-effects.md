@@ -39,6 +39,7 @@ tertiles of water content. Water content is categorised into three
 groups: dry, intermediate, and wet.
 
 ``` r
+
 data(mite, mite.env, package = "vegan")
 mite_bray <- vegdist(mite, method = "bray")
 
@@ -64,6 +65,7 @@ All six combinations occur, but their sample sizes differ. The
 ordination suggests that both predictors may contribute to composition.
 
 ``` r
+
 ord <- as.data.frame(cmdscale(mite_bray, k = 2))
 names(ord) <- c("Axis1", "Axis2")
 ord$Wetness <- env$Wetness
@@ -95,6 +97,7 @@ Do not choose an order because it produces the smaller p-value.
 With wetness first:
 
 ``` r
+
 wetness_first <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "I", permutations = 499, seed = 11
@@ -112,6 +115,7 @@ wetness_first$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> tab()
 Or with topography first:
 
 ``` r
+
 topography_first <- permanova(
   mite_bray ~ Topo * Wetness, env,
   type = "I", permutations = 499, seed = 11
@@ -134,6 +138,7 @@ additive model it is the familiar question “what does this predictor add
 after the other predictors?” and is invariant to formula order.
 
 ``` r
+
 fit_II <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "II", permutations = 499, seed = 11
@@ -161,6 +166,7 @@ applies them to a copy of the data so the original data frame is not
 modified.
 
 ``` r
+
 fit_III <- permanova(
   mite_bray ~ Wetness * Topo, env,
   type = "III", permutations = 499, seed = 11
@@ -178,6 +184,7 @@ fit_III$table[1:3, c("Source", "df", "Pseudo-F", "P(perm)")] |> tab()
 The three definitions can be compared directly:
 
 ``` r
+
 fits <- list(I = wetness_first, II = fit_II, III = fit_III)
 comparison <- do.call(rbind, lapply(names(fits), function(type) {
   tab <- fits[[type]]$table
@@ -206,6 +213,7 @@ Ordinary numeric covariates can be combined with factors. Here water
 content and substrate density remain on their measured scales:
 
 ``` r
+
 gradient_fit <- permanova(
   mite_bray ~ Topo + WatrCont + SubsDens,
   data = env,

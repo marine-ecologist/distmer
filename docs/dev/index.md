@@ -13,6 +13,7 @@ experimental units, nesting, blocks, repeated observations, and random
 slopes:
 
 ``` r
+
 distance ~ treatment + (1 | site)
 ```
 
@@ -35,6 +36,7 @@ mixed-model counterparts
 Install the development version from GitHub:
 
 ``` r
+
 remotes::install_github("marine-ecologist/distmer")
 ```
 
@@ -53,6 +55,7 @@ to test whether an insecticide (chlorpyrifos) treatment altered aquatic
 invertebrate community composition:
 
 ``` r
+
 library(distmer)
 library(vegan)
 
@@ -63,7 +66,7 @@ week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
 dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
 
 pyr.env <- data.frame(ditch, week, dose)
-pyr.bray <- vegdist(pyrifos)  
+pyr.bray <- vegdist(pyrifos)
 
 fit <- permanova(
   pyr.bray ~ dose,
@@ -85,6 +88,7 @@ For a repeated or grouped field design, add the independent sampling
 unit in the same way as a mixed-effects model:
 
 ``` r
+
 fit2 <- permanova(
   pyr.bray ~ dose + (1 | ditch),
   data = pyr.env,
@@ -100,6 +104,7 @@ summary(fit2)
 Pairwise contrasts (treatments and custom contrasts) can also be tested:
 
 ``` r
+
 permanova_contrasts(fit1, type = "pairwise")
 ```
 
@@ -110,6 +115,7 @@ dispersion. The dispersion companion uses the same formula-and-data
 style:
 
 ``` r
+
 permanova_dispersion(
    pyr.bray ~ ditch ,
   data = pyr.env,
@@ -142,20 +148,20 @@ implementation details.
 
 ### vignettes
 
-1.  [`vignette("getting-started", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/getting-started.md)
+1.  [`vignette("getting-started", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/getting-started.html)
     — the distance-based mixed-model idea and a first analysis.
-2.  [`vignette("random-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/random-effects.md)
+2.  [`vignette("random-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/random-effects.html)
     — repeated sites, nested sampling, blocks, hybrids, and random
     slopes.
-3.  [`vignette("dispersion", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/dispersion.md)
+3.  [`vignette("dispersion", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/dispersion.html)
     — distance geometry and multivariate dispersion.
-4.  [`vignette("contrasts", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/contrasts.md)
+4.  [`vignette("contrasts", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/contrasts.html)
     — planned comparisons, pairwise tests, and multiplicity control.
-5.  [`vignette("fixed-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/fixed-effects.md)
+5.  [`vignette("fixed-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/fixed-effects.html)
     — Type I, II, and III fixed-effect questions.
-6.  [`vignette("atypical-distance-matrices", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/atypical-distance-matrices.md)
-    — Atypical distance matrices.
-7.  [`vignette("validation", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/validation.md)
+6.  `vignette("atypical-distance-matrices", package = "distmer")` —
+    Atypical distance matrices.
+7.  [`vignette("validation", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/validation.html)
     — reference agreement, simulations, and reproducible reporting.
 
 ### Checks:

@@ -26,6 +26,7 @@ Dividing water content into three broad classes produces unequal
 representation across wetness and topographic classes.
 
 ``` r
+
 data(mite, mite.env, package = "vegan")
 mite_env <- transform(
   mite.env,
@@ -54,6 +55,7 @@ cell_counts  |> tab()
 | wet          | Hummock    |     5 |
 
 ``` r
+
 ggplot(cell_counts, aes(Topography, Wetness, fill = sites)) +
   geom_tile(colour = "white", linewidth = 1) +
   geom_text(aes(label = sites), colour = "white", fontface = "bold") +
@@ -71,6 +73,7 @@ predictor after accounting for the other without making the result
 depend on formula order.
 
 ``` r
+
 mite_fit <- permanova(
   mite_bray ~ Wetness + Topo,
   mite_env, type = "II", permutations = 999, seed = 17
@@ -101,6 +104,7 @@ between three and six dates per ditch, with every replication size
 represented in both treatment groups.
 
 ``` r
+
 data(pyrifos, package = "vegan")
 ditch <- gl(12, 1, length = nrow(pyrifos))
 dose_by_ditch <- c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6)
@@ -132,6 +136,7 @@ ditch_summary$treatment <- factor(
 ```
 
 ``` r
+
 ggplot(ditch_summary, aes(ditch, visits, fill = treatment)) +
   geom_col(color="black", width = 0.75) +
   theme_bw() +
@@ -144,6 +149,7 @@ ggplot(ditch_summary, aes(ditch, visits, fill = treatment)) +
 group](unbalanced-mixed_files/figure-html/visit-plot-1.png)
 
 ``` r
+
 pyrifos_fit <- permanova(
   pyrifos_bray ~ treatment + (1 | ditch),
   pyrifos_env, permutations = 999, seed = 17
@@ -157,6 +163,7 @@ pyrifos_fit$table |> tab()
 | Cluster-centroid Residual |  10 | 0.391 | 0.039 |       NA |      NA |    NA |           NA |
 
 ``` r
+
 pyrifos_fit$fit$test[
   c("estimand", "exchangeable_units", "permutation_strata")
 ] |> tab()
@@ -206,6 +213,7 @@ use the same unit-centroid estimand and restricted permutation structure
 as the overall model.
 
 ``` r
+
 dose <- factor(rep(dose_by_ditch, 11)[keep])
 contrast_env <- data.frame(ditch = pyrifos_env$ditch, dose = dose)
 contrast_design <- compile_permanova_design(

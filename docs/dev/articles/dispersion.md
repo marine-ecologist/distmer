@@ -9,6 +9,7 @@ The vignette separates three checks that are often conflated:
 ## Compare plausible ecological distances
 
 ``` r
+
 bray <- vegdist(dune, method = "bray")
 jaccard <- vegdist(dune, method = "jaccard", binary = TRUE)
 
@@ -45,6 +46,7 @@ discarding them. The negative inertia ratio is a diagnostic, not an
 automatic reason to abandon Bray–Curtis.
 
 ``` r
+
 spectrum_data <- rbind(
   data.frame(distance = "Bray-Curtis", axis = seq_along(bray_diag$eigenvalues),
              eigenvalue = bray_diag$eigenvalues),
@@ -79,6 +81,7 @@ centres differ. The dispersion model asks whether observations differ in
 their average distance to their own group centre.
 
 ``` r
+
 selected <- dune.env$Management %in% c("NM", "SF")
 community <- dune[selected, ]
 env <- droplevels(dune.env[selected, , drop = FALSE])
@@ -92,6 +95,7 @@ table(env$Management) |> tab()
 | SF   |    6 |
 
 ``` r
+
 location <- permanova(
   subset_bray ~ Management, env, permutations = 999, seed = 82
 )
@@ -110,6 +114,7 @@ location$table[1, c("Pseudo-F", "P(perm)")]  |> tab()
 |    3.426 |   0.006 |
 
 ``` r
+
 dispersion$table[1, c("pseudo_f", "p_perm")] |> tab()
 ```
 
@@ -118,6 +123,7 @@ dispersion$table[1, c("pseudo_f", "p_perm")] |> tab()
 |    0.917 |  0.344 |
 
 ``` r
+
 disp_plot <- data.frame(
   Management = dispersion$group,
   distance_to_median = dispersion$distances
@@ -149,6 +155,7 @@ pseudo-F agree with
 [`vegan::betadisper()`](https://vegandevs.github.io/vegan/reference/betadisper.html).
 
 ``` r
+
 vegan_dispersion <- betadisper(subset_bray, env$Management, type = "median")
 c(
   maximum_distance_difference = max(
@@ -181,6 +188,7 @@ intact sites then form the exchangeable units. Balanced nested and
 randomized-block structures are handled in the same design-aware way.
 
 ``` r
+
 repeated_design <- compile_permanova_design(
   ~ treatment + (1 | site), field_data, field_distance
 )

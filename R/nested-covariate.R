@@ -318,12 +318,8 @@ permanova_nested_covariate <- function(design, permutations = 999L, seed = NULL,
       index = function(order) .block_permutation_index(blocks, order),
       label = paste0("Permuting term `", item$term, "`"), tol = tol
     )
-    p_value <- NA_real_
-    if (length(permuted)) {
-      extreme <- sum(permuted >= item$statistic - tol, na.rm = TRUE)
-      p_value <- if (plan$exact) extreme / length(permuted) else
-        (extreme + 1) / (length(permuted) + 1)
-    }
+    inference <- .permutation_inference(permuted, item$statistic, plan$exact, tol)
+    p_value <- inference$p_value
     spec <- list(
       term = item$term, kind = item$kind,
       numerator = list(ss = item$numerator_ss, df = item$numerator_df,
@@ -400,7 +396,7 @@ permanova_nested_covariate <- function(design, permutations = 999L, seed = NULL,
     ),
     permutation = list(
       algorithm = "term-specific Freedman-Lane permutation, covariate held in the reduced model",
-      used = max(vapply(specs, `[[`, numeric(1), "permutations_used")),
+      used = max(vapply(specs, `[[`, numeric(1), "permutations_used"), 0),
       seed = seed
     )
   )

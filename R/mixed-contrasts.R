@@ -321,7 +321,7 @@ permanova_mixed_contrasts <- function(
       label = paste0("Permuting unit contrast `",
                      rownames(contrast_matrix)[[index]], "`")
     )
-    notes <- character()
+    notes <- result$resolution_note
     if (is.finite(plan$attainable) && plan$attainable < 100) {
       notes <- c(notes, paste0(
         "Only ", plan$attainable,

@@ -18,6 +18,7 @@ The following comparison uses the `dune` communities and Bray–Curtis
 dissimilarity.
 
 ``` r
+
 data(dune, dune.env, package = "vegan")
 dune_bray <- vegdist(dune, method = "bray")
 
@@ -50,6 +51,7 @@ The dispersion companion can also be checked against
 [`vegan::betadisper()`](https://vegandevs.github.io/vegan/reference/betadisper.html).
 
 ``` r
+
 selected <- dune.env$Management %in% c("NM", "SF")
 two_group_distance <- vegdist(dune[selected, ], method = "bray")
 two_group_env <- droplevels(dune.env[selected, , drop = FALSE])
@@ -94,6 +96,7 @@ non-Euclidean geometry, mixed-design denominators, and failure
 boundaries.
 
 ``` r
+
 # validation_report <- run_permanova_validation()
 # validation_report[, c("check", "passed", "metric")]
 # stopifnot(all(validation_report$passed))

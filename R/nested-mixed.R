@@ -1,4 +1,4 @@
-.validate_nested_design <- function(design, tol = 1e-10) {
+.validate_nested_design <- function(design, tol = 1e-10, require_fixed = TRUE) {
   if (!inherits(design, "permanova_design")) {
     stop("`design` must be produced by `compile_permanova_design()`.", call. = FALSE)
   }
@@ -15,7 +15,10 @@
   if (!all(parents[-1L] == labels[-length(labels)])) {
     stop("Nested random terms must form one contiguous containment chain.", call. = FALSE)
   }
-  if (!length(design$fixed_effects)) {
+  # Testing needs something to test, but a variance-component decomposition does
+  # not: with no fixed terms the fixed projector is zero and each stratum is
+  # simply left unadjusted, which is the correct pure random-effects strata.
+  if (require_fixed && !length(design$fixed_effects)) {
     stop("At least one fixed-effect term is required.", call. = FALSE)
   }
   if (length(design$estimability$aliased) ||
@@ -356,7 +359,7 @@ derive_nested_ems <- function(design, tol = 1e-10) {
   numerator_ss <- trace_hgh(projection$H_term, design$G)
   numerator_ms <- numerator_ss / projection$df
   denominator_ms <- denominator_stratum$ms
-  if (abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, design$G, tol)) {
     stop("The nested denominator mean square is numerically zero for term `", term, "`.", call. = FALSE)
   }
   observed <- numerator_ms / denominator_ms
@@ -368,12 +371,8 @@ derive_nested_ems <- function(design, tol = 1e-10) {
     index = function(order) .block_permutation_index(plan$unit_blocks, order),
     label = paste0("Permuting term `", term, "`"), tol = tol
   )
-  p_value <- NA_real_
-  if (length(permuted)) {
-    extreme <- sum(permuted >= observed - tol, na.rm = TRUE)
-    p_value <- if (plan$exact) extreme / length(permuted) else
-      (extreme + 1) / (length(permuted) + 1)
-  }
+  inference <- .permutation_inference(permuted, observed, plan$exact, tol)
+  p_value <- inference$p_value
   notes <- character()
   if (is.finite(plan$attainable) && plan$attainable < 100) {
     notes <- paste0(
@@ -429,7 +428,7 @@ derive_nested_ems <- function(design, tol = 1e-10) {
 #' @export
 estimate_nested_variance_components <- function(design, truncate = FALSE,
                                                 tol = 1e-10) {
-  structure <- .validate_nested_design(design, tol = tol)
+  structure <- .validate_nested_design(design, tol = tol, require_fixed = FALSE)
   selected_names <- rev(names(structure$strata))
   selected <- structure$strata[selected_names]
   coefficient_matrix <- do.call(rbind, lapply(selected, `[[`, "ems"))

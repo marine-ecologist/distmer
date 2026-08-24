@@ -15,7 +15,8 @@ permanova_oneway(
   permutations = 999L,
   seed = NULL,
   engine = c("pairwise", "projection"),
-  keep_permutations = FALSE
+  keep_permutations = FALSE,
+  tol = 1e-10
 )
 ```
 
@@ -44,6 +45,10 @@ permanova_oneway(
 - keep_permutations:
 
   Retain the permutation pseudo-F values.
+
+- tol:
+
+  Numerical tolerance for the numerically-zero residual check.
 
 ## Value
 

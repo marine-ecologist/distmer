@@ -59,16 +59,16 @@ navbar:
       text: Articles
       menu:
         - text: "1. Getting started with distmer"
-          href: articles/getting-started.html
+          href: articles/1-getting-started.html
         - text: "2. Fixed effects and Contrasts (Type I-II-III)"
-          href: articles/fixed-effects.html
+          href: articles/2-fixed-effects.html
         - text: "3. Random effects and ecological sampling designs"
-          href: articles/random-effects.html
+          href: articles/3-random-effects.html
         - text: "4. Pairwise contrasts and multiple comparisons"
-          href: articles/contrasts.html
+          href: articles/5-contrasts.html
         - text: "5. Dispersion and distance diagnostics"
-          href: articles/dispersion.html
+          href: articles/6-dispersion.html
         - text: "6. Atypical distance matrices"
           href: articles/atypical-distance-matrices.html
-        - text: "7. Validation and reproducibility"
-          href: articles/validation.html
+        - text: "7. distmer with published datasets"
+          href: articles/7-comparisons.html

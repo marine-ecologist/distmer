@@ -60,7 +60,9 @@ test_that("unbalanced nested F and exhaustive permutations match top means", {
   fit <- suppressWarnings(permanova_unbalanced_nested(
     design, permutations = "all", keep_permutations = TRUE
   ))
-  means <- aggregate(y ~ region + treatment, dat, mean)
+  # parent centroids average their child centroids with equal weight
+  site_means <- aggregate(y ~ site + region + treatment, dat, mean)
+  means <- aggregate(y ~ region + treatment, site_means, mean)
   means <- means[order(as.integer(means$region)), ]
   reference <- summary(aov(y ~ treatment, means))[[1]][1L, "F value"]
   expect_equal(fit$test$statistic, unname(reference), tolerance = 1e-10)
@@ -212,4 +214,51 @@ test_that("Phase 12 retains non-Euclidean empirical p-values", {
   expect_false(design$spectral$euclidean)
   expect_true(is.finite(fit$test$p_value))
   expect_true(any(grepl("non-Euclidean", fit$test$warnings)))
+})
+
+test_that("a permutation stratum holding one unit is kept fixed, not resampled", {
+  # `sample(x)` permutes seq_len(x) when x is a single number, so a singleton
+  # stratum used to crash the restricted plan (or silently misbehave when the
+  # lone index happened to be 1). Every engine using restricted permutation
+  # depends on this.
+  strata <- factor(c("a", "a", "b", "c", "c", "c"))
+  positions <- unname(split(seq_along(strata), strata))
+  set.seed(1)
+  plan <- .stratified_permutation_plan(strata, 50L, 100000L)
+
+  expect_gt(nrow(plan$orders), 0L)
+  for (row in seq_len(nrow(plan$orders))) {
+    for (block in positions) {
+      # a unit may move only inside its own stratum
+      expect_setequal(plan$orders[row, block], block)
+    }
+    # the singleton stratum can only map to itself
+    expect_identical(plan$orders[row, positions[[2L]]], positions[[2L]])
+  }
+
+  # and the singleton index must not be 1, or the bug would be masked
+  expect_gt(positions[[2L]][[1L]], 1L)
+})
+
+test_that("an engine runs when a unit-size stratum is a singleton", {
+  set.seed(4)
+  rows <- list()
+  sizes <- c(2L, 2L, 3L, 3L, 4L, 5L)   # sizes 4 and 5 are singleton strata
+  for (cluster in seq_along(sizes)) {
+    rows[[length(rows) + 1L]] <- data.frame(
+      unit = paste0("u", cluster), rep = seq_len(sizes[[cluster]]),
+      stringsAsFactors = FALSE
+    )
+  }
+  d <- do.call(rbind, rows)
+  d$unit <- factor(d$unit)
+  d$tr <- factor(ifelse(as.integer(d$unit) %% 2L == 0L, "control", "impact"))
+  d$y <- stats::rnorm(nrow(d))
+
+  expect_no_error(
+    permanova_unequal_random_intercept(
+      compile_permanova_design(~ tr + (1 | unit), d, dist(d$y)),
+      permutations = 49L, seed = 1L
+    )
+  )
 })

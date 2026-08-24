@@ -182,7 +182,7 @@
       numerators <- vapply(subset, function(index) {
         trace_hgh(projectors[[index]]$H, G)
       }, numeric(1))
-      values <- if (!is.finite(denominator) || abs(denominator) <= tol) {
+      values <- if (.mean_square_is_zero(denominator, G, tol)) {
         ifelse(abs(numerators) <= tol, 0, Inf)
       } else numerators / denominator
       max(values)
@@ -192,7 +192,10 @@
   observed_maximum <- max(observed[subset])
   p_value <- NA_real_
   if (length(statistics)) {
-    extreme <- sum(statistics >= observed_maximum - tol, na.rm = TRUE)
+    extreme <- sum(
+      statistics >= observed_maximum -
+        max(100 * tol, sqrt(.Machine$double.eps)) * max(1, abs(observed_maximum)),
+      na.rm = TRUE)
     p_value <- if (plan$exact) extreme / length(statistics) else
       (extreme + 1) / (length(statistics) + 1)
   }
@@ -246,7 +249,7 @@ permanova_pairwise_strong <- function(
   })
   denominator <- trace_hgh(structure$H_denominator, design$G) /
     structure$denominator_df
-  if (!is.finite(denominator) || abs(denominator) <= tol) {
+  if (.mean_square_is_zero(denominator, design$G, tol)) {
     stop("The within-group residual mean square is numerically zero.",
          call. = FALSE)
   }

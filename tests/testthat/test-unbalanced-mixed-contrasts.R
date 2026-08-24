@@ -123,7 +123,9 @@ test_that("unbalanced nested contrasts match top-centroid GLH", {
   )
   contrast <- c(A = 1, B = -1, C = 0)
   fit <- permanova_mixed_contrasts(design, contrast, permutations = 0)
-  means <- aggregate(y ~ region + treatment, data, mean)
+  # parent centroids average their child centroids with equal weight
+  site_means <- aggregate(y ~ site + region + treatment, data, mean)
+  means <- aggregate(y ~ region + treatment, site_means, mean)
   reference <- .phase19_reference_f(
     means$y, means$treatment, contrast
   )

@@ -184,7 +184,6 @@ permanova_unbalanced_splitplot <- function(design, permutations = 999L,
   }
   residual_ss <- trace_hgh(residual_H, G)
   residual_ms <- residual_ss / residual_df
-  unit_blocks <- unname(split(seq_len(n), group))
 
   for (index in seq_along(within_terms)) {
     term <- within_terms[[index]]
@@ -266,7 +265,7 @@ permanova_unbalanced_splitplot <- function(design, permutations = 999L,
     ),
     permutation = list(
       algorithm = "size-restricted whole-unit and within-unit residual permutation",
-      used = max(vapply(specs, `[[`, numeric(1), "permutations_used")),
+      used = max(vapply(specs, `[[`, numeric(1), "permutations_used"), 0),
       exact = all(vapply(specs, `[[`, logical(1), "exact_permutation")), seed = seed
     )
   )
@@ -285,12 +284,8 @@ permanova_unbalanced_splitplot <- function(design, permutations = 999L,
     G, reduced_H, H_num, num_df, H_resid, resid_df, plan$orders,
     label = label, tol = tol
   )
-  p_value <- NA_real_
-  if (length(stats_perm)) {
-    extreme <- sum(stats_perm >= observed - tol, na.rm = TRUE)
-    p_value <- if (plan$exact) extreme / length(stats_perm) else
-      (extreme + 1) / (length(stats_perm) + 1)
-  }
+  inference <- .permutation_inference(stats_perm, observed, plan$exact, tol)
+  p_value <- inference$p_value
   list(p_value = p_value, statistics = stats_perm, used = nrow(plan$orders),
        attainable = plan$attainable, exact = plan$exact && nrow(plan$orders) > 0L)
 }

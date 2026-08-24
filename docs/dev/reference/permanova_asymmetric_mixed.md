@@ -14,6 +14,8 @@ permanova_asymmetric_mixed(
   permutations = 999L,
   seed = NULL,
   hypothesis = "I",
+  denominator = c("ems", "stratum"),
+  whole_plot = c("auto", "observation", "centroid"),
   keep_permutations = FALSE,
   max_exact = 100000L,
   tol = 1e-10
@@ -38,6 +40,30 @@ permanova_asymmetric_mixed(
 - hypothesis:
 
   Sum-of-squares partition for the fixed terms (`"I"`, `"II"`, `"III"`).
+
+- denominator:
+
+  How each fixed term's denominator is chosen. `"ems"` (default) derives
+  the expected mean squares of the numerator and of every candidate
+  stratum from the actual design, by the trace method, and matches them
+  with
+  [`quasi_denominator()`](https://marine-ecologist.github.io/distmer/dev/reference/quasi_denominator.md).
+  When the design is balanced this returns a single stratum and
+  reproduces `"stratum"` exactly; when it is not, the correct
+  denominator can be a combination of strata with Satterthwaite degrees
+  of freedom, and the balanced rule is then wrong. `"stratum"` forces
+  the balanced rule: whole-plot terms over the unit stratum, sub-plot
+  terms over the unit-by-sub-plot stratum.
+
+- whole_plot:
+
+  How whole-plot terms are permuted when units are unequally replicated.
+  `"auto"` (default) keeps the intact-unit action at the observation
+  level whenever any two units are exchangeable, and otherwise falls
+  back to equally weighted unit centroids so a p-value exists at all.
+  `"observation"` and `"centroid"` force either. The two agree exactly
+  for equally replicated units and target different estimands otherwise;
+  the choice made is reported on the fit.
 
 - keep_permutations:
 

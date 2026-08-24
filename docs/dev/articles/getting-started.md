@@ -37,6 +37,7 @@ data contain plant abundances from 20 dune meadows. We will ask whether
 community composition differs among management regimes.
 
 ``` r
+
 data(dune, dune.env, package = "vegan")
 bray <- vegdist(dune, method = "bray")
 table(dune.env$Management)
@@ -48,6 +49,7 @@ table(dune.env$Management)
 PCoA:
 
 ``` r
+
 points <- as.data.frame(cmdscale(bray, k = 2))
 names(points) <- c("Axis1", "Axis2")
 points$Management <- dune.env$Management
@@ -72,6 +74,7 @@ formula, just as the response would be in
 [`lm()`](https://rdrr.io/r/stats/lm.html) or `lmer()`:
 
 ``` r
+
 fit <- permanova(
   bray ~ Management,
   data = dune.env,
@@ -98,6 +101,7 @@ For this fixed one-factor model, the observed statistic agrees with
 [`vegan::adonis2()`](https://vegandevs.github.io/vegan/reference/adonis.html):
 
 ``` r
+
 vegan_fit <- adonis2(bray ~ Management, data = dune.env, permutations = 0)
 c(
   distmer = fit$table$`Pseudo-F`[1],
@@ -112,6 +116,7 @@ c(
 Fixed terms use ordinary R formula notation:
 
 ``` r
+
 bray ~ management
 bray ~ management + moisture
 bray ~ management * season
@@ -121,6 +126,7 @@ bray ~ management + soil_pH
 Random terms describe follow lmer notation:
 
 ``` r
+
 bray ~ treatment + (1 | site)
 bray ~ treatment + (1 | region/site)
 bray ~ period + (1 + period | ditch)

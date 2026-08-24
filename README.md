@@ -1,4 +1,4 @@
-# distmer <img src="man/figures/logo.png" align="right" style="height:170px; width:147px;" alt="distmer hex logo" />
+# distmer <a href="https://marine-ecologist.github.io/distmer/"><img src="man/figures/logo.png" align="right" height="150" alt="distmer hex logo" /></a>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/marine-ecologist/distmer/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/marine-ecologist/distmer/actions/workflows/R-CMD-check.yaml)
@@ -31,7 +31,7 @@ Install the development version from GitHub:
 remotes::install_github("marine-ecologist/distmer")
 ```
 
-`distmer` is currently on the `0.9.2` pre-release line leading to a stable `1.0.0` release.
+`distmer` is currently on the `0.9.4` pre-release line leading to a stable `1.0.0` release.
 
 ### Usage:
 

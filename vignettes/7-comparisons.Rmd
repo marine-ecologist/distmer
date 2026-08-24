@@ -1,0 +1,195 @@
+---
+title: "7. Validation and reproducibility"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{7. Validation and reproducibility}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=TRUE, message=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 4.5,
+  fig.align = "center"
+)
+library(distmer)
+library(tidyverse)
+library(vegan)
+library(ggplot2) 
+library(kableExtra)
+library(readxl)
+theme_set(theme_minimal(base_size = 12))
+```
+
+A distance-based mixed model should be reproducible at three levels: the data
+and ecological distance, the experimental design and permutation rule, and the
+software result. `distmer` exposes each of these rather than treating a
+pseudo-F and p-value as a black box.
+
+For an independent one-factor design, the fixed-effect statistic has the same
+dissimilarity-space definition as `vegan::adonis2()`. The following comparison
+uses the `dune` communities and Bray--Curtis dissimilarity.
+
+```{r adonis-reference}
+data(dune, dune.env, package = "vegan")
+dune_bray <- vegdist(dune, method = "bray")
+
+distmer_fit <- permanova(
+  dune_bray ~ Management, dune.env,
+  permutations = 199, mc_permutations = 0, seed = 101
+)
+vegan_fit <- adonis2(
+  dune_bray ~ Management, dune.env,
+  permutations = 199
+)
+
+data.frame(
+  implementation = c("distmer", "vegan::adonis2"),
+  pseudo_f = c(distmer_fit$table$`Pseudo-F`[1], vegan_fit$F[1])
+)  |> tab()
+```
+
+The statistic should agree to numerical tolerance. Permutation p-values need
+not be identical unless the two functions receive the identical permutation
+matrix; recording only a seed does not guarantee that different packages draw
+the same sequence of arrangements.
+
+The dispersion companion can also be checked against
+`vegan::betadisper()`.
+
+```{r dispersion-reference}
+selected <- dune.env$Management %in% c("NM", "SF")
+two_group_distance <- vegdist(dune[selected, ], method = "bray")
+two_group_env <- droplevels(dune.env[selected, , drop = FALSE])
+dispersion_design <- compile_permanova_design(
+  ~ Management, two_group_env, two_group_distance
+)
+distmer_dispersion <- permanova_dispersion(
+  dispersion_design, term = "Management", type = "median",
+  permutations = 199, seed = 101
+)
+vegan_dispersion <- betadisper(
+  two_group_distance, two_group_env$Management, type = "median"
+)
+
+c(
+  maximum_distance_difference = max(abs(
+    distmer_dispersion$distances - vegan_dispersion$distances
+  )),
+  pseudo_f_difference = distmer_dispersion$test$statistic -
+    unname(anova(vegan_dispersion)["Groups", "F value"])
+) |> tab()
+```
+
+These are useful anchors, but validation is broader than agreement with one
+package. Mixed designs are also checked against their univariate Euclidean
+counterparts, exact enumeration, independent matrix calculations, and
+operating-characteristic simulations.
+
+## Published studies:
+
+
+### One-way: Lejeune et al. (2024)
+
+Euclidean distance on a single trait, untransformed, 9999 permutations.
+
+```{r lejeune, eval=TRUE}
+ponds <- read_delim("~/distmer/code/distmer_tests/Lejeune_et_al/Macroinvertebrates-taxonomic-and-functional-data.csv",
+                    delim = ";", show_col_types = FALSE) |>
+  mutate(Treatment = factor(Treatment, levels = c("Newt", "Fish")))
+
+D <- ponds |> pull(Predator) |> dist(method = "euclidean")
+
+permanova(D ~ Treatment, data = ponds, permutations = 9999, seed = 1)
+```
+
+### Crossed fixed factors: Mitchell et al. (2025)
+
+`log(x + 1)`, Euclidean, Type III partial sums of squares. Region has four
+levels with unequal replication, so Type III and Type II differ here — and
+Type III is what PRIMER reports.
+
+```{r mitchell, eval=TRUE}
+density <- read_excel("~/distmer/code/distmer_tests/Mitchell_et_al/MHW_Foraging_DATA.xlsx", sheet = "Australia Density") |>
+  transmute(Region = factor(Region), Species = factor(Species),
+            y = log(Density + 1))
+
+D <- density |> pull(y) |> dist(method = "euclidean")
+
+permanova(D ~ Region * Species, data = density,
+          permutations = 9999, seed = 1, type = "III")
+```
+
+### Split-plot with a random unit: Turner et al. (2025)
+
+Depth is measured within island, the other two factors between islands, so the
+design carries three error strata. Square-root transform, Euclidean distance.
+
+```{r turner, eval=TRUE}
+benthos <- read_csv("~/distmer/code/distmer_tests/Turner_et_al/Turner_et_al_2025_Benthos_2010_2014.csv",
+                    show_col_types = FALSE) |>
+  transmute(
+    ISLAND     = factor(ISLAND),
+    ECOREGION  = factor(ECOREGION),
+    POP_STATUS = factor(POP_STATUS),
+    DEPTH      = factor(DEPTH_BIN_NEW, levels = c("Shallow", "Mid", "Deep")),
+    across(c(`CORAL_%`, `CCA_%`, `SC_%`, `HALIMEDA_%`, `MA_%`, `EMA_%`,
+             `TURF_%`), sqrt)
+  )
+
+D <- benthos |> select(ends_with("%")) |> dist(method = "euclidean")
+
+permanova(D ~ DEPTH * ECOREGION * POP_STATUS + (1 | ISLAND) + (1 | ISLAND:DEPTH),
+          data = benthos, permutations = 999, seed = 1)
+```
+
+The published pairwise table for this study compares depths *within* each
+ecoregion-by-population-status cell, which is the family described in the
+contrasts vignette:
+
+```{r turner-pairs, eval=FALSE}
+permanova_contrasts(fit, type = "pairwise", factor = "DEPTH",
+                    within = c("ECOREGION", "POP_STATUS"), permutations = 9999)
+```
+
+### Nested repeated measures: Micaroni et al. (2021)
+
+Chambers nested in treatment, sponges nested in chambers, both random, crossed
+with time. Naming the nesting in the term itself — `treatment:chamber` rather
+than `chamber` — is what lets the model see that chamber sits inside treatment,
+and it is what separates a nested random effect from a genuine interaction when
+the expected mean squares are assembled.
+
+```{r micaroni, eval=TRUE}
+sponges <- read_excel("~/distmer/code/distmer_tests/Micaroni_et_al/Micaroni_et_al_sponge_hypoxia.xlsx", sheet = "2.13") |>
+  mutate(treatment = factor(treatment, levels = c("100%a.s.", "5%a.s.")),
+         chamber   = factor(chamber),
+         sponge    = factor(sponge),
+         time      = factor(time, levels = paste0("T", 0:12)))
+
+# PRIMER reports Bray-Curtis as a percentage
+D <- sponges |> transmute(y = sqrt(pumping_rate)) |> vegdist(method = "bray") * 100
+
+permanova(D ~ treatment * time + (1 | treatment:chamber) +
+            (1 | treatment:chamber:sponge) + (1 | treatment:chamber:time),
+          data = sponges, permutations = 999, seed = 1)
+```
+
+Treatment is tested over chambers, chambers over sponges, and time and the
+treatment-by-time interaction over the chamber-by-time stratum — all derived
+from the design rather than declared.
+
+
+
+## Run the deterministic checks
+
+`run_permanova_validation()` performs the package's fast analytic battery. It
+checks reference statistics, exact permutation counts, projector algebra,
+retained non-Euclidean geometry, mixed-design denominators, and failure
+boundaries.
+
+```{r validation}
+# validation_report <- run_permanova_validation()
+# validation_report[, c("check", "passed", "metric")]
+# stopifnot(all(validation_report$passed))
+```

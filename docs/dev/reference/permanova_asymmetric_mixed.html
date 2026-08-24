@@ -23,7 +23,7 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
 
     <a class="navbar-brand me-2" href="../index.html">distmer</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.2</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.9.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,13 +34,13 @@ document.documentElement.setAttribute('data-bs-theme', 'light');
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting started with distmer</a></li>
-    <li><a class="dropdown-item" href="../articles/fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
-    <li><a class="dropdown-item" href="../articles/random-effects.html">3. Random effects and ecological sampling designs</a></li>
-    <li><a class="dropdown-item" href="../articles/contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
-    <li><a class="dropdown-item" href="../articles/dispersion.html">5. Dispersion and distance diagnostics</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/1-getting-started.html">1. Getting started with distmer</a></li>
+    <li><a class="dropdown-item" href="../articles/2-fixed-effects.html">2. Fixed effects and Contrasts (Type I-II-III)</a></li>
+    <li><a class="dropdown-item" href="../articles/3-random-effects.html">3. Random effects and ecological sampling designs</a></li>
+    <li><a class="dropdown-item" href="../articles/5-contrasts.html">4. Pairwise contrasts and multiple comparisons</a></li>
+    <li><a class="dropdown-item" href="../articles/6-dispersion.html">5. Dispersion and distance diagnostics</a></li>
     <li><a class="dropdown-item" href="../articles/atypical-distance-matrices.html">6. Atypical distance matrices</a></li>
-    <li><a class="dropdown-item" href="../articles/validation.html">7. Validation and reproducibility</a></li>
+    <li><a class="dropdown-item" href="../articles/7-comparisons.html">7. distmer with published datasets</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -79,6 +79,8 @@ under a reduced model):</p>
 <span>  permutations <span class="op">=</span> <span class="fl">999L</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hypothesis <span class="op">=</span> <span class="st">"I"</span>,</span>
+<span>  denominator <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ems"</span>, <span class="st">"stratum"</span><span class="op">)</span>,</span>
+<span>  whole_plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"observation"</span>, <span class="st">"centroid"</span><span class="op">)</span>,</span>
 <span>  keep_permutations <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  max_exact <span class="op">=</span> <span class="fl">100000L</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">1e-10</span></span>
@@ -105,6 +107,28 @@ main term and one <code>(1 | unit:subplot)</code> interaction term.</p></dd>
 <dt id="arg-hypothesis">hypothesis<a class="anchor" aria-label="anchor" href="#arg-hypothesis"></a></dt>
 <dd><p>Sum-of-squares partition for the fixed terms (<code>"I"</code>, <code>"II"</code>,
 <code>"III"</code>).</p></dd>
+
+
+<dt id="arg-denominator">denominator<a class="anchor" aria-label="anchor" href="#arg-denominator"></a></dt>
+<dd><p>How each fixed term's denominator is chosen. <code>"ems"</code>
+(default) derives the expected mean squares of the numerator and of every
+candidate stratum from the actual design, by the trace method, and matches
+them with <code><a href="quasi_denominator.html">quasi_denominator()</a></code>. When the design is balanced this returns a
+single stratum and reproduces <code>"stratum"</code> exactly; when it is not, the
+correct denominator can be a combination of strata with Satterthwaite
+degrees of freedom, and the balanced rule is then wrong. <code>"stratum"</code> forces
+the balanced rule: whole-plot terms over the unit stratum, sub-plot terms
+over the unit-by-sub-plot stratum.</p></dd>
+
+
+<dt id="arg-whole-plot">whole_plot<a class="anchor" aria-label="anchor" href="#arg-whole-plot"></a></dt>
+<dd><p>How whole-plot terms are permuted when units are unequally
+replicated. <code>"auto"</code> (default) keeps the intact-unit action at the
+observation level whenever any two units are exchangeable, and otherwise
+falls back to equally weighted unit centroids so a p-value exists at all.
+<code>"observation"</code> and <code>"centroid"</code> force either. The two agree exactly for
+equally replicated units and target different estimands otherwise; the
+choice made is reported on the fit.</p></dd>
 
 
 <dt id="arg-keep-permutations">keep_permutations<a class="anchor" aria-label="anchor" href="#arg-keep-permutations"></a></dt>
@@ -157,3 +181,4 @@ example this is <code>bray ~ DEPTH * ECOREGION * POP_STATUS + (1 | ISLAND) + (1 
 
 
   </body></html>
+

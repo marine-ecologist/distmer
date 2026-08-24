@@ -92,7 +92,11 @@
   }
   if (permutations) {
     for (row in seq_len(permutations)) {
-      for (position in positions) orders[row, position] <- sample(position)
+      # `sample(x)` permutes `seq_len(x)` when `x` is a single number, so a
+      # stratum holding exactly one unit must be indexed explicitly.
+      for (position in positions) {
+        orders[row, position] <- position[sample.int(length(position))]
+      }
     }
   }
   list(
@@ -108,7 +112,7 @@
   denominator_ss <- trace_hgh(H_denominator, G)
   numerator_ms <- numerator_ss / numerator_df
   denominator_ms <- denominator_ss / denominator_df
-  if (!is.finite(denominator_ms) || abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, G, tol)) {
     stop("The unit-level residual mean square is numerically zero.", call. = FALSE)
   }
   observed <- numerator_ms / denominator_ms
@@ -116,16 +120,15 @@
     G, H_reduced, H_numerator, numerator_df, H_denominator, denominator_df,
     plan$orders, label = label, tol = tol
   )
-  p_value <- NA_real_
-  if (length(statistics)) {
-    extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
-    p_value <- if (plan$exact) extreme / length(statistics) else
-      (extreme + 1) / (length(statistics) + 1)
-  }
+  inference <- .permutation_inference(statistics, observed, plan$exact, tol)
+  p_value <- inference$p_value
   list(
     numerator_ss = numerator_ss, numerator_ms = numerator_ms,
     denominator_ss = denominator_ss, denominator_ms = denominator_ms,
-    observed = observed, statistics = statistics, p_value = p_value
+    observed = observed, statistics = statistics, p_value = p_value,
+    distinct_statistics = inference$distinct_statistics,
+    minimum_attainable_p = inference$minimum_attainable_p,
+    resolution_note = inference$resolution_note
   )
 }
 
@@ -237,7 +240,7 @@ permanova_unequal_random_intercept <- function(
     structure$H_denominator, structure$denominator_df, plan, tol,
     label = "Permuting whole random-intercept clusters"
   )
-  notes <- character()
+  notes <- result$resolution_note
   if (!isTRUE(design$spectral$euclidean)) {
     notes <- c(notes, "Empirical inference retained the complete non-Euclidean Gower spectrum.")
   }
@@ -366,7 +369,11 @@ print.permanova_unequal_random_intercept <- function(x, ...) {
   child_name <- child_terms[[1L]]$label
   parent <- droplevels(design$groups[[parent_name]])
   child <- droplevels(design$groups[[child_name]])
-  aggregated <- .aggregate_gower_units(design, parent, tol = tol)
+  # Parent centroids average their children with equal weight rather than
+  # averaging the parent's observations directly, so a child carrying more
+  # replicates does not pull its parent's centroid. This is the same cascaded
+  # equal-weight convention the deeper chains use.
+  aggregated <- .cascade_aggregate(design, .nested_chain(design), 1L, tol = tol)
   parent_treatment <- vapply(aggregated$blocks, function(index) {
     values <- unique(as.character(fixed$value[index]))
     if (length(values) != 1L) {
@@ -417,12 +424,39 @@ print.permanova_unequal_random_intercept <- function(x, ...) {
     denominator_df = denominator_df
   )
 }
+# From 0.9.3 a parent centroid averages its child centroids with equal weight
+# rather than averaging the parent's observations directly. The two agree when
+# children are equally replicated, so the note is raised only for the designs
+# whose numbers actually moved -- it should reach the person running the fit,
+# not everyone.
+#' @keywords internal
+#' @noRd
+.cascaded_estimand_note <- function(child, parent) {
+  counts <- table(droplevels(factor(child)))
+  per_parent <- split(as.integer(counts),
+                      droplevels(factor(parent))[!duplicated(child)])
+  unequal <- any(vapply(per_parent, function(sizes) {
+    length(unique(sizes)) > 1L
+  }, logical(1)))
+  if (!isTRUE(unequal)) return(character())
+  paste0(
+    "Children are unequally replicated within at least one parent, so each ",
+    "parent centroid averages its child centroids with equal weight. Before ",
+    "distmer 0.9.3 the parent's observations were averaged directly, which let ",
+    "a child carrying more replicates pull its parent; the pseudo-F and ",
+    "p-value here differ from those a version at or below 0.9.2 would report."
+  )
+}
+
 
 #' Unbalanced nested top-unit PERMANOVA
 #'
 #' Tests one treatment assigned to top-level units of one unbalanced nested
-#' hierarchy. Equally weighted top-unit centroids are permuted only among
-#' hierarchies with the same sorted vector of child observation counts.
+#' hierarchy. Each top-unit centroid averages its child centroids with equal
+#' weight, so a child carrying more replicates does not pull its parent; this is
+#' the same cascaded convention [permanova_unbalanced_nested_multi()] uses for
+#' deeper chains. Centroids are permuted only among hierarchies with the same
+#' sorted vector of child observation counts.
 #'
 #' @inheritParams permanova_unequal_random_intercept
 #' @return An object of class `permanova_unbalanced_nested`.
@@ -441,9 +475,13 @@ permanova_unbalanced_nested <- function(
     structure$H_denominator, structure$denominator_df, plan, tol,
     label = "Permuting intact top-level hierarchy units"
   )
-  warnings <- if (!isTRUE(design$spectral$euclidean)) {
-    "Empirical inference retained the complete non-Euclidean Gower spectrum."
-  } else character()
+  warnings <- c(
+    result$resolution_note,
+    .cascaded_estimand_note(structure$child, structure$parent),
+    if (!isTRUE(design$spectral$euclidean)) {
+      "Empirical inference retained the complete non-Euclidean Gower spectrum."
+    } else character()
+  )
   test <- list(
     term = structure$fixed$name,
     hypothesis = paste0("top-unit-weighted centroids are equal across `",
@@ -605,7 +643,7 @@ print.permanova_unbalanced_nested <- function(x, ...) {
   denominator_ss <- trace_hgh(H_denominator, G)
   numerator_ms <- numerator_ss / numerator_df
   denominator_ms <- denominator_ss / denominator_df
-  if (!is.finite(denominator_ms) || abs(denominator_ms) <= tol) {
+  if (.mean_square_is_zero(denominator_ms, G, tol)) {
     stop("The cell-profile residual mean square is numerically zero.",
          call. = FALSE)
   }
@@ -616,12 +654,8 @@ print.permanova_unbalanced_nested <- function(x, ...) {
     (trace_hgh(H_numerator, G_permuted) / numerator_df) /
       (trace_hgh(H_denominator, G_permuted) / denominator_df)
   }, numeric(1))
-  p_value <- NA_real_
-  if (length(statistics)) {
-    extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
-    p_value <- if (plan$exact) extreme / length(statistics) else
-      (extreme + 1) / (length(statistics) + 1)
-  }
+  inference <- .permutation_inference(statistics, observed, plan$exact, tol)
+  p_value <- inference$p_value
   list(
     numerator_ss = numerator_ss, numerator_ms = numerator_ms,
     denominator_ss = denominator_ss, denominator_ms = denominator_ms,

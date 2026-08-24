@@ -9,6 +9,7 @@ permanova_contrasts(
   type = "pairwise",
   method = c("isolated", "pooled"),
   factor = NULL,
+  within = NULL,
   ref = NULL,
   scores = NULL,
   custom = NULL,
@@ -31,7 +32,16 @@ numerator SS = trace(H_c G); it borrows error df (more power) but assumes
 homogeneous dispersion, and its permutation null requires the engine's own
 generator (see Details).}
 
-\item{factor}{Name of the fixed factor. Defaults to the tested factor.}
+\item{factor}{Name of the fixed factor. Defaults to the tested factor.
+Naming several factors is shorthand for the within-cell family: the first
+is contrasted inside combinations of the rest.}
+
+\item{within}{Optional character vector of factors whose combinations define
+the cells. Contrasts the levels of \code{factor} separately inside each one,
+rebuilding the random strata on that subset so every pair gets the
+denominator its own cell supports - PRIMER's "pairwise within levels"
+table. Dispatches to \code{\link[=permanova_contrasts_within]{permanova_contrasts_within()}}; only defined for
+\code{type = "pairwise"}.}
 
 \item{ref}{Reference level for "trt.vs.ctrl".}
 
@@ -46,7 +56,8 @@ generator (see Details).}
 \item{seed}{RNG seed; defaults to \code{fit}'s value.}
 }
 \value{
-An object of class \code{permanova_contrasts}.
+An object of class \code{permanova_contrasts}, or of class
+\code{permanova_contrasts_within} when \code{within} is used.
 }
 \description{
 Planned or pairwise contrasts on a fixed factor of a fitted \code{\link[=permanova]{permanova()}}
@@ -65,5 +76,5 @@ p-value \code{NA} rather than computing it over the wrong (full-data) permutatio
 space.
 }
 \seealso{
-\code{\link[=permanova]{permanova()}}, \code{\link[=contrast_matrix]{contrast_matrix()}}
+\code{\link[=permanova]{permanova()}}, \code{\link[=contrast_matrix]{contrast_matrix()}}, \code{\link[=permanova_contrasts_within]{permanova_contrasts_within()}}
 }

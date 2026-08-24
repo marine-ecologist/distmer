@@ -13,6 +13,7 @@ permanova_contrasts(
   type = "pairwise",
   method = c("isolated", "pooled"),
   factor = NULL,
+  within = NULL,
   ref = NULL,
   scores = NULL,
   custom = NULL,
@@ -47,7 +48,19 @@ permanova_contrasts(
 
 - factor:
 
-  Name of the fixed factor. Defaults to the tested factor.
+  Name of the fixed factor. Defaults to the tested factor. Naming
+  several factors is shorthand for the within-cell family: the first is
+  contrasted inside combinations of the rest.
+
+- within:
+
+  Optional character vector of factors whose combinations define the
+  cells. Contrasts the levels of `factor` separately inside each one,
+  rebuilding the random strata on that subset so every pair gets the
+  denominator its own cell supports - PRIMER's "pairwise within levels"
+  table. Dispatches to
+  [`permanova_contrasts_within()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts_within.md);
+  only defined for `type = "pairwise"`.
 
 - ref:
 
@@ -77,7 +90,8 @@ permanova_contrasts(
 
 ## Value
 
-An object of class `permanova_contrasts`.
+An object of class `permanova_contrasts`, or of class
+`permanova_contrasts_within` when `within` is used.
 
 ## Details
 
@@ -95,4 +109,5 @@ than computing it over the wrong (full-data) permutation space.
 ## See also
 
 [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md),
-[`contrast_matrix()`](https://marine-ecologist.github.io/distmer/dev/reference/contrast_matrix.md)
+[`contrast_matrix()`](https://marine-ecologist.github.io/distmer/dev/reference/contrast_matrix.md),
+[`permanova_contrasts_within()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts_within.md)

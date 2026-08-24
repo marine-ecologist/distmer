@@ -7,7 +7,7 @@
   })
   denominator <- trace_hgh(structure$H_denominator, design$G) /
     structure$denominator_df
-  if (!is.finite(denominator) || abs(denominator) <= tol) {
+  if (.mean_square_is_zero(denominator, design$G, tol)) {
     stop("The within-group residual mean square is numerically zero.",
          call. = FALSE)
   }
@@ -73,11 +73,15 @@ permanova_maxT <- function(
   if (nrow(joint$statistics)) {
     for (index in seq_len(nrow(contrast_matrix))) {
       raw_extreme <- sum(
-        joint$statistics[, index] >= joint$observed[[index]] - tol,
+        joint$statistics[, index] >=
+          joint$observed[[index]] - max(100 * tol, sqrt(.Machine$double.eps)) *
+            max(1, abs(joint$observed[[index]])),
         na.rm = TRUE
       )
       max_extreme <- sum(
-        joint$maxima >= joint$observed[[index]] - tol,
+        joint$maxima >=
+          joint$observed[[index]] - max(100 * tol, sqrt(.Machine$double.eps)) *
+            max(1, abs(joint$observed[[index]])),
         na.rm = TRUE
       )
       if (plan$exact) {

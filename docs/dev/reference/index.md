@@ -29,6 +29,8 @@
   : Derive estimable hypotheses for an unbalanced fixed model
 - [`distance_diagnostics()`](https://marine-ecologist.github.io/distmer/dev/reference/distance_diagnostics.md)
   : Diagnose the Euclidean spectrum of a dissimilarity
+- [`distmer-options`](https://marine-ecologist.github.io/distmer/dev/reference/distmer-options.md)
+  : Options that change how distmer reports
 - [`estimate_hybrid_variance_components()`](https://marine-ecologist.github.io/distmer/dev/reference/estimate_hybrid_variance_components.md)
   : Estimate balanced crossed-nested hybrid variance components
 - [`estimate_nested_variance_components()`](https://marine-ecologist.github.io/distmer/dev/reference/estimate_nested_variance_components.md)
@@ -52,8 +54,12 @@
   : Report the validated inference support matrix
 - [`permanova_contrasts()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts.md)
   : Contrasts for a fitted PERMANOVA
+- [`permanova_contrasts_within()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts_within.md)
+  : Pairwise contrasts within the cells of other factors
 - [`permanova_crossed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed.md)
   : Balanced crossed distance-based mixed model
+- [`permanova_crossed_incomplete()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed_incomplete.md)
+  : Crossed mixed PERMANOVA for incomplete, unequally replicated designs
 - [`permanova_dispersion()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_dispersion.md)
   : Design-aware multivariate dispersion inference
 - [`permanova_fixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_fixed.md)
@@ -104,6 +110,8 @@
   : Unbalanced nested top-unit PERMANOVA
 - [`permanova_unbalanced_nested_lower()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_lower.md)
   : Lower-level unbalanced nested PERMANOVA
+- [`permanova_unbalanced_nested_multi()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_multi.md)
+  : Multi-level unbalanced nested PERMANOVA
 - [`permanova_unbalanced_splitplot()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.md)
   : Unbalanced multi-factor split-plot PERMANOVA
 - [`permanova_unequal_random_intercept()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unequal_random_intercept.md)
@@ -116,6 +124,8 @@
   : Run the deterministic validation suite
 - [`simulate_adjusted_contrast_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_adjusted_contrast_validation.md)
   : Validate explicitly covariate-adjusted contrasts
+- [`simulate_asymmetric_mixed_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_asymmetric_mixed_validation.md)
+  : Validate the asymmetric nested mixed engine
 - [`simulate_balanced_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_balanced_mixed.md)
   : Simulate a balanced random-intercept community design
 - [`simulate_contrast_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_contrast_validation.md)
@@ -134,14 +144,20 @@
   : Validate global-null max-F multiplicity control
 - [`simulate_mixed_contrast_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_contrast_validation.md)
   : Validate mixed-design planned contrasts
+- [`simulate_mixed_covariate_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_covariate_validation.md)
+  : Validate the balanced split-plot mixed engine
 - [`simulate_mixed_maxT_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_maxT_validation.md)
   : Validate mixed-design global-null max-F inference
 - [`simulate_mixed_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_validation.md)
   : Run mixed-model operating-characteristic simulations
+- [`simulate_nested_covariate_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_covariate_validation.md)
+  : Validate the covariate-adjusted balanced nested engine
 - [`simulate_nested_level_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_level_validation.md)
   : Validate level-specific balanced nested inference
 - [`simulate_nested_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_validation.md)
   : Validate balanced nested mixed-model Type I error
+- [`simulate_random_slope_continuous_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_random_slope_continuous_validation.md)
+  : Validate the continuous random-slope engine
 - [`simulate_random_slope_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_random_slope_validation.md)
   : Validate balanced two-condition random-slope inference
 - [`simulate_strong_pairwise_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_strong_pairwise_validation.md)
@@ -154,6 +170,8 @@
   : Validate unbalanced nested and randomized-block inference
 - [`simulate_unbalanced_nested_lower_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_nested_lower_validation.md)
   : Validate lower-level unbalanced nested inference
+- [`simulate_unbalanced_splitplot_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_splitplot_validation.md)
+  : Validate the unbalanced split-plot mixed engine
 - [`simulate_unbalanced_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_validation.md)
   : Validate unbalanced fixed-effect inference
 - [`simulate_unequal_random_intercept_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unequal_random_intercept_validation.md)

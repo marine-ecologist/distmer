@@ -1,5 +1,521 @@
 # Changelog
 
+## distmer 0.9.4
+
+## distmer 0.9.3
+
+Version 0.9.3 extends unbalanced nested inference to hierarchies of any
+depth and to any number of fixed terms, adds calibration validators for
+the mixed engines introduced in 0.9.2, and corrects a series of
+numerical-conditioning defects found while doing so.
+
+**Results change for two engines.**
+[`permanova_unbalanced_nested()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested.md)
+now averages child centroids with equal weight, and permutation p-values
+are corrected wherever an absolute comparison tolerance had made them
+too small; see “Multi-level unbalanced nested designs” and “Extremeness
+comparison used an absolute tolerance” below.
+
+### Crossed mixed designs with empty cells or unequal replication
+
+- New engine
+  [`permanova_crossed_incomplete()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed_incomplete.md),
+  reached automatically from
+  [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)
+  when a crossed mixed design is not a complete, equally replicated
+  factorial. Previously such a design was refused outright:
+  [`permanova_crossed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed.md)
+  requires every cell present and every cell the same size, and the
+  unbalanced fixed engine separately refuses rank deficiency, so a field
+  experiment revisited on different schedules at different sites had no
+  route through the package at all.
+- **Degrees of freedom are estimable dimensions, not level-count
+  products.** With `s` sites, `t` times and only `c` of the `s*t` cells
+  occupied, the site-by-time interaction spans `c - s - t + 1`
+  dimensions rather than `(s-1)(t-1)`. The table reports what the term
+  can actually estimate and carries `nominal_df` alongside, so the loss
+  is visible rather than silent; `$rank_deficient` names the affected
+  terms.
+- Sums of squares are marginal, under sum-to-zero coding. Each term is
+  compared against the model holding every term that does **not**
+  contain it. Dropping a term’s columns from the full model – the
+  obvious construction – is the wrong comparison here: a term containing
+  this one spans it, so with the site-by-time interaction still fitted,
+  removing the site columns removes nothing and site reports zero
+  degrees of freedom. In a complete design the higher-order contrasts
+  are orthogonal to the margin and the question never arises, which is
+  why the balanced engine can drop columns safely.
+- Denominators are matched from the design’s expected mean squares under
+  the restricted parameterisation, so a fixed term crossed with a random
+  factor is tested over the stratum carrying the same random components
+  and falls back to a Satterthwaite combination when imbalance leaves no
+  single stratum matching. The restriction applies on both sides: a
+  random stratum carries no component from a random-by-fixed interaction
+  inside it, and a fixed term’s own expected mean square carries only
+  the components whose fixed factors are exactly its own – `E(MS_bird)`
+  holds the bird-by-time component but not site-by-bird-by-time. Without
+  the second rule a random term would be matched against itself and
+  return a pseudo-F of exactly one.
+- Continuous covariates are carried as slopes rather than factors, so a
+  covariate costs one degree of freedom instead of one per distinct
+  value.
+- Nesting is told apart from crossing when deciding which random
+  components belong in a term’s expected mean square. A random term
+  written `treatment:chamber` names the treatment only because chamber
+  is nested inside it, whereas `treatment:chamber:time` is genuinely
+  crossed with time. Reading the label literally put `time` over the
+  residual instead of over `chamber(treatment) x time`; the test is now
+  whether the fixed factor is determined by the term’s other variables.
+- Interaction terms are matched by their variable set rather than their
+  written order, since [`terms()`](https://rdrr.io/r/stats/terms.html)
+  can return `chamber:time` as `time:chamber`.
+- Random terms are optional. With none the engine covers the
+  **incomplete fixed** design, which
+  [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)’s
+  Type III fixed path refuses outright (“aliased columns from incomplete
+  cells”): every stratum collapses to the residual and each term is
+  tested over it, while the rank-based construction reports what the
+  empty cells leave estimable.
+- `hypothesis` selects the sums of squares: `"II"` (default) adjusts
+  each term for every term that does not contain it, `"I"` is
+  sequential, `"III"` adjusts for every other term in the model. On a
+  complete equally replicated design all three coincide. On an
+  incomplete one they do not, and Type III is the one to be careful
+  with: a term containing this one can span it, so a main effect can
+  report zero estimable degrees of freedom. Type II is the default
+  because it stays well posed however incomplete the design is.
+- **The correctness anchor is agreement.** On a complete, equally
+  replicated design both this engine and the validated
+  [`permanova_crossed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed.md)
+  apply, and they return identical degrees of freedom, sums of squares
+  and pseudo-F to machine precision. Everything else is that same
+  construction carried into designs the balanced engine refuses.
+
+### Multi-level unbalanced nested designs
+
+- `permanova(d ~ terms... + (1 | region/site/quadrat))` now works when
+  replication is unequal at more than one level, via a new engine
+  [`permanova_unbalanced_nested_multi()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_multi.md).
+  Previously only a single parent/child pair was supported, and deeper
+  unbalanced chains were refused.
+- The engine takes **any number of fixed terms**, closing an asymmetry
+  in the package: multi-factor support already existed for an unbalanced
+  `(1 | unit)` design through
+  [`permanova_unbalanced_splitplot()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.md),
+  but every unbalanced nested engine accepted exactly one categorical
+  factor, so `~ A + B + (1 | reg/site)` or
+  `~ A * B + (1 | reg/site/quad)` was refused. Each term is now assigned
+  to the shallowest hierarchy level within which it is constant and
+  tested there, with Type I/II/III partitioning among the terms sharing
+  a level. A term that varies inside the deepest unit – typically an
+  observation-level covariate – is tested over the within-unit residual
+  with residuals permuted within those units. Verified against
+  independent `lm` references at every level: region, site, and
+  observation, including interactions, and against
+  [`car::Anova`](https://rdrr.io/pkg/car/man/Anova.html) for the Type
+  III partition.
+- Permutation moves intact units within their own parent and only across
+  units whose complete subtree shape matches, generalising the
+  parent/child engine’s sorted-child-count rule. Treatment contrasts not
+  spanned by that restricted action reject rather than being tested
+  invalidly.
+- **Behaviour change.**
+  [`permanova_unbalanced_nested()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested.md)
+  now uses the same cascaded aggregation, so a parent centroid averages
+  its child centroids with equal weight instead of averaging the
+  parent’s observations directly. The two agreed already when children
+  were equally replicated; under unequal child replication the pseudo-F,
+  and any p-value derived from it, will differ from 0.9.1. The
+  observation-weighted parent centroid let a child carrying more
+  replicates pull its parent, which is the imbalance the equal-weight
+  estimand exists to remove, and it disagreed with the deeper chains.
+  Top-level unbalanced-nested contrasts inherit the same change. Engines
+  with no level between the aggregation unit and the observations
+  ([`permanova_unequal_random_intercept()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unequal_random_intercept.md),
+  [`permanova_unbalanced_block()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_block.md),
+  and the child/observation-level nested engine) are unaffected, since
+  for them the two conventions coincide.
+- Because that change moves published numbers and a NEWS entry is easy
+  to miss, an affected fit now says so in its own warnings. The note is
+  raised only when children really are unequally replicated within a
+  parent; when they are not, the old and new conventions coincide and
+  there is nothing to report.
+
+### Denominators derived from the design’s expected mean squares
+
+- [`permanova_asymmetric_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.md)
+  applied the balanced-design rule – whole-plot terms over the unit
+  stratum, sub-plot terms over the unit-by-sub-plot stratum – to designs
+  that are not balanced. The package elsewhere promises never to invent
+  an unbalanced expected mean square; this engine did so implicitly, and
+  on a reef survey with island sizes from 2 to 240 sites it put six of
+  seven fixed terms out by 25 to 95 per cent.
+- A new `denominator` argument (default `"ems"`) derives the expected
+  mean squares of the numerator and of every candidate stratum from the
+  actual design by the trace method, then constructs the ratio from
+  them. Where the match would need a negative coefficient on the
+  residual, the surplus is moved to the **numerator** rather than
+  truncated, keeping every coefficient non-negative, and Satterthwaite
+  degrees of freedom apply to both sides – so a numerator df need not be
+  a whole number. `denominator = "stratum"` restores the previous rule.
+- Balanced designs give an exact single-stratum match and are unchanged.
+- The interaction covariance component is orthogonalised against the
+  unit main effect. Without it no random component is attributable to a
+  single stratum, the construction has no solution, and the engine
+  silently falls back.
+- Validated against a published PRIMER workspace for an unbalanced
+  three-stratum design: the construction reproduces PRIMER’s pseudo-F,
+  numerator df and denominator df for every fixed term to all printed
+  digits, and the trace-derived EMS coefficients match PRIMER’s to five
+  significant figures. Within the engine the mean absolute log ratio
+  against PRIMER falls from 0.335 to 0.037.
+
+### Contrasts within the cells of other factors
+
+- [`permanova_contrasts_within()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts_within.md)
+  contrasts the levels of one fixed factor inside every combination of
+  others, as PRIMER’s “within level” pairwise tables do.
+- The denominator cannot be inherited from the parent fit. Inside one
+  cell the lower strata often collapse – an ecoregion sampled on two
+  islands leaves the unit-by-sub-plot stratum with no degrees of freedom
+  – so each pair rebuilds the declared random strata on its own subset,
+  drops those with no degrees of freedom, and matches the contrast’s
+  expected mean square against the survivors. Three pairs inside one
+  cell can therefore carry three different denominators and three
+  different Satterthwaite degrees of freedom, which no single fitted
+  model can produce.
+- Residuals are permuted inside the experimental unit, so observations
+  move between the levels being contrasted.
+- **Expected mean squares are restricted, as PRIMER’s are.** PRIMER
+  states the convention in its workspace header – “Fixed effects sum to
+  zero for mixed terms” – and under that restricted model the mean
+  square of a random stratum carries no variance component from a
+  random-by-fixed interaction nested inside it: `E(MS_island)` contains
+  no island-by-depth component, though `E(MS_island x depth)` does.
+  distmer previously used the unrestricted accounting and then tried to
+  recover the zero by orthogonalising the interaction’s `Z` against the
+  containing stratum, which is the wrong instrument: it changes that
+  component’s covariance everywhere it appears, including in the
+  contrast’s own expected mean square, and left the inner coefficient
+  too small by up to 18 per cent. The zero now goes where it belongs, in
+  the stratum’s row of the accounting, and a component’s covariance is
+  `ZZ'` as declared.
+- **Permutation happens at the level of the denominator’s finest
+  stratum.** When a denominator is carried by a grouping stratum rather
+  than the residual, the exchangeable entity is a whole unit of that
+  stratum – an island-by-depth cell – not an observation. Permuting
+  observations inside the island instead treats every sample in a cell
+  as an independent replicate; that is pseudo-replication, and it made
+  p-values too small in 19 of 20 affected contrasts. Units of unequal
+  size cannot be permuted as rows, so the exchange is done on unit
+  centroids. This costs nothing: any projector constant within units
+  satisfies `tr(H L G L') = tr(H G)`, so the observed statistic is
+  unchanged and only the null moves. Residuals are permuted under a
+  reduced model holding the coarser strata, weighted by unit size.
+- **The numerator’s surplus residual reaches the permutation.** Where
+  the matched weights carry more than one unit of residual, the
+  construction moves the surplus onto the numerator rather than allowing
+  a negative weight, so the statistic is
+  `(numerator MS + surplus * residual MS) / denominator`. The
+  permutation was computing the numerator mean square alone, leaving the
+  null on a different scale from the observed statistic it was compared
+  against. Both permutation paths now carry the surplus, and the
+  unit-level path asserts that the unpermuted configuration reproduces
+  the reported statistic exactly, so the two cannot drift apart again
+  unnoticed.
+- Validated against the same PRIMER workspace, now on **all 27
+  contrasts** in the complete within-level table rather than one cell.
+  Every t statistic, every denominator coefficient on all three strata,
+  and every Satterthwaite degree of freedom reproduces to PRIMER’s
+  printed precision, and the calls at the five per cent level are
+  identical throughout.
+
+### Known gap: the within-cell null over a grouping stratum
+
+Where the residual carries a within-cell denominator, the exchangeable
+unit is the observation and the permutation p-values match PRIMER’s to
+within 0.007.
+
+Where a *grouping* stratum carries it, the exchangeable unit is a whole
+unit of that stratum. distmer now permutes the right space – PRIMER’s
+own unique-perm counts name it exactly at 720 = 6! for a cell with six
+occupied island-by-depth units, and distmer finds the same 720 – but the
+distribution over that space is not yet identical to PRIMER’s. Gaps
+reach 0.157 on 18 such contrasts, mean 0.037, with distmer the more
+conservative of the two in 15 of 18.
+
+Fixing the surplus-residual defect above moved these p-values *away*
+from PRIMER, not toward it: the closer agreement beforehand was an
+artifact of the null being on the wrong scale. Five variants of the
+statistic and the reduced model were tested against the nine contrasts
+where both sides can be enumerated exactly, and none accounts for the
+difference, so the cause is not one of those choices. The tests bound
+this discrepancy rather than asserting agreement. -
+[`permanova_contrasts()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts.md)
+reaches this family directly, via a new `within =` argument. Naming
+several factors in `factor` is shorthand for the same thing: the first
+is contrasted inside combinations of the rest, and the reading taken is
+reported. Several factors cannot mean contrasting their crossed cells –
+two cells of a crossed combination leave the design’s lower strata with
+no degrees of freedom – so the shorthand is unambiguous. `within` is
+refused for the non-pairwise families, which need a contrast matrix over
+all levels that a single cell need not carry, and for
+`method = "pooled"`, which has no meaning when every pair derives its
+own denominator. - The result prints grouped by cell, so a within-level
+table can be read as published.
+
+### Whole-plot terms were untestable on unequally replicated designs
+
+- [`permanova_asymmetric_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.md)
+  permutes whole units by swapping blocks of observation indices, which
+  is only defined between units holding the same counts in the same
+  sub-plot classes. Real surveys give every unit a distinct count
+  vector: in a 33-island reef dataset all 33 signatures were unique, so
+  no two islands were exchangeable, the only attainable arrangement was
+  the identity, and **every whole-plot term returned `p = 1.0000`
+  regardless of its pseudo-F**. A term with pseudo-F of 26 was reported
+  as p = 1.
+- A new `whole_plot` argument decides what happens. `"observation"`
+  keeps the intact-unit action at the observation level, weighting units
+  by how many observations they carry – the estimand the `IS(unit)`
+  stratum defines. `"centroid"` tests whole-plot terms on equally
+  weighted unit centroids and permutes units freely, so a p-value exists
+  for any design. `"auto"` (the default) uses the observation-level
+  action whenever any two units are exchangeable and falls back to
+  centroids otherwise.
+- The two agree **exactly** when units are equally replicated, so no
+  existing balanced analysis moves; a regression test pins that
+  bit-for-bit. Under imbalance they target different estimands, and a
+  fit that fell back says so in the affected terms’ warnings. The action
+  taken is recorded on the fit as `$whole_plot`.
+- The unit-level denominator is the residual among unit centroids after
+  every whole-plot term, so all whole-plot tests share one denominator
+  exactly as they do at the observation level.
+- Sub-plot terms are untouched: they keep the observation-level action
+  and the unit-by-sub-plot stratum.
+
+### Permutation resolution reaches the asymmetric engine
+
+- [`permanova_asymmetric_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.md)
+  computed the resolution diagnostic and then discarded it, so the
+  `p = 1.0000` above arrived with no explanation. It now reports
+  `distinct_statistics` and `minimum_attainable_p` on every test spec
+  and raises the resolution warning, which names exactly this failure
+  (“the permutation distribution holds only 1 distinct statistic”).
+  Progress bars in this engine were also unlabelled, so a multi-term fit
+  drew several anonymous bars; each is now labelled with its term and
+  denominator stratum.
+
+### Calibration validators for the newer mixed engines
+
+- Five engines had unit tests but no entry in the validation harness.
+  Each now has a `simulate_*_validation()` function pinned to an
+  independently computed classical reference, and
+  [`run_permanova_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/run_permanova_validation.md)
+  checks that agreement:
+  [`permanova_mixed_covariate()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_mixed_covariate.md)
+  against `aov(y ~ tr * sub + Error(unit))`;
+  [`permanova_unbalanced_splitplot()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.md)
+  against an `lm` on equally weighted unit centroids;
+  [`permanova_nested_covariate()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_nested_covariate.md)
+  against `SS(factor | covariate)` over the factor-only nested stratum;
+  [`permanova_asymmetric_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.md)
+  against `aov(y ~ EC * DE + Error(ISLAND / DE))`; and
+  [`permanova_random_slope_continuous()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_random_slope_continuous.md)
+  against a one-sample test on per-group slopes. All agree to better
+  than 1e-13.
+- Type-I error at 300 simulations is within Monte-Carlo error of the
+  nominal 0.05 for all five (0.037-0.060; every 95% interval covers
+  0.05).
+
+### Restricted permutation with a singleton stratum
+
+- `.stratified_permutation_plan()` used `sample(position)`, which
+  permutes `seq_len(x)` when `x` is a single number. A permutation
+  stratum containing exactly one unit therefore aborted the fit (“number
+  of items to replace is not a multiple of replacement length”) unless
+  that unit happened to be the first observation. Singleton strata are
+  common in unbalanced data – one unit with a unique replicate count, or
+  one hierarchy unit with a unique topology – and every engine using
+  restricted permutation was affected, including
+  [`permanova_unequal_random_intercept()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unequal_random_intercept.md),
+  [`permanova_unbalanced_splitplot()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.md),
+  [`permanova_asymmetric_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_asymmetric_mixed.md),
+  and the unbalanced nested engines. The stratum is now indexed
+  explicitly and a singleton is correctly held fixed.
+
+### Nesting chains crossed with unrelated random factors
+
+- [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)
+  refused designs such as `~ tr + (1 | a/b) + (1 | c)` only after
+  routing them into the crossed engine, which reported an internal
+  “Phase 3” message about `/`-generated nesting. The dispatcher now
+  refuses the structure directly, names the nesting chain involved, and
+  points to either the nested engine or the validated crossed-nested
+  hybrid form.
+
+### Degenerate results from a model with no testable fixed term
+
+- A design whose fixed terms are all absorbed by the random structure
+  produced `permutation$used = -Inf` and an internal warning (“no
+  non-missing arguments to max”) instead of a clean zero. Three of the
+  four sites taking the maximum over an empty set of test specifications
+  lacked the guard the fourth already had; all four now agree.
+
+### Extremeness comparison used an absolute tolerance
+
+- Permutation p-values counted a statistic as extreme when it reached
+  `observed - tol` with `tol = 1e-10` **absolute**. The identity
+  permutation reproduces the observed statistic only up to
+  floating-point rounding, and at a pseudo-F of around 1e4 that rounding
+  is roughly 1e-9 – larger than the tolerance. The permutation that
+  should always tie with the observed value then failed to count, and an
+  exhaustive test could report **p = 0**, which no permutation test can
+  legitimately produce. In one four-unit design the reported p-value was
+  0 where the correct exact value is 1/3.
+- Widening the slack alone was not enough. The observed statistic and
+  its permuted counterparts are reached by different arithmetic paths,
+  and under severe conditioning – a pseudo-F of 1e12, say – the tie
+  between them is lost by more than any fixed relative slack. Under
+  exact enumeration the identity permutation is a member of the set and
+  always ties, so `p >= 1/N` holds as a theorem; that bound is now
+  enforced directly, which removes the whole class regardless of how
+  well conditioned the design is.
+- The comparison also now scales with the magnitude of the observed
+  statistic in every engine, using the same `sqrt(.Machine$double.eps)`
+  floor the package already applies to numerical-equality checks.
+  p-values are unchanged on ordinary scales – verified identical to the
+  previous idiom across 200 randomised cases – and are corrected upward
+  wherever the statistic was large enough for the old slack to fail.
+  Designs with well-separated groups are the ones affected, so any
+  previously reported p-value of exactly 0 should be recomputed.
+
+### Numerically-zero guards are now scale free
+
+- Sixteen guards across twelve engines refused a fit when a mean square
+  was “numerically zero”, comparing it with an **absolute**
+  `tol = 1e-10`. A mean square carries the squared units of the
+  dissimilarity, so that test was not scale free: the same analysis was
+  accepted on a response of ordinary magnitude and refused after
+  multiplying the response by 1e-4. Data already on a small scale –
+  proportions, or an already-normalised dissimilarity – could be
+  rejected with “the … mean square is numerically zero” when nothing was
+  wrong with it. This was reported as a known limitation in 0.9.3.
+- Each guard now measures the mean square against the total inertia of
+  the same Gower matrix, so the question becomes “is this stratum
+  negligible relative to the variation in these data”, which is what the
+  guard is for and does not depend on the units of the response.
+
+### Consistent refusal of a degenerate denominator
+
+- [`permanova_oneway()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_oneway.md)
+  and
+  [`permanova_fixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_fixed.md)
+  divided by a numerically zero residual and returned an infinite
+  pseudo-F, while every other engine refused. Both now refuse with the
+  same message. Only the observed statistic is guarded, so a single
+  degenerate permutation cannot abort an otherwise valid run.
+- [`permanova_oneway()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_oneway.md)
+  gains a `tol` argument for that check.
+
+### Permutation resolution is now reported
+
+- A restricted permutation scheme can attain many arrangements yet
+  produce only a handful of distinct statistics: permuting labels inside
+  a treatment group leaves the statistic untouched. Two groups of two
+  attain 24 arrangements but only three distinct pseudo-F values, so the
+  smallest p-value the design can return is a third – however large the
+  effect. Reporting the count of attainable arrangements alone hid this.
+- Test specifications now carry `distinct_statistics` and
+  `minimum_attainable_p`, and a design that cannot reach the chosen
+  level however large its effect says so in its warnings. The level is
+  the new `distmer.resolution_alpha` option (default `0.05`); it is a
+  reporting threshold only, and the two numbers are recorded whatever it
+  is set to.
+- A new
+  `?\`distmer-options\``help page documents every option that changes how the package reports --`distmer.resolution_alpha`,`distmer.progress`, and`distmer.progress_min\`.
+  None of them changes an inferential result. The progress options
+  existed since 0.9.2 but were only described in an internal comment.
+- The p-value computation itself, previously duplicated at two dozen
+  sites, is now a single shared helper, which is what let both of the
+  above be fixed in one place.
+
+### Models with no fixed term
+
+- [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)
+  now refuses a formula whose only terms are random, instead of
+  returning a sums-of-squares table with no statistic in it. The refusal
+  names the estimator that does decompose a pure random structure –
+  [`estimate_nested_variance_components()`](https://marine-ecologist.github.io/distmer/dev/reference/estimate_nested_variance_components.md)
+  for a `/`-generated chain,
+  [`estimate_variance_components()`](https://marine-ecologist.github.io/distmer/dev/reference/estimate_variance_components.md)
+  otherwise – and suggests a concrete repair using the user’s own
+  grouping factor.
+- [`estimate_nested_variance_components()`](https://marine-ecologist.github.io/distmer/dev/reference/estimate_nested_variance_components.md)
+  no longer requires a fixed term. The requirement came from a validator
+  shared with the testing path, where it is correct; the estimator
+  itself never used the fixed model. With no fixed terms each stratum is
+  simply left unadjusted, which is the correct pure random-effects
+  decomposition, and the result now reproduces the classical nested
+  analysis-of-variance components exactly.
+- The “Only random effects” section of the random-effects vignette
+  previously claimed an error was thrown but illustrated it with
+  `~ (1 + period)`, which parses as a *fixed* term and would not have
+  errored. It now shows the real refusal and the variance-component
+  route.
+
+### Removal of abandoned internal helpers
+
+- Six never-called internal functions (`.fix1_partial_term`,
+  `.fix2_distinct_perms`, `.fix3_confounded`, `.fix3_no_test_row`,
+  `.fix4_classify_grouping`, `.fix5_no_fixed_message`) have been
+  deleted. Each duplicated a policy the live code already implements, in
+  most cases less safely: the grouping classifier counted distinct
+  levels per group where the live classifier uses projection ranks, and
+  the no-test table row used column names that do not match any table
+  the package builds.
+
+### Capability registry completeness
+
+- The registry returned by
+  [`permanova_capabilities()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_capabilities.md)
+  was missing five routable engines (`permanova_mixed_covariate`,
+  `permanova_unbalanced_splitplot`, `permanova_nested_covariate`,
+  `permanova_asymmetric_mixed`, and
+  `permanova_random_slope_continuous`). All are now registered, along
+  with the new multi-level nested engine, and `inst/SUPPORT-MATRIX.md`
+  names each one.
+- A release-audit test now reads the engine names out of
+  [`permanova()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova.md)’s
+  own dispatcher and fails if any routable engine is absent from the
+  registry, so the contract cannot drift again. The registry-size checks
+  in the validation harness and unit tests no longer pin an exact count.
+
+### Documentation
+
+- The random-effects vignette gains two sections. “Nested hierarchies
+  with unequal effort” works a `(1 | region/site/quadrat)` survey in
+  which quadrat effort differs between survey rounds, showing each fixed
+  term being tested at the level where it varies and explaining what a
+  centroid means when effort is unequal. “What a permutation design can
+  and cannot resolve” uses the same fit to show a restricted scheme
+  attaining 576 arrangements but only 18 distinct pseudo-F values, so
+  that the p-value cannot fall below 0.056 whatever the effect size –
+  and points at
+  [`` ?`distmer-options` ``](https://marine-ecologist.github.io/distmer/dev/reference/distmer-options.md)
+  for the reporting level.
+- Neither the multi-level nested engine nor the resolution diagnostic
+  had any user-facing documentation before this.
+- The same vignette now opens with two scope tables: the random
+  structures that are covered, with what each fixed term is tested
+  against, and those that are not yet covered, with what to reach for
+  instead. The boundary is two independent random structures at once –
+  one hierarchy of any depth is well covered, but a slope alongside
+  another random term, or two crossed hierarchies, are not. Crossed
+  random factors are listed as a partial case: the pseudo-F, EMS and
+  variance components are available, only the permutation p-value is
+  not.
+
 ## distmer 0.9.2
 
 Version 0.9.2 consolidates the complete post-0.9.1 development tree: the

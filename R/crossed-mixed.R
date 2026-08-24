@@ -373,7 +373,7 @@ quasi_denominator <- function(numerator_ems, denominator_ems, mean_squares, dfs,
   numerator <- permutation_structure$numerator
   denominator <- permutation_structure$denominator
   observed_denominator <- denominator$ms
-  if (abs(observed_denominator) <= tol) {
+  if (.mean_square_is_zero(observed_denominator, design$G, tol)) {
     stop("The treatment-by-block denominator mean square is numerically zero.",
          call. = FALSE)
   }
@@ -391,15 +391,8 @@ quasi_denominator <- function(numerator_ems, denominator_ems, mean_squares, dfs,
     },
     label = "Permuting intact treatment cells within blocks"
   )
-  p_value <- NA_real_
-  if (length(statistics)) {
-    extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
-    p_value <- if (plan$exact) {
-      extreme / length(statistics)
-    } else {
-      (extreme + 1) / (length(statistics) + 1)
-    }
-  }
+  inference <- .permutation_inference(statistics, observed, plan$exact, tol)
+  p_value <- inference$p_value
   list(observed = observed, statistics = statistics, p_value = p_value)
 }
 

@@ -300,7 +300,7 @@ derive_hybrid_ems <- function(design, tol = 1e-10) {
 .hybrid_permutation_statistics <- function(design, structure, plan, tol) {
   numerator <- structure$strata$treatment
   denominator <- structure$strata$`treatment:region`
-  if (abs(denominator$ms) <= tol) {
+  if (.mean_square_is_zero(denominator$ms, design$G, tol)) {
     stop("The treatment-by-region denominator mean square is numerically zero.",
          call. = FALSE)
   }
@@ -317,15 +317,8 @@ derive_hybrid_ems <- function(design, tol = 1e-10) {
     },
     label = "Permuting intact treatment profiles within regions"
   )
-  p_value <- NA_real_
-  if (length(statistics)) {
-    extreme <- sum(statistics >= observed - tol, na.rm = TRUE)
-    p_value <- if (plan$exact) {
-      extreme / length(statistics)
-    } else {
-      (extreme + 1) / (length(statistics) + 1)
-    }
-  }
+  inference <- .permutation_inference(statistics, observed, plan$exact, tol)
+  p_value <- inference$p_value
   list(observed = observed, statistics = statistics, p_value = p_value)
 }
 

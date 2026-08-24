@@ -1,7 +1,7 @@
 Package: distmer
 Type: Package
 Title: Transparent Distance-Based Models for Ecological Communities
-Version: 0.9.2
+Version: 0.9.4
 Authors@R: person("Roff", "George", email = "groff@reefresearch.org", role = c("aut", "cre"))
 URL: https://marine-ecologist.github.io/distmer/, https://github.com/marine-ecologist/distmer
 BugReports: https://github.com/marine-ecologist/distmer/issues

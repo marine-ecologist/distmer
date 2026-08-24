@@ -13,6 +13,7 @@ experimental units, nesting, blocks, repeated observations, and random
 slopes:
 
 ``` r
+
 distance ~ treatment + (1 | site)
 ```
 
@@ -35,6 +36,7 @@ mixed-model counterparts
 Install the development version from GitHub:
 
 ``` r
+
 remotes::install_github("marine-ecologist/distmer")
 ```
 
@@ -53,6 +55,7 @@ to test whether an insecticide (chlorpyrifos) treatment altered aquatic
 invertebrate community composition:
 
 ``` r
+
 library(distmer)
 library(vegan)
 
@@ -63,7 +66,7 @@ week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
 dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
 
 pyr.env <- data.frame(ditch, week, dose)
-pyr.bray <- vegdist(pyrifos)  
+pyr.bray <- vegdist(pyrifos)
 
 fit <- permanova(
   pyr.bray ~ dose,
@@ -85,6 +88,7 @@ For a repeated or grouped field design, add the independent sampling
 unit in the same way as a mixed-effects model:
 
 ``` r
+
 fit2 <- permanova(
   pyr.bray ~ dose + (1 | ditch),
   data = pyr.env,
@@ -100,6 +104,7 @@ summary(fit2)
 Pairwise contrasts (treatments and custom contrasts) can also be tested:
 
 ``` r
+
 permanova_contrasts(fit1, type = "pairwise")
 ```
 
@@ -110,6 +115,7 @@ dispersion. The dispersion companion uses the same formula-and-data
 style:
 
 ``` r
+
 permanova_dispersion(
    pyr.bray ~ ditch ,
   data = pyr.env,
@@ -142,20 +148,20 @@ implementation details.
 
 ### vignettes
 
-1.  [`vignette("getting-started", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/getting-started.md)
+1.  [`vignette("getting-started", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/getting-started.html)
     — the distance-based mixed-model idea and a first analysis.
-2.  [`vignette("random-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/random-effects.md)
+2.  [`vignette("random-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/random-effects.html)
     — repeated sites, nested sampling, blocks, hybrids, and random
     slopes.
-3.  [`vignette("dispersion", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/dispersion.md)
+3.  [`vignette("dispersion", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/dispersion.html)
     — distance geometry and multivariate dispersion.
-4.  [`vignette("contrasts", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/contrasts.md)
+4.  [`vignette("contrasts", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/contrasts.html)
     — planned comparisons, pairwise tests, and multiplicity control.
-5.  [`vignette("fixed-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/fixed-effects.md)
+5.  [`vignette("fixed-effects", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/fixed-effects.html)
     — Type I, II, and III fixed-effect questions.
-6.  [`vignette("atypical-distance-matrices", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/atypical-distance-matrices.md)
-    — Atypical distance matrices.
-7.  [`vignette("validation", package = "distmer")`](https://marine-ecologist.github.io/distmer/dev/articles/validation.md)
+6.  `vignette("atypical-distance-matrices", package = "distmer")` —
+    Atypical distance matrices.
+7.  [`vignette("validation", package = "distmer")`](https://marine-ecologist.github.io/distmer/articles/validation.html)
     — reference agreement, simulations, and reproducible reporting.
 
 ### Checks:
@@ -201,6 +207,8 @@ and
   : Derive estimable hypotheses for an unbalanced fixed model
 - [`distance_diagnostics()`](https://marine-ecologist.github.io/distmer/dev/reference/distance_diagnostics.md)
   : Diagnose the Euclidean spectrum of a dissimilarity
+- [`distmer-options`](https://marine-ecologist.github.io/distmer/dev/reference/distmer-options.md)
+  : Options that change how distmer reports
 - [`estimate_hybrid_variance_components()`](https://marine-ecologist.github.io/distmer/dev/reference/estimate_hybrid_variance_components.md)
   : Estimate balanced crossed-nested hybrid variance components
 - [`estimate_nested_variance_components()`](https://marine-ecologist.github.io/distmer/dev/reference/estimate_nested_variance_components.md)
@@ -224,8 +232,12 @@ and
   : Report the validated inference support matrix
 - [`permanova_contrasts()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts.md)
   : Contrasts for a fitted PERMANOVA
+- [`permanova_contrasts_within()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_contrasts_within.md)
+  : Pairwise contrasts within the cells of other factors
 - [`permanova_crossed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed.md)
   : Balanced crossed distance-based mixed model
+- [`permanova_crossed_incomplete()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_crossed_incomplete.md)
+  : Crossed mixed PERMANOVA for incomplete, unequally replicated designs
 - [`permanova_dispersion()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_dispersion.md)
   : Design-aware multivariate dispersion inference
 - [`permanova_fixed()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_fixed.md)
@@ -276,6 +288,8 @@ and
   : Unbalanced nested top-unit PERMANOVA
 - [`permanova_unbalanced_nested_lower()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_lower.md)
   : Lower-level unbalanced nested PERMANOVA
+- [`permanova_unbalanced_nested_multi()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_nested_multi.md)
+  : Multi-level unbalanced nested PERMANOVA
 - [`permanova_unbalanced_splitplot()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unbalanced_splitplot.md)
   : Unbalanced multi-factor split-plot PERMANOVA
 - [`permanova_unequal_random_intercept()`](https://marine-ecologist.github.io/distmer/dev/reference/permanova_unequal_random_intercept.md)
@@ -288,6 +302,8 @@ and
   : Run the deterministic validation suite
 - [`simulate_adjusted_contrast_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_adjusted_contrast_validation.md)
   : Validate explicitly covariate-adjusted contrasts
+- [`simulate_asymmetric_mixed_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_asymmetric_mixed_validation.md)
+  : Validate the asymmetric nested mixed engine
 - [`simulate_balanced_mixed()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_balanced_mixed.md)
   : Simulate a balanced random-intercept community design
 - [`simulate_contrast_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_contrast_validation.md)
@@ -306,14 +322,20 @@ and
   : Validate global-null max-F multiplicity control
 - [`simulate_mixed_contrast_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_contrast_validation.md)
   : Validate mixed-design planned contrasts
+- [`simulate_mixed_covariate_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_covariate_validation.md)
+  : Validate the balanced split-plot mixed engine
 - [`simulate_mixed_maxT_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_maxT_validation.md)
   : Validate mixed-design global-null max-F inference
 - [`simulate_mixed_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_mixed_validation.md)
   : Run mixed-model operating-characteristic simulations
+- [`simulate_nested_covariate_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_covariate_validation.md)
+  : Validate the covariate-adjusted balanced nested engine
 - [`simulate_nested_level_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_level_validation.md)
   : Validate level-specific balanced nested inference
 - [`simulate_nested_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_nested_validation.md)
   : Validate balanced nested mixed-model Type I error
+- [`simulate_random_slope_continuous_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_random_slope_continuous_validation.md)
+  : Validate the continuous random-slope engine
 - [`simulate_random_slope_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_random_slope_validation.md)
   : Validate balanced two-condition random-slope inference
 - [`simulate_strong_pairwise_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_strong_pairwise_validation.md)
@@ -326,6 +348,8 @@ and
   : Validate unbalanced nested and randomized-block inference
 - [`simulate_unbalanced_nested_lower_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_nested_lower_validation.md)
   : Validate lower-level unbalanced nested inference
+- [`simulate_unbalanced_splitplot_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_splitplot_validation.md)
+  : Validate the unbalanced split-plot mixed engine
 - [`simulate_unbalanced_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unbalanced_validation.md)
   : Validate unbalanced fixed-effect inference
 - [`simulate_unequal_random_intercept_validation()`](https://marine-ecologist.github.io/distmer/dev/reference/simulate_unequal_random_intercept_validation.md)
@@ -340,17 +364,19 @@ and
 
 ### All vignettes
 
-- [4. Atypical distance
-  matrices](https://marine-ecologist.github.io/distmer/dev/articles/atypical-distance-matrices.md):
-- [5. Pairwise contrasts and multiple
-  comparisons](https://marine-ecologist.github.io/distmer/dev/articles/contrasts.md):
-- [6. Dispersion and distance
-  diagnostics](https://marine-ecologist.github.io/distmer/dev/articles/dispersion.md):
-- [2. Fixed effects and Contrasts (Type
-  I-II-III)](https://marine-ecologist.github.io/distmer/dev/articles/fixed-effects.md):
 - [1. Getting started with
-  distmer](https://marine-ecologist.github.io/distmer/dev/articles/getting-started.md):
+  distmer](https://marine-ecologist.github.io/distmer/dev/articles/1-getting-started.md):
+- [2. Fixed effects and Contrasts (Type
+  I-II-III)](https://marine-ecologist.github.io/distmer/dev/articles/2-fixed-effects.md):
 - [3. Random effects and ecological sampling
-  designs](https://marine-ecologist.github.io/distmer/dev/articles/random-effects.md):
+  designs](https://marine-ecologist.github.io/distmer/dev/articles/3-random-effects.md):
+- [4. Atypical distance
+  matrices](https://marine-ecologist.github.io/distmer/dev/articles/4-atypical-distance-matrices.md):
+- [4. Pairwise contrasts and multiple
+  comparisons](https://marine-ecologist.github.io/distmer/dev/articles/4-contrasts.md):
+- [5. Dispersion and distance
+  diagnostics](https://marine-ecologist.github.io/distmer/dev/articles/5-dispersion.md):
+- [5. Atypical distance
+  matrices](https://marine-ecologist.github.io/distmer/dev/articles/6-atypical-distance-matrices.md):
 - [7. Validation and
-  reproducibility](https://marine-ecologist.github.io/distmer/dev/articles/validation.md):
+  reproducibility](https://marine-ecologist.github.io/distmer/dev/articles/7-comparisons.md):

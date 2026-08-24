@@ -10,7 +10,7 @@
   })
   G <- structure$aggregated$G
   denominator <- trace_hgh(units$H_denominator, G) / units$denominator_df
-  if (!is.finite(denominator) || abs(denominator) <= tol) {
+  if (.mean_square_is_zero(denominator, G, tol)) {
     stop("The experimental-unit residual mean square is numerically zero.",
          call. = FALSE)
   }
@@ -33,8 +33,7 @@
       permuted_denominator <- trace_hgh(
         units$H_denominator, permuted
       ) / units$denominator_df
-      if (!is.finite(permuted_denominator) ||
-          abs(permuted_denominator) <= tol) {
+      if (.mean_square_is_zero(permuted_denominator, permuted, tol)) {
         stop("A permuted experimental-unit residual mean square is numerically zero.",
              call. = FALSE)
       }
@@ -85,10 +84,14 @@ permanova_mixed_maxT <- function(
   if (nrow(joint$statistics)) {
     for (index in seq_len(nrow(contrast_matrix))) {
       raw_extreme <- sum(
-        joint$statistics[, index] >= joint$observed[[index]] - tol
+        joint$statistics[, index] >=
+          joint$observed[[index]] - max(100 * tol, sqrt(.Machine$double.eps)) *
+            max(1, abs(joint$observed[[index]]))
       )
       max_extreme <- sum(
-        joint$maxima >= joint$observed[[index]] - tol
+        joint$maxima >=
+          joint$observed[[index]] - max(100 * tol, sqrt(.Machine$double.eps)) *
+            max(1, abs(joint$observed[[index]]))
       )
       if (plan$exact) {
         raw[[index]] <- raw_extreme / nrow(joint$statistics)

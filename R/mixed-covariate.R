@@ -210,8 +210,24 @@ permanova_mixed_covariate <- function(design, permutations = 999L, seed = NULL,
     numerator_H <- full$H - reduced$H
     numerator_df <- full$rank - reduced$rank
     if (numerator_df <= 0L) {
+      # Naming the term alone is misleading: what removes it is the between-unit
+      # part of the covariate terms, which is taken out here so a covariate with
+      # between-unit structure cannot contaminate the whole-plot denominator. An
+      # interaction between this factor and the covariate contributes
+      # (factor indicator) x (per-unit covariate mean) to that space, and when
+      # every unit shares the same covariate mean -- the usual case when the
+      # covariate is really a set of occasions every unit was measured at --
+      # that is exactly the factor itself, so nothing is left to test.
+      spanning <- labels[term_has_covariate &
+                           vapply(term_variables, function(v) term %in% v, logical(1))]
+      hint <- if (length(spanning)) {
+        paste0(" Its between-unit space is taken up by `",
+               paste(spanning, collapse = "`, `"),
+               "`. If the covariate marks discrete occasions rather than a ",
+               "measured gradient, declare it as a factor.")
+      } else ""
       stop("Between-unit term `", term, "` is not estimable for Type ",
-           hypothesis, " inference.", call. = FALSE)
+           hypothesis, " inference.", hint, call. = FALSE)
     }
     numerator_ss <- trace_hgh(numerator_H, G)
     numerator_ms <- numerator_ss / numerator_df
@@ -310,7 +326,7 @@ permanova_mixed_covariate <- function(design, permutations = 999L, seed = NULL,
     ),
     permutation = list(
       algorithm = "term-specific Freedman-Lane permutation, covariate held in the reduced model",
-      used = max(vapply(specs, `[[`, numeric(1), "permutations_used")),
+      used = max(vapply(specs, `[[`, numeric(1), "permutations_used"), 0),
       seed = seed
     )
   )
@@ -333,12 +349,8 @@ permanova_mixed_covariate <- function(design, permutations = 999L, seed = NULL,
       plan$orders, index = plan$index,
       label = paste0("Permuting term `", item$term, "`"), tol = tol
     )
-    p_value <- NA_real_
-    if (length(permuted)) {
-      extreme <- sum(permuted >= item$statistic - tol, na.rm = TRUE)
-      p_value <- if (plan$exact) extreme / length(permuted) else
-        (extreme + 1) / (length(permuted) + 1)
-    }
+    inference <- .permutation_inference(permuted, item$statistic, plan$exact, tol)
+    p_value <- inference$p_value
     spec <- list(
       term = item$term, kind = item$kind,
       numerator = list(ss = item$numerator_ss, df = item$numerator_df,
