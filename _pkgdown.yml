@@ -65,10 +65,10 @@ navbar:
         - text: "3. Random effects and ecological sampling designs"
           href: articles/3-random-effects.html
         - text: "4. Pairwise contrasts and multiple comparisons"
-          href: articles/5-contrasts.html
+          href: articles/4-contrasts.html
         - text: "5. Dispersion and distance diagnostics"
-          href: articles/6-dispersion.html
+          href: articles/5-dispersion.html
         - text: "6. Atypical distance matrices"
-          href: articles/atypical-distance-matrices.html
+          href: articles/6-atypical-distance-matrices.html
         - text: "7. distmer with published datasets"
           href: articles/7-comparisons.html

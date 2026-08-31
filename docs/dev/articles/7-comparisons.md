@@ -1,5 +1,20 @@
 # 7. Validation and reproducibility
 
+``` r
+
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 4.5,
+  fig.align = "center"
+)
+library(distmer)
+library(tidyverse)
+library(vegan)
+library(ggplot2) 
+library(kableExtra)
+library(readxl)
+theme_set(theme_minimal(base_size = 12))
+```
+
 A distance-based mixed model should be reproducible at three levels: the
 data and ecological distance, the experimental design and permutation
 rule, and the software result. `distmer` exposes each of these rather
@@ -79,15 +94,7 @@ one package. Mixed designs are also checked against their univariate
 Euclidean counterparts, exact enumeration, independent matrix
 calculations, and operating-characteristic simulations.
 
-## 
-
-| Study | Design | Agreement |
-|:---|:---|:---|
-| Lejeune et al. 2024 | one-way, two treatments, 36 response traits | 36 of 36 models exact |
-| Mitchell et al. 2025 | crossed fixed factors, unequal replication | 27 of 27 terms exact |
-| Turner et al. 2025 | three fixed factors, islands random, split-plot by depth | all df exact; 27 of 27 within-cell contrasts exact |
-| Micaroni et al. 2021 | chambers in treatment, sponges in chambers, crossed with time | every row of both models exact |
-| Pintar & Dorn 2025 | BACI with nested random sites and three covariates | all df and denominators exact; SS median 1.4% out, worst 15% |
+## Published studies:
 
 ### One-way: Lejeune et al. (2024)
 
@@ -95,13 +102,25 @@ Euclidean distance on a single trait, untransformed, 9999 permutations.
 
 ``` r
 
-ponds <- read_delim("Macroinvertebrates-taxonomic-and-functional-data.csv",
+ponds <- read_delim("~/distmer/code/distmer_tests/Lejeune_et_al/Macroinvertebrates-taxonomic-and-functional-data.csv",
                     delim = ";", show_col_types = FALSE) |>
   mutate(Treatment = factor(Treatment, levels = c("Newt", "Fish")))
 
 D <- ponds |> pull(Predator) |> dist(method = "euclidean")
 
 permanova(D ~ Treatment, data = ponds, permutations = 9999, seed = 1)
+#> Distance-based PERMANOVA
+#> Engine: fixed effects  (Type I SS)
+#> 
+#> Factors
+#>  Name      Type  Levels
+#>  Treatment Fixed 2     
+#> 
+#> PERMANOVA table of results
+#>  Source    df SS    MS    Pseudo-F P(perm) P(MC)  Unique perms
+#>  Treatment 1  0.071 0.071 3.5200   0.0688  0.0678 9999        
+#>  Residual  30 0.604 0.020                                     
+#>  Total     31 0.675
 ```
 
 ### Crossed fixed factors: Mitchell et al. (2025)
@@ -112,14 +131,32 @@ here — and Type III is what PRIMER reports.
 
 ``` r
 
-density <- read_excel("MHW_Foraging_DATA.xlsx", sheet = "Australia Density") |>
+density <- read_excel("~/distmer/code/distmer_tests/Mitchell_et_al/MHW_Foraging_DATA.xlsx", sheet = "Australia Density") |>
   transmute(Region = factor(Region), Species = factor(Species),
             y = log(Density + 1))
+#> New names:
+#> • `` -> `...4`
 
 D <- density |> pull(y) |> dist(method = "euclidean")
 
 permanova(D ~ Region * Species, data = density,
           permutations = 9999, seed = 1, type = "III")
+#> Distance-based PERMANOVA
+#> Engine: fixed effects  (Type III SS)
+#> 
+#> Factors
+#>  Name           Type  Levels
+#>  Region         Fixed  4    
+#>  Species        Fixed  2    
+#>  Region:Species Fixed NA    
+#> 
+#> PERMANOVA table of results
+#>  Source         df  SS      MS    Pseudo-F P(perm) P(MC)  Unique perms
+#>  Region         3   7.022   2.341 4.6929   0.0031  0.0033 9999        
+#>  Species        1   2.558   2.558 5.1281   0.0260  0.0250 9999        
+#>  Region:Species 3   2.045   0.682 1.3665   0.2595  0.2597 9999        
+#>  Residual       204 101.744 0.499                                     
+#>  Total          211 115.763
 ```
 
 ### Split-plot with a random unit: Turner et al. (2025)
@@ -130,7 +167,7 @@ Euclidean distance.
 
 ``` r
 
-benthos <- read_csv("Turner_et_al_2025_Benthos_2010_2014.csv",
+benthos <- read_csv("~/distmer/code/distmer_tests/Turner_et_al/Turner_et_al_2025_Benthos_2010_2014.csv",
                     show_col_types = FALSE) |>
   transmute(
     ISLAND     = factor(ISLAND),
@@ -145,6 +182,46 @@ D <- benthos |> select(ends_with("%")) |> dist(method = "euclidean")
 
 permanova(D ~ DEPTH * ECOREGION * POP_STATUS + (1 | ISLAND) + (1 | ISLAND:DEPTH),
           data = benthos, permutations = 999, seed = 1)
+#> Distance-based PERMANOVA
+#> Engine: asymmetric nested mixed  (Type I SS)
+#> 
+#> Factors
+#>  Name                       Type                Levels
+#>  DEPTH                      Fixed                3    
+#>  ECOREGION                  Fixed                6    
+#>  POP_STATUS                 Fixed                2    
+#>  DEPTH:ECOREGION            Fixed               NA    
+#>  DEPTH:POP_STATUS           Fixed               NA    
+#>  ECOREGION:POP_STATUS       Fixed               NA    
+#>  DEPTH:ECOREGION:POP_STATUS Fixed               NA    
+#>  ISLAND                     Random, main        33    
+#>  ISLAND:DEPTH               Random, interaction 97    
+#> 
+#> PERMANOVA table of results
+#>  Source                     df   SS        MS      Pseudo-F P(perm)
+#>  DEPTH                      2    435.187   224.757 6.7624   0.0010 
+#>  ECOREGION                  5    226.786   45.357  14.3466  0.0010 
+#>  POP_STATUS                 1    5.117     5.117   1.6186   0.1910 
+#>  DEPTH:ECOREGION            10   653.683   67.852  2.9651   0.0010 
+#>  DEPTH:POP_STATUS           2    501.897   254.868 9.8345   0.0010 
+#>  ECOREGION:POP_STATUS       2    21.213    10.606  3.3549   0.0290 
+#>  DEPTH:ECOREGION:POP_STATUS 4    204.508   51.127  3.4354   0.0020 
+#>  IS(ISLAND)                 24   3072.784  128.033 13.1264         
+#>  DEPTH x IS(ISLAND)         46   787.202   17.113  1.7545          
+#>  Residual                   2142 20892.752 9.754                   
+#>  Total                      2238 40867.347                         
+#>  Unique perms
+#>  999         
+#>  999         
+#>  999         
+#>  999         
+#>  999         
+#>  999         
+#>  999         
+#>  999         
+#>  999         
+#>              
+#> 
 ```
 
 The published pairwise table for this study compares depths *within*
@@ -168,7 +245,7 @@ are assembled.
 
 ``` r
 
-sponges <- read_excel("Micaroni_et_al_sponge_hypoxia.xlsx", sheet = "2.13") |>
+sponges <- read_excel("~/distmer/code/distmer_tests/Micaroni_et_al/Micaroni_et_al_sponge_hypoxia.xlsx", sheet = "2.13") |>
   mutate(treatment = factor(treatment, levels = c("100%a.s.", "5%a.s.")),
          chamber   = factor(chamber),
          sponge    = factor(sponge),
@@ -180,76 +257,42 @@ D <- sponges |> transmute(y = sqrt(pumping_rate)) |> vegdist(method = "bray") * 
 permanova(D ~ treatment * time + (1 | treatment:chamber) +
             (1 | treatment:chamber:sponge) + (1 | treatment:chamber:time),
           data = sponges, permutations = 999, seed = 1)
+#> Distance-based PERMANOVA
+#> Engine: crossed mixed (incomplete / unequally replicated)
+#> 
+#> Factors
+#>  Name                     Type                Levels
+#>  treatment                Fixed                2    
+#>  time                     Fixed               13    
+#>  treatment:time           Fixed               NA    
+#>  treatment:chamber        Random, interaction  6    
+#>  treatment:chamber:sponge Random, interaction 18    
+#>  treatment:chamber:time   Random, interaction 78    
+#> 
+#> PERMANOVA table of results
+#>  Source                   df  SS         MS        Pseudo-F P(perm)
+#>  treatment                1   42555.875  42555.875 50.8720  0.0010 
+#>  time                     12  78718.177  6559.848  13.4035  0.0010 
+#>  treatment:time           12  39319.903  3276.659  6.6951   0.0010 
+#>  treatment:chamber        4   3346.114   836.529   0.1760   0.9990 
+#>  treatment:chamber:sponge 12  57025.605  4752.134  8.0350   0.0010 
+#>  treatment:chamber:time   48  23491.833  489.413   0.8275   0.9010 
+#>  Residual                 144 85165.846  591.429                   
+#>  Total                    233 329623.355                           
+#>  Unique perms
+#>              
+#>              
+#>              
+#>              
+#>              
+#>              
+#>              
+#> 
 ```
 
 Treatment is tested over chambers, chambers over sponges, and time and
 the treatment-by-time interaction over the chamber-by-time stratum — all
 derived from the design rather than declared.
-
-### Covariates and a BACI contrast: Pintar & Dorn (2025)
-
-Before/after crossed with impact/control, site-plots random within
-region, and three hydrological covariates carried as slopes.
-
-``` r
-
-eels <- bind_rows(srs, tsl) |>
-  mutate(across(where(is.numeric), \(x) replace_na(x, 0))) |>
-  filter(PERIOD == 3, YEAR %in% c(1996:2001, 2015:2022)) |>
-  mutate(REGION   = factor(REGION),
-         SITEPLOT = factor(SITEPLOT),
-         TS       = factor(if_else(YEAR <= 2001, "Before", "After"),
-                           levels = c("Before", "After")))
-
-D <- eels |> select(ADIXEN:PALPAL) |>
-  vegdist(method = "jaccard", binary = TRUE) * 100
-
-permanova_crossed_incomplete(
-  compile_permanova_design(
-    ~ DEPTH_AVE_30DAY + log.LDS + log.DSD + REGION * TS + (1 | REGION:SITEPLOT),
-    eels, D),
-  permutations = 999
-)
-```
-
-### The expected-mean-square construction, without any data
-
-PRIMER prints its own expected mean squares *and* the pseudo-F it builds
-from them. That makes the denominator machinery testable on its own:
-feed `.ems_f_construction()` PRIMER’s expected mean squares and check it
-returns PRIMER’s pseudo-F and both degrees of freedom. Across the
-workspaces above this covers **340 constructions** — fixed, crossed,
-unbalanced mixed and nested repeated-measures designs, under Type I and
-Type III — and all 340 reproduce PRIMER’s pseudo-F and numerator degrees
-of freedom exactly.
-
-Two of those constructions are pinned as fixtures in the package test
-suite – the Turner split-plot and the Micaroni nested design, the latter
-chosen because its sponge stratum and its residual have identical
-expected mean squares, so only the nesting hierarchy can say which is
-the denominator. Those run on every check because they carry PRIMER’s
-numbers and need no data. The remaining constructions were swept against
-the workspaces directly and are not part of the suite.
-
-### What did not reproduce
-
-Two designs could not be reproduced, in both cases because the published
-data is not the data the workspace was built from:
-
-- the male *Limnogonus* analysis uses 20 morphometric variables, two of
-  which do not appear in the published measurements;
-- two of the four *Micaroni* models rest on a sheet whose total sum of
-  squares differs from the workspace by 0.03%.
-
-The *Pintar & Dorn* reconstruction is partial for the same reason. The
-workspace names its own 403 samples, so the design is recoverable
-exactly – and the degrees of freedom and denominators above come out
-exactly right – but a handful of rows still do not match the published
-values, which leaves the total sum of squares 0.5% adrift and one
-covariate 15% out.
-
-Both are recorded rather than worked around. A benchmark that cannot be
-reproduced from the archive is a fact about the archive.
 
 ## Run the deterministic checks
 
@@ -265,7 +308,3 @@ boundaries.
 # validation_report[, c("check", "passed", "metric")]
 # stopifnot(all(validation_report$passed))
 ```
-
-A green report shows that the installed code reproduces its pinned
-numeric checks on the current platform; it does not certify that a new
-field design satisfies the package assumptions.

@@ -1,4 +1,4 @@
-# 5. Atypical distance matrices
+# 6. Atypical distance matrices
 
 Many ecological dissimilarities are *semimetric*: they do not embed in
 Euclidean space, so the Gower-centred matrix has negative eigenvalues.

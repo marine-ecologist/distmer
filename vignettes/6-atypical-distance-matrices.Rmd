@@ -1,5 +1,5 @@
 ---
-title: "5. Atypical distance matrices"
+title: "6. Atypical distance matrices"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{4. Atypical distance matrices}

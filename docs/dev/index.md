@@ -40,7 +40,7 @@ Install the development version from GitHub:
 remotes::install_github("marine-ecologist/distmer")
 ```
 
-`distmer` is currently on the `0.9.2` pre-release line leading to a
+`distmer` is currently on the `0.9.4` pre-release line leading to a
 stable `1.0.0` release.
 
 ### Usage:
