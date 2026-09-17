@@ -19,7 +19,7 @@ template:
       </script>
 
 development:
-  mode: devel
+  mode: auto
 
 navbar:
   structure:

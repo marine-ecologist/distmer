@@ -10,7 +10,11 @@ vignette: >
 ```{r setup, include=TRUE, message=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 4.5,
-  fig.align = "center"
+  fig.align = "center",
+  # the published-data chunks are slow (Turner alone is several minutes), so
+  # they are cached beside the article; delete this folder to force a re-run,
+  # e.g. after a change to distmer that would alter their output
+  cache.path = "7-comparisons_cache/"
 )
 library(distmer)
 library(tidyverse)
@@ -93,7 +97,7 @@ operating-characteristic simulations.
 
 Euclidean distance on a single trait, untransformed, 9999 permutations.
 
-```{r lejeune, eval=TRUE}
+```{r lejeune, eval=TRUE, cache=TRUE}
 ponds <- read_delim("~/distmer/code/distmer_tests/Lejeune_et_al/Macroinvertebrates-taxonomic-and-functional-data.csv",
                     delim = ";", show_col_types = FALSE) |>
   mutate(Treatment = factor(Treatment, levels = c("Newt", "Fish")))
@@ -109,7 +113,7 @@ permanova(D ~ Treatment, data = ponds, permutations = 9999, seed = 1)
 levels with unequal replication, so Type III and Type II differ here — and
 Type III is what PRIMER reports.
 
-```{r mitchell, eval=TRUE}
+```{r mitchell, eval=TRUE, cache=TRUE}
 density <- read_excel("~/distmer/code/distmer_tests/Mitchell_et_al/MHW_Foraging_DATA.xlsx", sheet = "Australia Density") |>
   transmute(Region = factor(Region), Species = factor(Species),
             y = log(Density + 1))
@@ -125,7 +129,7 @@ permanova(D ~ Region * Species, data = density,
 Depth is measured within island, the other two factors between islands, so the
 design carries three error strata. Square-root transform, Euclidean distance.
 
-```{r turner, eval=TRUE}
+```{r turner, eval=TRUE, cache=TRUE}
 benthos <- read_csv("~/distmer/code/distmer_tests/Turner_et_al/Turner_et_al_2025_Benthos_2010_2014.csv",
                     show_col_types = FALSE) |>
   transmute(
@@ -160,7 +164,7 @@ than `chamber` — is what lets the model see that chamber sits inside treatment
 and it is what separates a nested random effect from a genuine interaction when
 the expected mean squares are assembled.
 
-```{r micaroni, eval=TRUE}
+```{r micaroni, eval=TRUE, cache=TRUE}
 sponges <- read_excel("~/distmer/code/distmer_tests/Micaroni_et_al/Micaroni_et_al_sponge_hypoxia.xlsx", sheet = "2.13") |>
   mutate(treatment = factor(treatment, levels = c("100%a.s.", "5%a.s.")),
          chamber   = factor(chamber),

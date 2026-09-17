@@ -16,3 +16,4 @@ code/
 ^pkgdown$
 ^_pkgdown\.yml$
 ^codecov\.yml$
+^vignettes/articles$
