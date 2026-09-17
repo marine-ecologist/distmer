@@ -2,7 +2,7 @@
 title: "5. Dispersion and distance diagnostics"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{6. Dispersion and distance diagnostics}
+  %\VignetteIndexEntry{5. Dispersion and distance diagnostics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -2,7 +2,7 @@
 title: "4. Pairwise contrasts and multiple comparisons"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{5. Pairwise contrasts and multiple comparisons}
+  %\VignetteIndexEntry{4. Pairwise contrasts and multiple comparisons}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
